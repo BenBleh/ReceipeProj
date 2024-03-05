@@ -19,9 +19,9 @@ namespace RecipeAPI.Controllers
         }
 
         [HttpGet(Name = "GetRecipeList")]
-        public MasterRecipeList Get()
+        public List<RecipeListItem> Get()
         {
-            return _recipeAccess.GetRecipes();
+            return _recipeAccess.GetRecipes().Recipes;
         }
     }
 }

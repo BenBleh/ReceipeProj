@@ -1,10 +1,48 @@
-import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+
+interface RecipeListItem {
+  id: string;
+  title: string;
+  
+}
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
-  title = 'RecipeSite';
+export class AppComponent implements OnInit {
+  public recipes: RecipeListItem[] = [];
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    this.getRecipeList();
+  }
+
+  getRecipeList()
+  {
+    this.http.get<RecipeListItem[]>('https://localhost:7087/MasterRecipeList').subscribe
+      (
+
+        (result) => {
+          console.log(result);
+
+
+          this.recipes = result;
+
+
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+    
+
+  }
+
+  
+
+  title = 'RecipieSite';
 }
