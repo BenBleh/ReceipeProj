@@ -34,6 +34,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
         Recipe IRecipeAccess.GetRecipe(string id)
         {
             Recipe? recipe;
+            CheckFileExists(ConfigurationHelper.Instance.RecipeFilePathValue + id + ".json");
             string jsonString = File.ReadAllText(ConfigurationHelper.Instance.RecipeFilePathValue + id + ".json");
             if (!string.IsNullOrEmpty(jsonString))
             {
@@ -52,7 +53,9 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             try
             {
                 recipe.Id = Id;
-                
+
+                CheckFileExists(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json");
+
                 //write to file
                 string jsonString = JsonSerializer.Serialize(recipe);
 
@@ -104,6 +107,14 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             using (StreamWriter sw = File.AppendText(ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv"))
             {
                 sw.WriteLine(id + "," + title);
+            }
+        }
+
+        private void CheckFileExists(string filepath) 
+        {
+            if(!File.Exists(filepath)) 
+            {
+                throw new Exception("File could not be found");
             }
         }
     }

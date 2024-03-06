@@ -1,0 +1,62 @@
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+
+export interface Recipe {
+  id: string;
+  title: string;
+  timeToComplete: string;
+  notes: string;
+  imgId: string;
+  steps: Step[];
+  ingredients: Ingredient[];
+}
+
+export interface Ingredient {
+  description: string;
+  qty: string;
+  unit: string;
+}
+
+export interface Step {
+  num: number;
+  instructions: string;
+  imgId: null;
+}
+
+
+
+@Component({
+  selector: 'app-recipe-view',
+  templateUrl: './recipe-view.component.html',
+  styleUrl: './recipe-view.component.css'
+})
+export class RecipeViewComponent implements OnInit {
+
+  recipe: Recipe | undefined;
+
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient
+  ) { }
+  
+  ngOnInit() {
+    // First get the product id from the current route.
+    const routeParams = this.route.snapshot.paramMap;
+    const IdFromRoute = routeParams.get('recipeId');
+
+    // Find the recipe that correspond with the id provided in route.
+
+    let path:string = 'https://localhost:7087/Recipe/' + IdFromRoute;
+
+    this.http.get<Recipe>(path).subscribe(
+      (result) =>
+      {
+        this.recipe = result;
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  }
+}

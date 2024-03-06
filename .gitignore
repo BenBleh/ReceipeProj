@@ -121,3 +121,4 @@ RecipeAPI.csproj.nuget.g.props
 RecipeAPI.csproj.nuget.g.targets
 project.assets.json
 project.nuget.cache
+/.vs/RecipeProj/FileContentIndex/*.vsidx

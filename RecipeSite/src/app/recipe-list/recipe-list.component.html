@@ -3,5 +3,9 @@
 
 <tr *ngFor="let recipe of recipes">
   <td>{{ recipe.id }}</td>
-  <td>{{ recipe.title}}</td>
+  <td>
+  <a [title] ="recipe.title"
+     [routerLink]="['/recipe',recipe.id]"
+     >{{ recipe.title}}</a>
+  </td>
 </tr>
