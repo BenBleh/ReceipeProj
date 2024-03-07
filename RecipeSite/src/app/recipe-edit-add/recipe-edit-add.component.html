@@ -1,41 +1,42 @@
-<p>recipe-edit-add works!</p>
 
-<p>Mode: {{isEdit ? 'Edit' : 'Add'}}</p>
+<h2>Mode: {{isEdit ? 'Edit' : 'Add'}}</h2>
+<div>
 
-
-<form action="" method="">
-  <div>
-    <fieldset>
-      <legend></legend>
-      <div class="form-group">
-        <label for="exampleTextarea">id</label>
-        <input class="form-control" type="text" placeholder="id" />
-      </div>
-      <div class="form-group">
-        <label for="exampleTextarea">title</label>
-        <input class="form-control" type="text" placeholder="title" />
-      </div>
-      <div class="form-group">
-        <label for="exampleTextarea">timeToComplete</label>
-        <input class="form-control" type="text" placeholder="timeToComplete" />
-      </div>
-      <div class="form-group">
-        <label for="exampleTextarea">notes</label>
-        <input class="form-control" type="text" placeholder="notes" />
+  <!--do this tomorrow
+  https://blog.angular-university.io/angular-form-array/-->
+  <form>
+    <div class="form-group">
+      <div class="row">
+        <div class="col-sm">
+          <label for="exampleTextarea">Title</label>
+          <input class="form-control" type="text" placeholder="title" />
+        </div>
+        <div class="col-sm">
+          <label for="exampleTextarea">timeToComplete</label>
+          <input class="form-control" type="text" placeholder="timeToComplete" />
+        </div>
+        <div class="col-sm">
+          <label for="exampleTextarea">notes</label>
+          <input class="form-control" type="text" placeholder="notes" />
+        </div>
       </div>
       <div class="form-group">
         <label for="exampleTextarea">imgId</label>
         <input class="form-control" type="text" placeholder="imgId" />
       </div>
-      <div class="form-group">
-        <label for="exampleTextarea">steps</label>
-        <input class="form-control" type="text" placeholder="steps" />
-      </div>
+
       <div class="form-group">
         <label for="exampleTextarea">ingredients</label>
         <input class="form-control" type="text" placeholder="ingredients" />
       </div>
-    </fieldset>
-  </div>
 
-</form>
+      <div class="form-group">
+        <label for="exampleTextarea">steps</label>
+        <input class="form-control" type="text" placeholder="steps" />
+      </div>
+
+
+    </div>
+
+  </form>
+</div>
