@@ -17,5 +17,5 @@ export interface Ingredient {
 export interface Step {
   num: number;
   instructions: string;
-  imgId: null;
+  imgId: string;
 }

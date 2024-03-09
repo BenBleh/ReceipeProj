@@ -1,7 +1,3 @@
-
-<h2>Mode: {{isEdit ? 'Edit' : 'Add'}}</h2>
-
-
 <h3>Add Course Lessons:</h3>
 <div class="add-lessons-form">
 
@@ -9,20 +5,25 @@
   <div class="row">
     <div class="col-sm">
       <label for="exampleTextarea">Title</label>
-      <input class="form-control" type="text" placeholder="title" value="{{recipe.title}}"/>
+      <input class="form-control" type="text" placeholder="title" />
     </div>
     <div class="col-sm">
       <label for="exampleTextarea">timeToComplete</label>
-      <input class="form-control" type="text" placeholder="timeToComplete"  value="{{recipe.timeToComplete}}"/>
+      <input class="form-control" type="text" placeholder="timeToComplete" />
     </div>
     <div class="col-sm">
       <label for="exampleTextarea">notes</label>
-      <input class="form-control" type="text" placeholder="notes" value="{{recipe.notes}}"/>
+      <input class="form-control" type="text" placeholder="notes" />
     </div>
   </div>
   <div class="form-group">
     <label for="exampleTextarea">imgId</label>
-    <input class="form-control" type="text" placeholder="imgId" value="{{recipe.imgId}}"/>
+    <input class="form-control" type="text" placeholder="imgId" />
+  </div>
+
+  <div class="form-group">
+    <label for="exampleTextarea">ingredients</label>
+    <input class="form-control" type="text" placeholder="ingredients" />
   </div>
 
   <button (click)="addStep()">
@@ -32,12 +33,11 @@
   <ng-container formArrayName="steps">
     <ng-container *ngFor="let stepForm of steps.controls; let i = index">
       <div class="lesson-form-row">
-        
+        <input type="hidden" name="num" value="'index'">
         <mat-form-field appearance="fill">
           <input matInput
                  formControlName="instructions"
-                 placeholder="instructions"
-               >
+                 placeholder="instructions">
         </mat-form-field>
         <mat-form-field appearance="fill">
           <textarea formControlName="imgId"
@@ -84,4 +84,3 @@
 
 
 </div>
-
