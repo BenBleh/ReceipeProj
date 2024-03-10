@@ -1,57 +1,53 @@
+<!--<h2>Mode: {{isEdit ? 'Edit' : 'Add'}}</h2>
 
-<h2>Mode: {{isEdit ? 'Edit' : 'Add'}}</h2>
 
 
-<h3>Add Course Lessons:</h3>
 <div class="add-lessons-form">
 
 
   <div class="row">
     <div class="col-sm">
       <label for="exampleTextarea">Title</label>
-      <input class="form-control" type="text" placeholder="title" value="{{recipe.title}}"/>
+      <input class="form-control" type="text" placeholder="title" value="{{recipe.title}}" />
     </div>
     <div class="col-sm">
       <label for="exampleTextarea">timeToComplete</label>
-      <input class="form-control" type="text" placeholder="timeToComplete"  value="{{recipe.timeToComplete}}"/>
+      <input class="form-control" type="text" placeholder="timeToComplete" value="{{recipe.timeToComplete}}" />
     </div>
     <div class="col-sm">
       <label for="exampleTextarea">notes</label>
-      <input class="form-control" type="text" placeholder="notes" value="{{recipe.notes}}"/>
+      <input class="form-control" type="text" placeholder="notes" value="{{recipe.notes}}" />
     </div>
   </div>
   <div class="form-group">
     <label for="exampleTextarea">imgId</label>
-    <input class="form-control" type="text" placeholder="imgId" value="{{recipe.imgId}}"/>
-  </div>
+    <input class="form-control" type="text" placeholder="imgId" value="{{recipe.imgId}}" />
+  </div>-->
+<!--<button (click)="addStep()">
+  add step
+</button>
 
-  <button (click)="addStep()">
-    add step
-  </button>
+<ng-container formArrayName="steps">
+  <ng-container *ngFor="let stepForm of steps.controls; let i = index">
+    <div class="lesson-form-row">
 
-  <ng-container formArrayName="steps">
-    <ng-container *ngFor="let stepForm of steps.controls; let i = index">
-      <div class="lesson-form-row">
-        
-        <mat-form-field appearance="fill">
-          <input matInput
-                 formControlName="instructions"
-                 placeholder="instructions"
-               >
-        </mat-form-field>
-        <mat-form-field appearance="fill">
-          <textarea formControlName="imgId"
-                    placeholder="Lesson level">                        
-                    </textarea>
-        </mat-form-field>
-        <button class="delete-btn" (click)="deleteStep(i)">
-          delete Step
-        </button>
-      </div>
-    </ng-container>
+      <mat-form-field appearance="fill">
+        <input matInput
+               formControlName="instructions"
+               placeholder="instructions">
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <textarea formControlName="imgId"
+                  placeholder="Lesson level">
+              </textarea>
+      </mat-form-field>
+      <button class="delete-btn" (click)="deleteStep(i)">
+        delete Step
+      </button>
+    </div>
   </ng-container>
-
-  <button (click)="addIngredient()">
+</ng-container>-->
+<!--<button (click)="addIngredient()">
     add ingredient
   </button>
 
@@ -71,7 +67,7 @@
         </mat-form-field>
         <mat-form-field appearance="fill">
           <textarea formControlName="unit"
-                    placeholder="unit">                        
+                    placeholder="unit">
                   </textarea>
         </mat-form-field>
         <button class="delete-btn" (click)="deleteIngredient(i)">
@@ -83,5 +79,33 @@
 
 
 
-</div>
+</div>-->
 
+
+
+<div *ngIf="form">
+  <form [formGroup]="form">
+    <div formArrayName="stepItems">
+      <div *ngFor="let orgs of form.get('stepItems')?.value;  let i = index"
+           [formGroupName]="i">
+        <input formControlName="num" placeholder="num">
+        <input formControlName="instructions" placeholder="instructions">
+        <input formControlName="imgId" placeholder="img">
+        <!-- <button *ngIf="i !== 0" type="button" (click)="deleteItem(i)">delete Item</button> -->
+      </div>
+      <button type="button" (click)="addStepItem()">Add Item</button>
+    </div>
+
+    <div formArrayName="ingredientItems">
+      <div *ngFor="let orgs of form.get('ingredientItems')?.value;  let i = index"
+           [formGroupName]="i">
+        <input formControlName="description" placeholder="desc">
+        <input formControlName="qty" placeholder="many?">
+        <input formControlName="unit" placeholder="type">
+        <!-- <button *ngIf="i !== 0" type="button" (click)="deleteItem(i)">delete Item</button> -->
+      </div>
+      <button type="button" (click)="addIngredientItem()">Add Item</button>
+    </div>
+  </form>
+  <pre>{{ form.value | json }}</pre>
+</div>
