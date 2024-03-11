@@ -67,13 +67,6 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                 //update master list
                 UpdateMasterList(recipe.Id, recipe.Title);
 
-                if (recipe.ImageData != null)
-                {
-                    WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/',
-                        recipe.Id,
-                        recipe.ImageData                        
-                        );
-                }
             }
             catch(Exception ex) 
             {
@@ -129,6 +122,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             }
         }
 
+        //no longer need this
         private void WriteImage(string filepath, string fileName, string imageData) 
         {
             //process input data

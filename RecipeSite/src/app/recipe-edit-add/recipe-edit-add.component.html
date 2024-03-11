@@ -22,6 +22,10 @@
     </div>
 
 
+    <div ng-app='test' ng-controller='Test'>
+      <img height="150" width="150" src={{form.value.imageData}} />
+    </div>
+
     <input type="file" class="file-input"
            (change)="onFileSelected($event)" #fileUpload>
 
@@ -33,23 +37,37 @@
     </div>
 
 
-    <h3>Steps</h3>
+    <h2>Steps</h2>
 
     <div formArrayName="steps">
       <div *ngFor="let orgs of form.get('steps')?.value;  let i = index; trackBy: trackByFn"
            [formGroupName]="i">
+
+        <h4>Step {{orgs.num}}</h4>
         <div class="row">
-          <div class="col-sm">
-            <label>Step Number</label>
-            <input formControlName="num" placeholder="num" class="form-control">
-          </div>
+          
           <div class="col-sm">
             <label>Instructions</label>
             <input formControlName="instructions" placeholder="instructions" class="form-control">
           </div>
           <div class="col-sm">
-            <label>Step image</label>
-            <input formControlName="ImageData" placeholder="img" class="form-control">
+
+            <div ng-app='test' ng-controller='Test'>
+              <img height="150" width="150" src={{orgs.imageData}} />
+            </div>
+
+
+            <input type="file" class="file-input"
+                   (change)="onStepFileSelected($event, i)" #fileUpload>
+
+            <div class="file-upload">
+              <!--{{fileName || "No file uploaded yet."}}-->
+              <button mat-mini-fab color="primary" class="upload-btn" (click)="fileUpload.click()">
+                <mat-icon>attach_file</mat-icon>
+              </button>
+            </div>
+
+
           </div>
           <div class="col-sm">
             <button *ngIf="i !== 0" (click)="deleteStep(i)">delete Step</button>

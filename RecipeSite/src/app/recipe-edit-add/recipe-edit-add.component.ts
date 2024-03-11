@@ -20,7 +20,6 @@ export class RecipeEditAddComponent implements OnInit {
   payLoad = '';
   recipe: Recipe | undefined;
 
-  fileName = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -46,7 +45,7 @@ export class RecipeEditAddComponent implements OnInit {
         title: this.fb.control(this.model.title),
         timeToComplete: this.fb.control(this.model.timeToComplete),
         notes: this.fb.control(this.model.notes),
-        ImageData: this.fb.control(this.model.ImageData),
+        imageData: this.fb.control(this.model.imageData),
         steps: this.fb.array(
           this.model.steps.map((x: any) =>
             this.buildStepItemsFields(x)
@@ -93,21 +92,23 @@ export class RecipeEditAddComponent implements OnInit {
     return new FormGroup({
       num: new FormControl(x.num),
       instructions: new FormControl(x.instructions),
-      ImageData: new FormControl(x.ImageData),
+      imageData: new FormControl(x.imageData),
     });
   }
 
 
   addStepItem(): void {
     this.model = this.form.get('steps') as FormArray;
-    this.model.push(this.createStepItemField());
+    let length : number = this.model.length;
+    this.model.push(this.createStepItemField(length));
   }
 
-  createStepItemField(): FormGroup {
+  createStepItemField(stepNum: Number): FormGroup {
+
     return this.fb.group({
-      num: '',
+      num: stepNum.toString(),
       instructions: '',
-      ImageData: ''
+      imageData: ''
     });
   }
 
@@ -130,7 +131,7 @@ export class RecipeEditAddComponent implements OnInit {
 
   addIngredientItem(): void {
     this.model = this.form.get('ingredients') as FormArray;
-    this.model.push(this.createStepItemField());
+    this.model.push(this.createIngredientItemField());
   }
 
 
@@ -179,18 +180,26 @@ export class RecipeEditAddComponent implements OnInit {
 
 
 
+  async onStepFileSelected(event: any, index: number) {
+
+    const file: File = event.target.files[0];
+
+    if (file) {
+      const base64 = await this.getBase64(file);
+
+      (<FormArray>this.form.controls['steps']).at(index).get('imageData')?.setValue(base64);
+    }
+  }
+
+
   async onFileSelected(event: any) {
 
     const file: File = event.target.files[0];
 
     if (file) {
-      this.fileName = file.name;
 
       const base64 = await this.getBase64(file);
-
-
-
-      this.form.get('ImageData')?.setValue(base64);
+      this.form.get('imageData')?.setValue(base64);
     }
   }
 
