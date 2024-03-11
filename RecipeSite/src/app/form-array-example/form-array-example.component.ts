@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormArray, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 
@@ -6,50 +7,51 @@ import { FormArray, FormBuilder, Validators, ReactiveFormsModule } from '@angula
 @Component({
   selector: 'app-form-array-example',
   templateUrl: './form-array-example.component.html',
-  styleUrl: './form-array-example.component.css' 
+  styleUrl: './form-array-example.component.css'
 })
 export class FormArrayExampleComponent {
 
   form = this.fb.group({
     //...other form controls ...
     steps: this.fb.array([]),
-    ingredients : this.fb.array([])
+    ingredients: this.fb.array([])
   });
 
-  constructor(private fb: FormBuilder) { }
+  fileName = '';
+
+
+  constructor(private fb: FormBuilder, private http: HttpClient) { }
+
+
+  onFileSelected(event: any) {
+
+    const file: File = event.target.files[0];
+
+    if (file) {
+      this.fileName = file.name;    
+      this.getBase64(file);      
+    }
+  }
+
+  getBase64(file: File) : String | undefined{
+    var reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+      reader.onload = function () {
+        console.log(reader.result);
+      };
+      reader.onerror = function (error) {
+        console.log('Error: ', error);
+    };
+
+
+    return reader.result?.toString();
+  }
 
   get steps() {
     return this.form.controls["steps"] as FormArray;
   }
 
-  addStep() {
-    const StepForm = this.fb.group({
-      num: [this.steps.length],
-      instructions: ['', Validators.required],
-      imgId: ['beginner', Validators.required]
-    });
-    this.steps.push(StepForm);
-  }
 
-  deleteStep(StepIndex: number) {
-    this.steps.removeAt(StepIndex);
-  }
-
-  get ingredients() {
-    return this.form.controls["ingredients"] as FormArray;
-  }
-
-  addIngredient() {
-    const IngrediantForm = this.fb.group({
-      description: ['', Validators.required],
-      qty: ['', Validators.required],
-      unit: ['', Validators.required]
-    });
-    this.ingredients.push(IngrediantForm);
-  }
-
-  deleteIngredient(ingredientIndex: number) {
-    this.ingredients.removeAt(ingredientIndex);
-  }
 
 }

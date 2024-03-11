@@ -20,9 +20,16 @@
         <input formControlName="notes" class="form-control" type="text" placeholder="notes" />
       </div>
     </div>
-    <div class="form-group">
-      <label>imgId</label>
-      <input formControlName="imgId" class="form-control" type="text" placeholder="imgId" />
+
+
+    <input type="file" class="file-input"
+           (change)="onFileSelected($event)" #fileUpload>
+
+    <div class="file-upload">
+      <!--{{fileName || "No file uploaded yet."}}-->
+      <button mat-mini-fab color="primary" class="upload-btn" (click)="fileUpload.click()">
+        <mat-icon>attach_file</mat-icon>
+      </button>
     </div>
 
 
@@ -42,7 +49,7 @@
           </div>
           <div class="col-sm">
             <label>Step image</label>
-            <input formControlName="imgId" placeholder="img" class="form-control">
+            <input formControlName="ImageData" placeholder="img" class="form-control">
           </div>
           <div class="col-sm">
             <button *ngIf="i !== 0" (click)="deleteStep(i)">delete Step</button>
@@ -75,10 +82,10 @@
         </div>
       </div>
       <br />
-      <button  (click)="addIngredientItem()">Add Ingredient</button>
+      <button (click)="addIngredientItem()">Add Ingredient</button>
     </div>
 
-    <button  (click)="onSubmit()">Submit</button>
+    <button (click)="onSubmit()">Submit</button>
   </form>
 <!--<pre>{{ form.value | json }}</pre>-->
 </div>

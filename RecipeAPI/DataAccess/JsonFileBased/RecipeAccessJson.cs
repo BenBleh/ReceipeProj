@@ -1,8 +1,11 @@
-﻿using Newtonsoft.Json.Serialization;
+﻿using Microsoft.Build.Globbing;
+using Newtonsoft.Json.Serialization;
 using RecipeAPI.Helpers;
 using RecipeAPI.Interfaces;
 using RecipeAPI.Models;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Text;
 using System.Text.Json;
 
 namespace RecipeAPI.DataAccess.JsonFileBased
@@ -63,6 +66,14 @@ namespace RecipeAPI.DataAccess.JsonFileBased
 
                 //update master list
                 UpdateMasterList(recipe.Id, recipe.Title);
+
+                if (recipe.ImageData != null)
+                {
+                    WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/',
+                        recipe.Id,
+                        recipe.ImageData                        
+                        );
+                }
             }
             catch(Exception ex) 
             {
@@ -115,6 +126,26 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             if(!File.Exists(filepath)) 
             {
                 throw new Exception("File could not be found");
+            }
+        }
+
+        private void WriteImage(string filepath, string fileName, string imageData) 
+        {
+            //process input data
+            var values = imageData.Split(';');
+            string filetype = values[0].Substring(values[0].LastIndexOf('/') + 1); //text after / gives us file type
+            string base64 = values[1].Substring(values[0].LastIndexOf("base64,") + 8); //text after base64, is the base64 string
+            var base64EncodedBytes = System.Convert.FromBase64String(base64);
+            //var decodedImg = Convert.FromBase64String()
+            
+            System.IO.FileInfo file = new System.IO.FileInfo(filepath);
+            file.Directory.Create(); // If the directory already exists, this method does nothing.            
+
+            Image image;
+            using (MemoryStream ms = new MemoryStream(base64EncodedBytes))
+            {
+                image = Image.FromStream(ms);
+                image.Save(filepath + fileName + "." + filetype);
             }
         }
     }

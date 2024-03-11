@@ -3,12 +3,12 @@
   "title": "string",
   "timeToComplete": "string",
   "notes": "string",
-  "imgId": "string",
+  "imageData": "string",
   "steps": [
     {
       "num": 0,
       "instructions": "string",
-      "imgId": "string"
+      "imageData": "string"
     }
   ],
   "ingredients": [

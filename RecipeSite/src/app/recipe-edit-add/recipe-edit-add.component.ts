@@ -20,6 +20,7 @@ export class RecipeEditAddComponent implements OnInit {
   payLoad = '';
   recipe: Recipe | undefined;
 
+  fileName = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -32,10 +33,7 @@ export class RecipeEditAddComponent implements OnInit {
   trackByFn(index: any, item: any) { return index; }
 
   ngOnInit() {
-
     this.createForm();
-
-
   }
 
   public createForm() {
@@ -48,7 +46,7 @@ export class RecipeEditAddComponent implements OnInit {
         title: this.fb.control(this.model.title),
         timeToComplete: this.fb.control(this.model.timeToComplete),
         notes: this.fb.control(this.model.notes),
-        imgId: this.fb.control(this.model.imgId),
+        ImageData: this.fb.control(this.model.ImageData),
         steps: this.fb.array(
           this.model.steps.map((x: any) =>
             this.buildStepItemsFields(x)
@@ -65,7 +63,7 @@ export class RecipeEditAddComponent implements OnInit {
       if (!this.isEdit) {
         this.form.reset({});
       }
-    });   
+    });
   }
 
   getmodel() {
@@ -109,7 +107,7 @@ export class RecipeEditAddComponent implements OnInit {
     return this.fb.group({
       num: '',
       instructions: '',
-      imgId: ''
+      ImageData: ''
     });
   }
 
@@ -150,8 +148,7 @@ export class RecipeEditAddComponent implements OnInit {
   }
 
   //end Ingredient operations
-
-    onSubmit() {
+  onSubmit() {
     this.payLoad = JSON.stringify(this.form.getRawValue());
 
     const httpOptions = {
@@ -159,7 +156,7 @@ export class RecipeEditAddComponent implements OnInit {
     }
 
     if (this.isEdit) {
-      this.http.put('https://localhost:7087/Recipe/' + this.IdFromRoute, this.payLoad, httpOptions).subscribe({           
+      this.http.put('https://localhost:7087/Recipe/' + this.IdFromRoute, this.payLoad, httpOptions).subscribe({
         error: error => {
           console.error('There was an error!', error);
         }
@@ -171,8 +168,8 @@ export class RecipeEditAddComponent implements OnInit {
       this.http.post<Recipe>('https://localhost:7087/Recipe/', this.payLoad, httpOptions).subscribe(
         (result) => {
           //on sucess, navigate to display page
-          this.recipe = result;          
-          this.router.navigate(['recipe/:recipeId', { recipeId: this.recipe.id }]);         
+          this.recipe = result;
+          this.router.navigate(['recipe/:recipeId', { recipeId: this.recipe.id }]);
         },
         (error) => {
           console.error(error);
@@ -180,4 +177,32 @@ export class RecipeEditAddComponent implements OnInit {
     }
   }
 
+
+
+  async onFileSelected(event: any) {
+
+    const file: File = event.target.files[0];
+
+    if (file) {
+      this.fileName = file.name;
+
+      const base64 = await this.getBase64(file);
+
+
+
+      this.form.get('ImageData')?.setValue(base64);
+    }
+  }
+
+  getBase64(file: File) {
+    var fileReader = new FileReader();
+    if (file) {
+      fileReader.readAsDataURL(file);
+    }
+    return new Promise((resolve, reject) => {
+      fileReader.onload = function (event) {
+        resolve(event.target?.result);
+      };
+    })
+  }
 }
