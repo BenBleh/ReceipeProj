@@ -12,7 +12,7 @@ import { Recipe } from '../recipe';
 })
 export class RecipeViewComponent implements OnInit {
 
-  recipe: Recipe | undefined;
+  recipe!: Recipe;
 
   constructor(
     private route: ActivatedRoute,

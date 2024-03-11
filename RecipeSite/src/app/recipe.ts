@@ -3,7 +3,7 @@ export interface Recipe {
   title: string;
   timeToComplete: string;
   notes: string;
-  imgId: string;
+  imageData: string;
   steps: Step[];
   ingredients: Ingredient[];
 }
@@ -17,5 +17,5 @@ export interface Ingredient {
 export interface Step {
   num: number;
   instructions: string;
-  imgId: string;
+  imageData: string;
 }

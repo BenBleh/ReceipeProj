@@ -93,7 +93,7 @@ export class RecipeEditAddComponent implements OnInit {
     return new FormGroup({
       num: new FormControl(x.num),
       instructions: new FormControl(x.instructions),
-      imgId: new FormControl(x.imgId),
+      ImageData: new FormControl(x.ImageData),
     });
   }
 

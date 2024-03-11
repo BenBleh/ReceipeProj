@@ -2,5 +2,8 @@
 
 <p>{{recipe?.title}}</p>
 
+<div ng-app='test' ng-controller='Test'>
+  <img height="150" width="150" src={{recipe?.imageData}} />
+</div>
 
 <a [routerLink]="['/editRecipe',recipe?.id]">Edit</a>
