@@ -27,21 +27,13 @@ export class RecipeListComponent implements OnInit {
 
         (result) => {
           console.log(result);
-
-
           this.recipes = result;
-
-
         },
         (error) => {
           console.error(error);
         }
       );
-
-
   }
-
-
-
+  
   title = 'RecipieSite';
 }

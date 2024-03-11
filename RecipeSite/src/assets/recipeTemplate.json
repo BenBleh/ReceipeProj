@@ -1,0 +1,21 @@
+{
+  "id": "",
+  "title": "string",
+  "timeToComplete": "string",
+  "notes": "string",
+  "imgId": "string",
+  "steps": [
+    {
+      "num": 0,
+      "instructions": "string",
+      "imgId": "string"
+    }
+  ],
+  "ingredients": [
+    {
+      "description": "string",
+      "qty": "string",
+      "unit": "string"
+    }
+  ]
+}

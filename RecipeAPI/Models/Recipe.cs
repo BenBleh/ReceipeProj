@@ -4,7 +4,7 @@ namespace RecipeAPI.Models
 {
     public class Recipe
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
         public string? Title { get; set; }
 
         public string? TimeToComplete { get; set; }

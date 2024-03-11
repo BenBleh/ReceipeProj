@@ -1,13 +1,12 @@
 <h1>recipe-list works!</h1>
 
 
-<tr *ngFor="let recipe of recipes">
- 
-  <td>
+<ul *ngFor="let recipe of recipes"> 
+  <li>
     <a [title]="recipe.title"
        [routerLink]="['/recipe',recipe.id]">{{ recipe.title}}</a>
-  </td>
-</tr>
+  </li>
+</ul>
 
 <br />
 
