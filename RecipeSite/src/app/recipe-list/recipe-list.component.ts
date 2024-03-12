@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 
+
 interface RecipeListItem {
   id: string;
   title: string;
@@ -15,11 +16,14 @@ interface RecipeListItem {
 })
 export class RecipeListComponent implements OnInit {
   public recipes: RecipeListItem[] = [];
+  
+  
 
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
     this.getRecipeList();
+ 
   }
 
   getRecipeList() {
@@ -28,7 +32,7 @@ export class RecipeListComponent implements OnInit {
 
         (result) => {
           console.log(result);
-          this.recipes = result;
+          this.recipes = result;          
         },
         (error) => {
           console.error(error);
@@ -36,5 +40,4 @@ export class RecipeListComponent implements OnInit {
       );
   }
 
-  title = 'RecipieSite';
 }

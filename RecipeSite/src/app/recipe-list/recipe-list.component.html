@@ -7,10 +7,9 @@
   </div>
 </div>
 
+<div class="container display-flex"> 
 
-<div class="container display-flex">
   <div class="row border rounded" *ngFor="let recipe of recipes">
-
     <div class="col-md-6 p-3">
       <a [title]="recipe.title"
          [routerLink]="['/recipe',recipe.id]">{{ recipe.title}}</a>

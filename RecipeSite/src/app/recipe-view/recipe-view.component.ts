@@ -14,11 +14,12 @@ export class RecipeViewComponent implements OnInit {
 
   recipe: Recipe | undefined;
 
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient
   ) { }
-  
+
   ngOnInit() {
     // First get the product id from the current route.
     const routeParams = this.route.snapshot.paramMap;
@@ -26,16 +27,17 @@ export class RecipeViewComponent implements OnInit {
 
     // Find the recipe that correspond with the id provided in route.
 
-    let path:string = 'https://localhost:7087/Recipe/' + IdFromRoute;
+    let path: string = 'https://localhost:7087/Recipe/' + IdFromRoute;
 
     this.http.get<Recipe>(path).subscribe(
-      (result) =>
-      {
+      (result) => {
         this.recipe = result;
       },
       (error) => {
         console.error(error);
       }
     );
+
   }
 }
+

@@ -45,6 +45,7 @@ export class RecipeEditAddComponent implements OnInit {
         title: this.fb.control(this.model.title),
         timeToComplete: this.fb.control(this.model.timeToComplete),
         notes: this.fb.control(this.model.notes),
+        source: this.fb.control(this.model.source),
         imageData: this.fb.control(this.model.imageData),
         steps: this.fb.array(
           this.model.steps.map((x: any) =>

@@ -11,6 +11,8 @@ namespace RecipeAPI.Models
 
         public string? Notes { get; set; }
 
+        public string? Source { get; set; }
+
         public string? ImageData { get; set; }
 
         public List<Step>? Steps { get; set; }

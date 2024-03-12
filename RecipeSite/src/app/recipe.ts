@@ -2,6 +2,7 @@ export interface Recipe {
   id: string;
   title: string;
   timeToComplete: string;
+  source: string;
   notes: string;
   imageData: string;
   steps: Step[];

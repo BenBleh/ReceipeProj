@@ -28,7 +28,7 @@ import { FormArrayExampleComponent } from './form-array-example/form-array-examp
     MatFormFieldModule,
     MatIconModule,
     MatSelectModule,
-    ReactiveFormsModule
+    ReactiveFormsModule    
   ],
   providers: [],
   bootstrap: [AppComponent]

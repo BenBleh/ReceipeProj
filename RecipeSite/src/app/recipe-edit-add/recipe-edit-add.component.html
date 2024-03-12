@@ -2,7 +2,7 @@
 
 
 
-<div *ngIf="form">
+<div *ngIf="form" class="p-3">
   <form [formGroup]="form">
 
     <div class="row">
@@ -10,32 +10,31 @@
         <label>Title</label>
         <input formControlName="title" class="form-control" type="text" placeholder="title" />
       </div>
-
       <div class="col-sm">
-        <label>timeToComplete</label>
+        <label>Time to complete</label>
         <input formControlName="timeToComplete" class="form-control" type="text" placeholder="timeToComplete" />
       </div>
       <div class="col-sm">
-        <label>notes</label>
+        <label>Notes</label>
         <input formControlName="notes" class="form-control" type="text" placeholder="notes" />
+      </div>
+      <div class="col-sm">
+        <label>Source</label>
+        <input formControlName="source" class="form-control" type="text" placeholder="link" />
       </div>
     </div>
 
-
-    <div ng-app='test' ng-controller='Test'>
-      <img height="150" width="150" src={{form.value.imageData}} />
+    <div class="row p-2">
+      <div class="file-upload col-sm">
+        <!--this is hidden by the css-->
+        <input type="file" class="file-input"
+               (change)="onFileSelected($event)" #fileUpload>
+        <img height="150" width="150" src={{form.value.imageData}} />
+        <button mat-mini-fab color="primary" class="upload-btn p-2" (click)="fileUpload.click()">
+          <mat-icon>attach_file</mat-icon>
+        </button>
+      </div>
     </div>
-
-    <input type="file" class="file-input"
-           (change)="onFileSelected($event)" #fileUpload>
-
-    <div class="file-upload">
-      <!--{{fileName || "No file uploaded yet."}}-->
-      <button mat-mini-fab color="primary" class="upload-btn" (click)="fileUpload.click()">
-        <mat-icon>attach_file</mat-icon>
-      </button>
-    </div>
-
 
     <h2>Steps</h2>
 
@@ -45,32 +44,23 @@
 
         <h4>Step {{orgs.num}}</h4>
         <div class="row">
-          
-          <div class="col-sm">
+
+          <div class="col-md-9">
             <label>Instructions</label>
-            <input formControlName="instructions" placeholder="instructions" class="form-control">
+            <textarea formControlName="instructions" placeholder="instructions" class="form-control" rows="8">  </textarea>
           </div>
-          <div class="col-sm">
-
-            <div ng-app='test' ng-controller='Test'>
-              <img height="150" width="150" src={{orgs.imageData}} />
-            </div>
-
-
-            <input type="file" class="file-input"
-                   (change)="onStepFileSelected($event, i)" #fileUpload>
-
+          <div class="col-md-3">
             <div class="file-upload">
-              <!--{{fileName || "No file uploaded yet."}}-->
-              <button mat-mini-fab color="primary" class="upload-btn" (click)="fileUpload.click()">
+              <img height="150" width="150" src={{orgs.imageData}} />
+              <input type="file" class="file-input"
+                     (change)="onStepFileSelected($event, i)" #fileUpload>
+              <button mat-mini-fab color="primary" class="upload-btn p-2" (click)="fileUpload.click()">
                 <mat-icon>attach_file</mat-icon>
               </button>
-            </div>
-
-
+            </div>         
           </div>
           <div class="col-sm">
-            <button *ngIf="i !== 0" (click)="deleteStep(i)">delete Step</button>
+            <button *ngIf="i !== 0" (click)="deleteStep(i)"><mat-icon>delete_forever</mat-icon></button>
           </div>
         </div>
       </div>
@@ -78,32 +68,33 @@
       <button type="button" (click)="addStepItem()">Add Step</button>
     </div>
 
-    <h3>Ingredient</h3>
+    <h3 class="p-2">Ingredient</h3>
 
     <div formArrayName="ingredients">
       <div *ngFor="let orgs of form.get('ingredients')?.value;  let i = index; trackBy: trackByFn"
            [formGroupName]="i" class="row">
-        <div class="col-sm">
+        <div class="col-md-4">
           <label>Description</label>
           <input formControlName="description" placeholder="desc" class="form-control">
         </div>
-        <div class="col-sm">
+        <div class="col-md-4">
           <label>Quantity</label>
           <input formControlName="qty" placeholder="many?" class="form-control">
         </div>
-        <div class="col-sm">
+        <div class="col-md-3">
           <label>Unit</label>
           <input formControlName="unit" placeholder="type" class="form-control">
         </div>
-        <div class="col-sm">
-          <button *ngIf="i !== 0" (click)="deleteIngredientItem(i)">delete Ingredient</button>
+        <div class="col-md-1">
+          <button *ngIf="i !== 0" (click)="deleteIngredientItem(i)"><mat-icon>delete_forever</mat-icon></button>
         </div>
       </div>
       <br />
       <button (click)="addIngredientItem()">Add Ingredient</button>
     </div>
 
+  
     <button (click)="onSubmit()">Submit</button>
   </form>
-<!--<pre>{{ form.value | json }}</pre>-->
+  <!--<pre>{{ form.value | json }}</pre>-->
 </div>
