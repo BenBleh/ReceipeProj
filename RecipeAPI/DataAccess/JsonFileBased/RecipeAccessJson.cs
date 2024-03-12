@@ -22,11 +22,18 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                 {
                     var line = reader.ReadLine();
                     var values = line.Split(',');
+                    string imageData = null;
+                    if (values.Count() > 2)  // if this is the case, we can safely assume image data exsits in the line.
+                    {
+                        //do this instead of line.split, as we could have ',' in the base64 data.
+                        imageData = line.Substring(line.LastIndexOf("data:"));
+                    }
 
                     masterList.Recipes.Add(new RecipeListItem() 
                     {
                         Id = values[0],
-                        Title = values[1]
+                        Title = values[1],
+                        ImageData = imageData
                     });                    
                 }
             }
@@ -65,7 +72,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                 File.WriteAllText(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json", jsonString);
 
                 //update master list
-                UpdateMasterList(recipe.Id, recipe.Title);
+                UpdateMasterList(recipe.Id, recipe.Title, recipe.ImageData);
 
             }
             catch(Exception ex) 
@@ -90,7 +97,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             return recipe;
         }
 
-        private async Task UpdateMasterList(string id, string title)
+        private async Task UpdateMasterList(string id, string title, string? imageData)
         {
             var fileName = ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv";
             string[] arrLine = File.ReadAllLines(fileName);
@@ -98,7 +105,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             {
                 if (arrLine[i].Contains(id))
                 {
-                    arrLine[i] = id + "," + title;
+                    arrLine[i] = id + "," + title + "," + imageData;
                     break;
                 }
                 

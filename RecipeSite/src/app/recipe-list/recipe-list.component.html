@@ -1,13 +1,22 @@
-<h1>recipe-list works!</h1>
+<div class="row">
+  <div class="col-md-11">
+    <h1>All recipes</h1>
+  </div>
+  <div class="col-md-1">
+    <a [routerLink]="['/addRecipe']"><mat-icon>add</mat-icon></a>
+  </div>
+</div>
 
 
-<ul *ngFor="let recipe of recipes"> 
-  <li>
-    <a [title]="recipe.title"
-       [routerLink]="['/recipe',recipe.id]">{{ recipe.title}}</a>
-  </li>
-</ul>
+<div class="container display-flex">
+  <div class="row border rounded" *ngFor="let recipe of recipes">
 
-<br />
-
-<a  [routerLink]="['/addRecipe']">Add new</a>
+    <div class="col-md-6 p-3">
+      <a [title]="recipe.title"
+         [routerLink]="['/recipe',recipe.id]">{{ recipe.title}}</a>
+    </div>
+    <div class="col-md-4 p-3">
+      <img *ngIf="recipe.imageData" class="img-fluid p-10" src={{recipe.imageData}} />
+    </div>
+  </div>
+</div>

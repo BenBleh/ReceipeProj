@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
 interface RecipeListItem {
   id: string;
   title: string;
+  imageData: string;
 
 }
 
@@ -34,6 +35,6 @@ export class RecipeListComponent implements OnInit {
         }
       );
   }
-  
+
   title = 'RecipieSite';
 }
