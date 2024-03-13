@@ -6,10 +6,19 @@
     <a [routerLink]="['/addRecipe']"><mat-icon>add</mat-icon></a>
   </div>
 </div>
-
-<div class="container display-flex"> 
-
-  <div class="row border rounded" *ngFor="let recipe of recipes">
+<div class="container p-2">
+  <div class="row d-flex justify-content-center align-items-center">
+    <div class="col-md-6">
+      <div class="form">
+        <i class="fa fa-search"></i>
+        <input type="text" class="form-control form-input" placeholder="Search" [(ngModel)]="review" (keyup)="search()">        
+          <span class="left-pan"><mat-icon>search</mat-icon></span>       
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container display-flex">
+  <div class="row border rounded" *ngFor="let recipe of filteredRecipes">
     <div class="col-md-6 p-3">
       <a [title]="recipe.title"
          [routerLink]="['/recipe',recipe.id]">{{ recipe.title}}</a>

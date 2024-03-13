@@ -16,15 +16,29 @@ interface RecipeListItem {
 })
 export class RecipeListComponent implements OnInit {
   public recipes: RecipeListItem[] = [];
+  public filteredRecipes: RecipeListItem[] = [];
   
-  
+  review!: string;
 
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
-    this.getRecipeList();
- 
+    this.getRecipeList();    
   }
+
+  search()
+  {
+    if (!this.review || this.review == "") {
+      //i.e. # no filter
+      this.filteredRecipes = this.recipes
+    }
+    else
+    {      
+      this.filteredRecipes = this.recipes.filter(w =>
+        w.title.toLowerCase().includes(this.review.toLowerCase()));        
+    }
+  }
+
 
   getRecipeList() {
     this.http.get<RecipeListItem[]>('https://localhost:7087/MasterRecipeList').subscribe
@@ -32,7 +46,8 @@ export class RecipeListComponent implements OnInit {
 
         (result) => {
           console.log(result);
-          this.recipes = result;          
+          this.recipes = result;
+          this.filteredRecipes = result;
         },
         (error) => {
           console.error(error);
