@@ -7,14 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.WithOrigins("https://localhost:4200", "https://localhost:7087");
-                      });
-});
 
 //Set gloabl configs
 ConfigurationHelper.Instance.RecipeFilePathValue = builder.Configuration.GetSection("RecipeFilePath").Value;
@@ -32,9 +24,9 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseCors(x => x
-.WithOrigins("https://localhost:4200")
+.AllowAnyOrigin()
+//.WithOrigins("https://localhost:4200")
 .AllowAnyHeader()
-.AllowCredentials()
 .AllowAnyMethod());
 
 // Configure the HTTP request pipeline.
