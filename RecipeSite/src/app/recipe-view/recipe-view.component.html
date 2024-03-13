@@ -7,7 +7,11 @@
       <a [routerLink]="['/editRecipe',recipe?.id]"><mat-icon>edit</mat-icon></a>
     </div>
   </div>
-
+  <div class="row">
+    <div class="col-md-11">
+      <h5>ETA {{recipe?.timeToComplete}}</h5>
+    </div>
+  </div>
   <div class="row">
     <div class="col-md-6">
       <div class="row">

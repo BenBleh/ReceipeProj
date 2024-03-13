@@ -14,13 +14,12 @@ import { AppComponent } from './app.component';
 import { RecipeListComponent } from './recipe-list/recipe-list.component';
 import { RecipeViewComponent } from './recipe-view/recipe-view.component';
 import { RecipeEditAddComponent } from './recipe-edit-add/recipe-edit-add.component';
-import { FormArrayExampleComponent } from './form-array-example/form-array-example.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,    
-    RecipeListComponent, RecipeViewComponent, RecipeEditAddComponent, FormArrayExampleComponent
+    RecipeListComponent, RecipeViewComponent, RecipeEditAddComponent
   ],
   imports: [
     BrowserModule,

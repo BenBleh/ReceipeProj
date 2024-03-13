@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-
+import { environment } from './../../environments/environment';
 
 interface RecipeListItem {
   id: string;
@@ -40,8 +40,8 @@ export class RecipeListComponent implements OnInit {
   }
 
 
-  getRecipeList() {
-    this.http.get<RecipeListItem[]>('https://localhost:7087/MasterRecipeList').subscribe
+  getRecipeList() {    
+    this.http.get<RecipeListItem[]>(environment.apiUrl + 'MasterRecipeList').subscribe
       (
 
         (result) => {

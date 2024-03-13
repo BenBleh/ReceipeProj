@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from './../../environments/environment';
 
 import { Recipe } from '../recipe';
 
@@ -27,7 +28,7 @@ export class RecipeViewComponent implements OnInit {
 
     // Find the recipe that correspond with the id provided in route.
 
-    let path: string = 'https://localhost:7087/Recipe/' + IdFromRoute;
+    let path: string = environment.apiUrl + 'Recipe/' + IdFromRoute;
 
     this.http.get<Recipe>(path).subscribe(
       (result) => {

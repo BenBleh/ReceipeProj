@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { environment } from './../../environments/environment';
 
 import { Recipe } from '../recipe';
-import { catchError } from 'rxjs/internal/operators/catchError';
+
 
 @Component({
   selector: 'app-recipe-edit-add',
@@ -77,7 +78,7 @@ export class RecipeEditAddComponent implements OnInit {
     if (this.IdFromRoute) {
       this.isEdit = true;
       // Find the recipe that correspond with the id provided in route.
-      path = 'https://localhost:7087/Recipe/' + this.IdFromRoute;
+      path = environment.apiUrl + 'Recipe/' + this.IdFromRoute;
     }
     else {
       //use the template
@@ -158,7 +159,7 @@ export class RecipeEditAddComponent implements OnInit {
     }
 
     if (this.isEdit) {
-      this.http.put('https://localhost:7087/Recipe/' + this.IdFromRoute, this.payLoad, httpOptions).subscribe({
+      this.http.put(environment.apiUrl + 'Recipe/' + this.IdFromRoute, this.payLoad, httpOptions).subscribe({
         error: error => {
           console.error('There was an error!', error);
         }
@@ -167,7 +168,7 @@ export class RecipeEditAddComponent implements OnInit {
       this.router.navigate(['recipe/:recipeId', { recipeId: this.IdFromRoute }]);
     }
     else {
-      this.http.post<Recipe>('https://localhost:7087/Recipe/', this.payLoad, httpOptions).subscribe(
+      this.http.post<Recipe>(environment.apiUrl + 'Recipe/', this.payLoad, httpOptions).subscribe(
         (result) => {
           //on sucess, navigate to display page
           this.recipe = result;
