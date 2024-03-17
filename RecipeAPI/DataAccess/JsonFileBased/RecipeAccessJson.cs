@@ -22,22 +22,15 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                 {
                     var line = reader.ReadLine();
                     var values = line.Split(',');
-                    string imageData = null;
-                    if (values.Count() > 2)  // if this is the case, we can safely assume image data exsits in the line.
-                    {
-                        //do this instead of line.split, as we could have ',' in the base64 data.
-                        imageData = line.Substring(line.LastIndexOf("data:"));
-                    }
 
-                    masterList.Recipes.Add(new RecipeListItem() 
+                    masterList.Recipes.Add(new RecipeListItem()
                     {
                         Id = values[0],
-                        Title = values[1],
-                        ImageData = imageData
-                    });                    
+                        Title = values[1]
+                    });
                 }
             }
-        
+
             return masterList;
         }
 
@@ -48,10 +41,10 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             string jsonString = File.ReadAllText(ConfigurationHelper.Instance.RecipeFilePathValue + id + ".json");
             if (!string.IsNullOrEmpty(jsonString))
             {
-                 recipe =
-                     JsonSerializer.Deserialize<Recipe>(jsonString);
+                recipe =
+                    JsonSerializer.Deserialize<Recipe>(jsonString);
             }
-            else 
+            else
             {
                 throw new FileNotFoundException("File with following name not found: " + id);
             }
@@ -66,25 +59,29 @@ namespace RecipeAPI.DataAccess.JsonFileBased
 
                 CheckFileExists(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json");
 
+                manageRecipeImages(recipe);
+
                 //write to file
                 string jsonString = JsonSerializer.Serialize(recipe);
 
                 File.WriteAllText(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json", jsonString);
 
                 //update master list
-                UpdateMasterList(recipe.Id, recipe.Title, recipe.ImageData);
+                UpdateMasterList(recipe.Id, recipe.Title);
 
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
-                throw ex;    
-            }            
+                throw ex;
+            }
         }
 
         Recipe IRecipeAccess.CreateRecipe(Recipe recipe)
         {
             //generate new id
             recipe.Id = Guid.NewGuid().ToString();
+
+            manageRecipeImages(recipe);
 
             //write to file
             string jsonString = JsonSerializer.Serialize(recipe);
@@ -97,19 +94,19 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             return recipe;
         }
 
-        private async Task UpdateMasterList(string id, string title, string? imageData)
+        private async Task UpdateMasterList(string id, string title)
         {
             var fileName = ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv";
             string[] arrLine = File.ReadAllLines(fileName);
-            for(int i = 0; i < arrLine.Length; i++) 
+            for (int i = 0; i < arrLine.Length; i++)
             {
                 if (arrLine[i].Contains(id))
                 {
-                    arrLine[i] = id + "," + title + "," + imageData;
+                    arrLine[i] = id + "," + title;
                     break;
                 }
-                
-            }            
+
+            }
             File.WriteAllLines(fileName, arrLine);
         }
 
@@ -121,16 +118,40 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             }
         }
 
-        private void CheckFileExists(string filepath) 
+        private void CheckFileExists(string filepath)
         {
-            if(!File.Exists(filepath)) 
+            if (!File.Exists(filepath))
             {
                 throw new Exception("File could not be found");
             }
         }
 
-        //no longer need this
-        private void WriteImage(string filepath, string fileName, string imageData) 
+        private void manageRecipeImages(Recipe recipe) 
+        {
+            if (recipe.ImageData.Contains("base64"))
+            {
+                WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/'
+                    , recipe.Id
+                    , recipe.ImageData
+                    , true
+                    );
+                recipe.ImageData = null;
+                foreach (var step in recipe.Steps)
+                {
+                    if (step.ImageData.Contains("base64"))
+                    {
+                        WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/'
+                            , step.Num.ToString()
+                            , step.ImageData
+                            , false
+                            );
+                    }
+                    step.ImageData = null;
+                }
+            }            
+        }
+
+        private void WriteImage(string filepath, string fileName, string imageData, bool createThumbNail)
         {
             //process input data
             var values = imageData.Split(';');
@@ -138,7 +159,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             string base64 = values[1].Substring(values[0].LastIndexOf("base64,") + 8); //text after base64, is the base64 string
             var base64EncodedBytes = System.Convert.FromBase64String(base64);
             //var decodedImg = Convert.FromBase64String()
-            
+
             System.IO.FileInfo file = new System.IO.FileInfo(filepath);
             file.Directory.Create(); // If the directory already exists, this method does nothing.            
 
@@ -147,6 +168,12 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             {
                 image = Image.FromStream(ms);
                 image.Save(filepath + fileName + "." + filetype);
+            }
+
+            if (createThumbNail)
+            {
+                var thumbnail = image.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
+                thumbnail.Save(filepath + "thumb" + "." + filetype);
             }
         }
     }

@@ -122,3 +122,16 @@ RecipeAPI.csproj.nuget.g.targets
 project.assets.json
 project.nuget.cache
 /.vs/RecipeProj/FileContentIndex/*.vsidx
+/RecipeAPI/obj/Debug/net8.0/RecipeAPI.sourcelink.json
+dotnet-tools.json
+FolderProfile1.pubxml
+FolderProfile1.pubxml.user
+FolderProfile2.pubxml
+FolderProfile2.pubxml.user
+RecipeAPI.csproj.EntityFrameworkCore.targets
+web.config
+Microsoft.AspNetCore.Components.QuickGrid.bundle.scp.css
+QuickGrid.razor.js
+PublishOutputs.ae19921290.txt
+RecipeAPI.sourcelink.json
+staticwebassets.publish.json
