@@ -11,7 +11,7 @@
     <div class="col-md-6">
       <div class="form">
         <i class="fa fa-search"></i>
-        <input type="text" class="form-control form-input" placeholder="Search" [(ngModel)]="review" (keyup)="search()">        
+        <input type="text" class="form-control form-input" placeholder="Search" [(ngModel)]="searchString" (keyup)="search()">        
           <span class="left-pan"><mat-icon>search</mat-icon></span>       
       </div>
     </div>
@@ -24,7 +24,7 @@
          [routerLink]="['/recipe',recipe.id]">{{ recipe.title}}</a>
     </div>
     <div class="col-md-4 p-3">
-      <img *ngIf="recipe.imageData" class="img-fluid p-10" src={{recipe.imageData}} />
+      <img class="img-fluid p-10" src={{recipe.thumbnailSRC}}  onerror="this.style.display='none'"/>
     </div>
   </div>
 </div>

@@ -128,27 +128,27 @@ namespace RecipeAPI.DataAccess.JsonFileBased
 
         private void manageRecipeImages(Recipe recipe) 
         {
-            if (recipe.ImageData.Contains("base64"))
+            if (!string.IsNullOrEmpty(recipe.ImageData) && recipe.ImageData.Contains("base64"))
             {
                 WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/'
                     , recipe.Id
                     , recipe.ImageData
                     , true
                     );
-                recipe.ImageData = null;
-                foreach (var step in recipe.Steps)
+                recipe.ImageData = null; 
+            }
+            foreach (var step in recipe.Steps)
+            {
+                if (!string.IsNullOrEmpty(step.ImageData) && step.ImageData.Contains("base64"))
                 {
-                    if (step.ImageData.Contains("base64"))
-                    {
-                        WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/'
-                            , step.Num.ToString()
-                            , step.ImageData
-                            , false
-                            );
-                    }
-                    step.ImageData = null;
+                    WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/'
+                        , step.Num.ToString()
+                        , step.ImageData
+                        , false
+                        );
                 }
-            }            
+                step.ImageData = null;
+            }
         }
 
         private void WriteImage(string filepath, string fileName, string imageData, bool createThumbNail)
@@ -167,13 +167,13 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             using (MemoryStream ms = new MemoryStream(base64EncodedBytes))
             {
                 image = Image.FromStream(ms);
-                image.Save(filepath + fileName + "." + filetype);
+                image.Save(filepath + fileName + ".jpeg",  System.Drawing.Imaging.ImageFormat.Jpeg);
             }
 
             if (createThumbNail)
             {
                 var thumbnail = image.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
-                thumbnail.Save(filepath + "thumb" + "." + filetype);
+                thumbnail.Save(filepath + "thumb" + ".jpeg" , System.Drawing.Imaging.ImageFormat.Jpeg);
             }
         }
     }

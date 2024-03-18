@@ -29,7 +29,13 @@
         <!--this is hidden by the css-->
         <input type="file" class="file-input"
                (change)="onFileSelected($event)" #fileUpload>
-        <img height="150" width="150" src={{form.value.imageData}} />
+        <div *ngIf="isEdit">
+          <label class="p-2">Current image</label>
+          <img class="img-fluid" src="./assets/rfiles/{{form.value.id}}/{{form.value.id}}.jpeg"  style="max-width:600px;width:100%"/>
+        </div>
+        <br />
+        <label class="p-2">Updated image</label>
+        <img height="150" width="150" src={{form.value.imageData}}  style="max-width:600px;width:100%"/>
         <button mat-mini-fab color="primary" class="upload-btn p-2" (click)="fileUpload.click()">
           <mat-icon>attach_file</mat-icon>
         </button>
@@ -39,10 +45,10 @@
     <h2>Steps</h2>
 
     <div formArrayName="steps">
-      <div *ngFor="let orgs of form.get('steps')?.value;  let i = index; trackBy: trackByFn"
+      <div *ngFor="let step of form.get('steps')?.value;  let i = index; trackBy: trackByFn"
            [formGroupName]="i">
 
-        <h4>Step {{orgs.num}}</h4>
+        <h4>Step {{step.num}}</h4>
         <div class="row">
 
           <div class="col-md-9">
@@ -51,7 +57,13 @@
           </div>
           <div class="col-md-3">
             <div class="file-upload">
-              <img height="150" width="150" src={{orgs.imageData}} />
+
+              <div *ngIf="isEdit">
+                <label class="p-2">Current image</label>
+                <img class="img-fluid" src="./assets/rfiles/{{form.value.id}}/{{step.num}}.jpeg" style="max-width:600px;width:100%" />
+              </div>
+
+              <img height="150" width="150" src={{step.imageData}} />
               <input type="file" class="file-input"
                      (change)="onStepFileSelected($event, i)" #fileUpload>
               <button mat-mini-fab color="primary" class="upload-btn p-2" (click)="fileUpload.click()">

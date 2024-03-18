@@ -5,7 +5,8 @@ import { environment } from './../../environments/environment';
 interface RecipeListItem {
   id: string;
   title: string;
-  imageData: string;
+  thumbnailSRC: string;
+  
 
 }
 
@@ -18,8 +19,8 @@ export class RecipeListComponent implements OnInit {
   public recipes: RecipeListItem[] = [];
   public filteredRecipes: RecipeListItem[] = [];
   
-  review!: string;
-
+  searchString!: string;
+  
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
@@ -28,14 +29,14 @@ export class RecipeListComponent implements OnInit {
 
   search()
   {
-    if (!this.review || this.review == "") {
+    if (!this.searchString || this.searchString == "") {
       //i.e. # no filter
       this.filteredRecipes = this.recipes
     }
     else
     {      
       this.filteredRecipes = this.recipes.filter(w =>
-        w.title.toLowerCase().includes(this.review.toLowerCase()));        
+        w.title.toLowerCase().includes(this.searchString.toLowerCase()));        
     }
   }
 
@@ -43,16 +44,26 @@ export class RecipeListComponent implements OnInit {
   getRecipeList() {    
     this.http.get<RecipeListItem[]>(environment.apiUrl + 'MasterRecipeList').subscribe
       (
-
         (result) => {
           console.log(result);
           this.recipes = result;
           this.filteredRecipes = result;
+          this.setThumbnailSRCs();
         },
         (error) => {
           console.error(error);
         }
-      );
+    );
+    
   }
+
+  setThumbnailSRCs() {
+
+    this.recipes.forEach(function (value) {
+      value.thumbnailSRC = "/assets/rfiles/" + value.id + "/thumb.jpeg"
+    });
+
+  }
+
 
 }

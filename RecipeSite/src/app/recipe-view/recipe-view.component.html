@@ -1,15 +1,15 @@
-<div class="container p-2">
+<div class="container p-2" *ngIf="recipe">
   <div class="row">
     <div class="col-md-11">
-      <h1>{{recipe?.title}}</h1>
+      <h1>{{recipe.title}}</h1>
     </div>
     <div class="col-md-1">
-      <a [routerLink]="['/editRecipe',recipe?.id]"><mat-icon>edit</mat-icon></a>
+      <a [routerLink]="['/editRecipe',recipe.id]"><mat-icon>edit</mat-icon></a>
     </div>
   </div>
   <div class="row">
     <div class="col-md-11">
-      <h5>ETA {{recipe?.timeToComplete}}</h5>
+      <h5>ETA {{recipe.timeToComplete}}</h5>
     </div>
   </div>
   <div class="row">
@@ -17,7 +17,7 @@
       <div class="row">
         <div class="col-md-6">
           <h4>Ingredients</h4>
-          <ul *ngFor="let ingredient of recipe?.ingredients">
+          <ul *ngFor="let ingredient of recipe.ingredients">
             <li>
               {{ingredient.qty}}{{ingredient.unit}} {{ingredient.description}}
             </li>
@@ -26,22 +26,22 @@
       </div>
     </div>
     <div class="col-md-6">
-      <img class="img-fluid" src={{recipe?.imageData}} />
+      <img class="img-fluid" src="./assets/rfiles/{{recipe.id}}/{{recipe.id}}.jpeg" onerror="this.style.display='none'"/>
     </div>
   </div>
 
   <div class="mb-2">
     <h5>Source</h5>
-    <a *ngIf="recipe?.source" href="{{recipe?.source}}">{{recipe?.source}}</a>
+    <a *ngIf="recipe.source" href="{{recipe.source}}">{{recipe.source}}</a>
   </div>
 
-  <div class="row" *ngFor="let step of recipe?.steps">
+  <div class="row" *ngFor="let step of recipe.steps">
     <h3>Step {{step.num +1}}</h3>
     <div class="col-md-8">
       <p>{{step.instructions}}</p>
     </div>
-    <div *ngIf="step.imageData" class="col-md-4">
-      <img class="img-fluid" src={{step.imageData}} />
+    <div class="col-md-4">
+      <img class="img-fluid" src="./assets/rfiles/{{recipe.id}}/{{step.num}}.jpeg" onerror="this.style.display='none'"/>
 
     </div>
   </div>

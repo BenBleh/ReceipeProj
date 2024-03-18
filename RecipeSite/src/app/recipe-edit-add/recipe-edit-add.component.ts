@@ -170,7 +170,7 @@ export class RecipeEditAddComponent implements OnInit {
     else {
       this.http.post<Recipe>(environment.apiUrl + 'Recipe/', this.payLoad, httpOptions).subscribe(
         (result) => {
-          //on sucess, navigate to display page
+          //on sucess, navigate to display page after waiting a second          
           this.recipe = result;
           this.router.navigate(['recipe/:recipeId', { recipeId: this.recipe.id }]);
         },
