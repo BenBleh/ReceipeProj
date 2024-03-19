@@ -15,20 +15,26 @@ namespace RecipeAPI.DataAccess.JsonFileBased
         MasterRecipeList IRecipeAccess.GetRecipes()
         {
             MasterRecipeList masterList = new MasterRecipeList { Recipes = new List<RecipeListItem>() };
-
-            using (var reader = new StreamReader(ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv"))
+            try
             {
-                while (!reader.EndOfStream)
+                using (var reader = new StreamReader(ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv"))
                 {
-                    var line = reader.ReadLine();
-                    var values = line.Split(',');
-
-                    masterList.Recipes.Add(new RecipeListItem()
+                    while (!reader.EndOfStream)
                     {
-                        Id = values[0],
-                        Title = values[1]
-                    });
+                        var line = reader.ReadLine();
+                        var values = line.Split(',');
+
+                        masterList.Recipes.Add(new RecipeListItem()
+                        {
+                            Id = values[0],
+                            Title = values[1]
+                        });
+                    }
                 }
+            }
+            catch(Exception ex) 
+            {
+                throw ex;
             }
 
             return masterList;
