@@ -14,7 +14,7 @@ import { Recipe } from '../recipe';
 export class RecipeViewComponent implements OnInit {
 
   recipe: Recipe | undefined;
-
+  public environment = environment;
 
   constructor(
     private route: ActivatedRoute,

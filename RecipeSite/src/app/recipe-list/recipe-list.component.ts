@@ -18,6 +18,7 @@ interface RecipeListItem {
 export class RecipeListComponent implements OnInit {
   public recipes: RecipeListItem[] = [];
   public filteredRecipes: RecipeListItem[] = [];
+  public environment = environment;
   
   searchString!: string;
   
@@ -60,7 +61,7 @@ export class RecipeListComponent implements OnInit {
   setThumbnailSRCs() {
 
     this.recipes.forEach(function (value) {
-      value.thumbnailSRC = "/assets/rfiles/" + value.id + "/thumb.jpeg"
+      value.thumbnailSRC = environment.imgSRC + value.id + "/thumb.jpeg"
     });
 
   }

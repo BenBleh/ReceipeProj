@@ -20,7 +20,7 @@ export class RecipeEditAddComponent implements OnInit {
   form!: FormGroup;
   payLoad = '';
   recipe: Recipe | undefined;
-
+  public environment = environment;
 
   constructor(
     private route: ActivatedRoute,

@@ -21,7 +21,7 @@
   <div class="row border rounded" *ngFor="let recipe of filteredRecipes">
     <div class="col-md-6 p-3">
       <a [title]="recipe.title"
-         [routerLink]="['/recipe',recipe.id]">{{ recipe.title}}</a>
+         [routerLink]="['/recipe',recipe.id]">{{recipe.title}}</a>
     </div>
     <div class="col-md-4 p-3">
       <img class="img-fluid p-10" src={{recipe.thumbnailSRC}}  onerror="this.style.display='none'"/>

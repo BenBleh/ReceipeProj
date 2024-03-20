@@ -26,7 +26,7 @@
       </div>
     </div>
     <div class="col-md-6">
-      <img class="img-fluid" src="./assets/rfiles/{{recipe.id}}/{{recipe.id}}.jpeg" onerror="this.style.display='none'"/>
+      <img class="img-fluid" src="{{environment.imgSRC}}{{recipe.id}}/{{recipe.id}}.jpeg" onerror="this.style.display='none'"/>
     </div>
   </div>
 
@@ -41,8 +41,7 @@
       <p>{{step.instructions}}</p>
     </div>
     <div class="col-md-4">
-      <img class="img-fluid" src="./assets/rfiles/{{recipe.id}}/{{step.num}}.jpeg" onerror="this.style.display='none'"/>
-
+      <img class="img-fluid" src="{{environment.imgSRC}}{{recipe.id}}/{{step.num}}.jpeg" onerror="this.style.display='none'"/>
     </div>
   </div>
 </div>

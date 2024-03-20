@@ -31,7 +31,7 @@
                (change)="onFileSelected($event)" #fileUpload>
         <div *ngIf="isEdit">
           <label class="p-2">Current image</label>
-          <img class="img-fluid" src="./assets/rfiles/{{form.value.id}}/{{form.value.id}}.jpeg"  style="max-width:600px;width:100%"/>
+          <img class="img-fluid" src="{{environment.imgSRC}}{{form.value.id}}/{{form.value.id}}.jpeg"  style="max-width:600px;width:100%"/>
         </div>
         <br />
         <label class="p-2">Updated image</label>
@@ -60,7 +60,7 @@
 
               <div *ngIf="isEdit">
                 <label class="p-2">Current image</label>
-                <img class="img-fluid" src="./assets/rfiles/{{form.value.id}}/{{step.num}}.jpeg" style="max-width:600px;width:100%" />
+                <img class="img-fluid" src="{{environment.imgSRC}}{{form.value.id}}/{{step.num}}.jpeg" style="max-width:600px;width:100%" />
               </div>
 
               <img height="150" width="150" src={{step.imageData}} />
