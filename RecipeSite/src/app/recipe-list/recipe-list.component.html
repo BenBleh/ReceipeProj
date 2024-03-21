@@ -1,14 +1,14 @@
 <div class="row">
-  <div class="col-md-11">
+  <div class="col-sm-11">
     <h1>All recipes</h1>
   </div>
-  <div class="col-md-1">
+  <div class="col-sm-1">
     <a [routerLink]="['/addRecipe']"><mat-icon>add</mat-icon></a>
   </div>
 </div>
 <div class="container p-2">
   <div class="row d-flex justify-content-center align-items-center">
-    <div class="col-md-6">
+    <div class="col-sm-6">
       <div class="form">
         <i class="fa fa-search"></i>
         <input type="text" class="form-control form-input" placeholder="Search" [(ngModel)]="searchString" (keyup)="search()">        
@@ -19,11 +19,11 @@
 </div>
 <div class="container display-flex">
   <div class="row border rounded" *ngFor="let recipe of filteredRecipes">
-    <div class="col-md-6 p-3">
+    <div class="col-sm-6 p-3">
       <a [title]="recipe.title"
          [routerLink]="['/recipe',recipe.id]">{{recipe.title}}</a>
     </div>
-    <div class="col-md-4 p-3">
+    <div class="col-sm-4 p-3">
       <img class="img-fluid p-10" src={{recipe.thumbnailSRC}}  onerror="this.style.display='none'"/>
     </div>
   </div>

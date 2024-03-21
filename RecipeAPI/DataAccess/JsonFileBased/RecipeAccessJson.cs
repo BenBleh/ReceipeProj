@@ -66,6 +66,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                 CheckFileExists(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json");
 
                 manageRecipeImages(recipe);
+                OrderSteps(recipe);
 
                 //write to file
                 string jsonString = JsonSerializer.Serialize(recipe);
@@ -88,6 +89,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             recipe.Id = Guid.NewGuid().ToString();
 
             manageRecipeImages(recipe);
+            OrderSteps(recipe);
 
             //write to file
             string jsonString = JsonSerializer.Serialize(recipe);
@@ -98,6 +100,18 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             UpdateMasterListWithNewRecipe(recipe.Id, recipe.Title);
 
             return recipe;
+        }
+
+        //this should handle cases where steps between steps might have been deleted.
+        private void OrderSteps(Recipe recipe) 
+        {
+            if (recipe.Steps != null)
+            {
+                for (int i = 0; i < recipe.Steps.Count; i++)
+                {
+                    recipe.Steps[i].Num = i;
+                }
+            }
         }
 
         private async Task UpdateMasterList(string id, string title)

@@ -51,11 +51,11 @@
         <h4>Step {{step.num}}</h4>
         <div class="row">
 
-          <div class="col-md-9">
+          <div class="col-sm-9">
             <label>Instructions</label>
             <textarea formControlName="instructions" placeholder="instructions" class="form-control" rows="8">  </textarea>
           </div>
-          <div class="col-md-3">
+          <div class="col-sm-3">
             <div class="file-upload">
 
               <div *ngIf="isEdit">
@@ -85,19 +85,19 @@
     <div formArrayName="ingredients">
       <div *ngFor="let orgs of form.get('ingredients')?.value;  let i = index; trackBy: trackByFn"
            [formGroupName]="i" class="row">
-        <div class="col-md-4">
+        <div class="col-sm-4">
           <label>Description</label>
           <input formControlName="description" placeholder="desc" class="form-control">
         </div>
-        <div class="col-md-4">
+        <div class="col-sm-4">
           <label>Quantity</label>
           <input formControlName="qty" placeholder="many?" class="form-control">
         </div>
-        <div class="col-md-3">
+        <div class="col-sm-3">
           <label>Unit</label>
           <input formControlName="unit" placeholder="type" class="form-control">
         </div>
-        <div class="col-md-1">
+        <div class="col-sm-1">
           <button *ngIf="i !== 0" (click)="deleteIngredientItem(i)"><mat-icon>delete_forever</mat-icon></button>
         </div>
       </div>

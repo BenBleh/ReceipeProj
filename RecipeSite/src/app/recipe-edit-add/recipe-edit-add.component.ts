@@ -63,6 +63,8 @@ export class RecipeEditAddComponent implements OnInit {
       //if this not edit(adding), then a template was used to build the form group. clear all values to defult.
       if (!this.isEdit) {
         this.form.reset({});
+        this.deleteStep(0);
+        this.addStepItem();      
       }
     });
   }
@@ -90,9 +92,9 @@ export class RecipeEditAddComponent implements OnInit {
 
   //step operations
 
-  buildStepItemsFields(x: any): FormGroup {
+  buildStepItemsFields(x: any): FormGroup {    
     return new FormGroup({
-      num: new FormControl(x.num),
+      num: new FormControl(Number(x.num)),
       instructions: new FormControl(x.instructions),
       imageData: new FormControl(x.imageData),
     });
@@ -106,9 +108,8 @@ export class RecipeEditAddComponent implements OnInit {
   }
 
   createStepItemField(stepNum: Number): FormGroup {
-
     return this.fb.group({
-      num: stepNum.toString(),
+      num: new FormControl(Number(stepNum) || Number(0)),
       instructions: '',
       imageData: ''
     });
@@ -152,6 +153,7 @@ export class RecipeEditAddComponent implements OnInit {
 
   //end Ingredient operations
   onSubmit() {
+
     this.payLoad = JSON.stringify(this.form.getRawValue());
 
     const httpOptions = {

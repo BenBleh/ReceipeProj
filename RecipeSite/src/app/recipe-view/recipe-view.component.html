@@ -1,21 +1,34 @@
 <div class="container p-2" *ngIf="recipe">
   <div class="row">
-    <div class="col-md-11">
+    <div class="col-sm-11 p-2">
       <h1>{{recipe.title}}</h1>
     </div>
-    <div class="col-md-1">
+    <div class="col-sm-1 p-2">
       <a [routerLink]="['/editRecipe',recipe.id]"><mat-icon>edit</mat-icon></a>
     </div>
   </div>
+  <!--header info-->
   <div class="row">
-    <div class="col-md-11">
-      <h5>ETA {{recipe.timeToComplete}}</h5>
+    <div class="col-sm-6">
+      <h5 *ngIf="recipe.timeToComplete">ETA {{recipe.timeToComplete}}</h5>
+    </div>
+    <div *ngIf="recipe.source" class="col-sm-6">
+      <h5><a *ngIf="sourceIsLink" href="{{recipe.source}}">Source</a></h5>
+      <div *ngIf="!sourceIsLink" class="row">
+        <div class="col-sm-4">
+          <h5>Source</h5>
+        </div>
+        <div class="col-sm-8">
+          <p *ngIf="!sourceIsLink"> {{recipe.source}}</p>
+        </div>
+      </div>
     </div>
   </div>
+  <!--ingredient section-->
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-sm-6">
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-sm-12">
           <h4>Ingredients</h4>
           <ul *ngFor="let ingredient of recipe.ingredients">
             <li>
@@ -25,23 +38,18 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6">
-      <img class="img-fluid" src="{{environment.imgSRC}}{{recipe.id}}/{{recipe.id}}.jpeg" onerror="this.style.display='none'"/>
+    <div class="col-sm-6 mb-2">
+      <img class="img-fluid" src="{{environment.imgSRC}}{{recipe.id}}/{{recipe.id}}.jpeg" onerror="this.style.display='none'" />
     </div>
   </div>
-
-  <div class="mb-2">
-    <h5>Source</h5>
-    <a *ngIf="recipe.source" href="{{recipe.source}}">{{recipe.source}}</a>
-  </div>
-
+  <!--step secton-->
   <div class="row" *ngFor="let step of recipe.steps">
     <h3>Step {{step.num +1}}</h3>
-    <div class="col-md-8">
+    <div class="col-sm-8">
       <p>{{step.instructions}}</p>
     </div>
-    <div class="col-md-4">
-      <img class="img-fluid" src="{{environment.imgSRC}}{{recipe.id}}/{{step.num}}.jpeg" onerror="this.style.display='none'"/>
+    <div class="col-sm-4">
+      <img class="img-fluid" src="{{environment.imgSRC}}{{recipe.id}}/{{step.num}}.jpeg" onerror="this.style.display='none'" />
     </div>
   </div>
 </div>
