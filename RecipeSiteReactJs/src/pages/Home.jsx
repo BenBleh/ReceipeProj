@@ -10,14 +10,14 @@ import { SearchBar } from '../components/SearchBar';
 export function Home()
 {
 
-    const [posts, setPosts] = useState([])
+    const [recipies, setRecipies] = useState([])
     const [filteredRecipies, setfilteredRecipies] = useState([])
     const [query, setquery] = useState('')
     
     const handleChange = (e) => {
-        const results = posts.filter(post => {
-            if (e.target.value === "") return posts
-            return post.title.toLowerCase().includes(e.target.value.toLowerCase())
+        const results = recipies.filter(recipe => {
+            if (e.target.value === "") return recipies
+            return recipe.title.toLowerCase().includes(e.target.value.toLowerCase())
         })
         setquery(e.target.value)
         setfilteredRecipies(results)
@@ -27,7 +27,7 @@ export function Home()
      useEffect(() => {
         axios.get('http://192.168.1.116:8080/MasterRecipeList')
           .then(response => {
-            setPosts(response.data)
+            setRecipies(response.data)
             setfilteredRecipies(response.data)
           })
           .catch(error => {
@@ -45,26 +45,26 @@ export function Home()
         <SearchBar query={query} handleChange={handleChange}/>
         <div className='row'>
             <div className='col-1'></div>
-            <div className='col-9'>
-                <h1>Welcome home</h1>
+            <div className='col-9'>               
             </div>
             <div className='col-1'>
-                <Link to="/Edit">
-                    <MaterialIcon icon="edit" />
+                <Link to="/Add">
+                    <MaterialIcon icon="add" />
                 </Link>
             </div>
         </div>
         
             {filteredRecipies.map((recipe) => 
-                    {
-                        return (
-                            <>
-                                <RecipeCard key={recipe.id} recipe={recipe} GetThumbNailSRC={GetThumbNailSRC}/>
-                                <br/>
-                            </>
-                        )
-                    }
-                    )}
+                {
+                    return (
+                        <>
+                            <RecipeCard key={recipe.id} recipe={recipe} GetImgSRC={GetThumbNailSRC}/>
+                            <br/>
+                        </>
+                    )
+                }
+                )
+            }
         
         </>
      )
