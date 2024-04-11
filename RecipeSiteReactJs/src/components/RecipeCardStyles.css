@@ -1,0 +1,15 @@
+a.RCardTitle:link {
+    text-decoration: none;
+  }
+  
+  a.RCardTitle:visited {
+    text-decoration: none;
+  }
+  
+  a.RCardTitle:hover {
+    text-decoration: underline;
+  }
+  
+  a.RCardTitle:active {
+    text-decoration: underline;
+  }
