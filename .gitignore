@@ -135,3 +135,8 @@ QuickGrid.razor.js
 PublishOutputs.ae19921290.txt
 RecipeAPI.sourcelink.json
 staticwebassets.publish.json
+obj
+bin
+/.vs/ProjectEvaluation/recipeproj.metadata.v8.bin
+/.vs/ProjectEvaluation/recipeproj.projects.v8.bin
+/.vs/ProjectEvaluation/recipeproj.strings.v8.bin
