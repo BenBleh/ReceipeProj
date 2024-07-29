@@ -1,0 +1,30 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="RecipeApp.MainPage"
+             xmlns:local="clr-namespace:RecipeApp"
+             xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+             xmlns:apiModels="clr-namespace:RecipeAPI.Models;assembly=RecipeAPI"
+             x:DataType="viewmodels:MainPageViewModel">
+    <CollectionView
+            Grid.ColumnSpan="2"
+            ItemsSource="{Binding RecipeListItems}"            
+            SelectionMode="Single"
+            SelectionChanged="OnCollectionViewSelectionChanged">
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="apiModels:RecipeListItem">
+                <Frame HeightRequest="125" Padding="10" >
+                    <HorizontalStackLayout  HorizontalOptions="Center">
+                        <Image 
+                                Source="{Binding ImageData}" 
+                                HeightRequest ="120" 
+                                WidthRequest="120" 
+                                Aspect="AspectFill"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"/>
+                        <Label Text="{Binding Title}"  VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Frame>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>
