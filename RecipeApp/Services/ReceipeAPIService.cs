@@ -1,4 +1,4 @@
-﻿using RecipeAPI.Models;
+﻿using RecipeApp.Models;
 using RecipeApp.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -49,7 +49,7 @@ namespace RecipeApp.Services
                 GetReceipeFiles(recipeListItems);
                 //could also download step pics but that hasn't been used in any recipe                
             }
-            catch 
+            catch (Exception ex)
             {
                 //if connection to server failed use local files
                 using (var reader = new StreamReader(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv")))
@@ -63,11 +63,11 @@ namespace RecipeApp.Services
                         {
                             Id = values[0],
                             Title = values[1],
-                            ImageData = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", values[0], "thumb.jpeg")
+                            ImageData = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", values[0], values[0] + ".jpeg")
                         });
                     }
                 }
-              
+
             }
 
             return recipeListItems;
@@ -89,7 +89,7 @@ namespace RecipeApp.Services
                     System.IO.Directory.CreateDirectory(recipePath);
                 }
             }
-        }        
+        }
 
         private async Task GetThumbnails(List<RecipeListItem> recipeListItems)
         {
@@ -104,8 +104,8 @@ namespace RecipeApp.Services
                         System.IO.Directory.CreateDirectory(filePath);
                     }
 
-                    filePath = System.IO.Path.Combine(filePath, "thumb.jpeg");
-                    recipe.ImageData = filePath;
+                    filePath = System.IO.Path.Combine(filePath, recipe.Id + ".jpeg");
+                    recipe.ImageData = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
 
                     await DownloadAFile(uri, filePath);
                 }
@@ -155,6 +155,29 @@ namespace RecipeApp.Services
                         }
                     }
             }
+        }
+
+        public async Task<Recipe> GetRecipe(string recipeId)
+        {
+            try
+            {
+                var path = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipeId + ".json");
+                using (var reader = new StreamReader(path))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        var x = JsonSerializer.Deserialize<Recipe>(reader.ReadToEnd());
+                        return x;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return null;
         }
     }
 }

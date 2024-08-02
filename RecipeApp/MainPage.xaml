@@ -3,27 +3,28 @@
              x:Class="RecipeApp.MainPage"
              xmlns:local="clr-namespace:RecipeApp"
              xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
-             xmlns:apiModels="clr-namespace:RecipeAPI.Models;assembly=RecipeAPI"
+             xmlns:apiModels="clr-namespace:RecipeApp.Models"
              x:DataType="viewmodels:MainPageViewModel">
-    <CollectionView
-            Grid.ColumnSpan="2"
+    <CollectionView                   
             ItemsSource="{Binding RecipeListItems}"            
             SelectionMode="Single"
             SelectionChanged="OnCollectionViewSelectionChanged">
         <CollectionView.ItemTemplate>
             <DataTemplate x:DataType="apiModels:RecipeListItem">
-                <Frame HeightRequest="125" Padding="10" >
-                    <HorizontalStackLayout  HorizontalOptions="Center">
+                <Border HeightRequest="125" Padding="10" Background="Transparent"   StrokeShape="RoundRectangle 10,10,10,10">
+                    <Grid ColumnDefinitions="Auto, *"  HorizontalOptions="Center"  ColumnSpacing="50" >
                         <Image 
+                                Grid.Column="0"
                                 Source="{Binding ImageData}" 
                                 HeightRequest ="120" 
                                 WidthRequest="120" 
                                 Aspect="AspectFill"
                                 HorizontalOptions="Center"
-                                VerticalOptions="Center"/>
-                        <Label Text="{Binding Title}"  VerticalOptions="Center" />
-                    </HorizontalStackLayout>
-                </Frame>
+                                VerticalOptions="Center"
+                            />
+                        <Label Text="{Binding Title}"  VerticalOptions="Center"  Grid.Column="1"/>
+                    </Grid>
+                </Border>
             </DataTemplate>
         </CollectionView.ItemTemplate>
     </CollectionView>

@@ -2,11 +2,42 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RecipeApp.RecipeDetailsPage"
-             Title="RecipeDetailsPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             xmlns:local="clr-namespace:RecipeApp"
+             xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+             xmlns:apiModels="clr-namespace:RecipeApp.Models"
+             
+             x:DataType="viewmodels:RecipeDetailsViewModel">
+    <ScrollView>
+        <Grid ColumnDefinitions="*,auto" RowDefinitions="auto,auto, *" HorizontalOptions="Center" Margin="25">
+            <Label Text="{Binding Recipe.Title}" FontSize="Header" Grid.ColumnSpan="2"/>
+            <Image Grid.Row="1" Source="{Binding Recipe.ImageData}" />
+            <CollectionView Grid.Column="1"
+                            Grid.Row="1"
+                        ItemsSource="{Binding Recipe.Ingredients}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="apiModels:Ingredient">
+                        <HorizontalStackLayout>
+                            <CheckBox/>
+                            <Label VerticalOptions="Center" Text="{Binding IngredientString}"></Label>
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <CollectionView Grid.Row="2" HorizontalOptions="Center" Grid.ColumnSpan="2" Margin="25"
+                        ItemsSource="{Binding Recipe.Steps}">
+                <CollectionView.ItemTemplate Margin="25">
+                <DataTemplate x:DataType="apiModels:Step" >
+                        <Frame Background="Transparent" Margin="5">
+                            <VerticalStackLayout Padding="5">
+                                <Label Text="{Binding StepNumberDisplay}" FontSize="Large" />
+                            <Label VerticalOptions="Center" Text="{Binding Instructions}"></Label>
+                        </VerticalStackLayout>
+                        </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+    </ScrollView>
 </ContentPage>

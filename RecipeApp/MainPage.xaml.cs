@@ -1,5 +1,5 @@
 ﻿using RecipeApp.ViewModels;
-using RecipeAPI.Models;
+using RecipeApp.Models;
 
 namespace RecipeApp
 {
@@ -16,10 +16,7 @@ namespace RecipeApp
             string previous = (e.PreviousSelection.FirstOrDefault() as RecipeListItem)?.Id;
             var current = (e.CurrentSelection.FirstOrDefault() as RecipeListItem);
 
-            await Navigation.PushAsync(new RecipeDetailsPage
-            {
-                BindingContext = current
-            });
+            await Navigation.PushAsync(new RecipeDetailsPage(current));
         }
     }
 

@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using RecipeAPI.Models;
+using RecipeApp.Models;
 using RecipeApp.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
