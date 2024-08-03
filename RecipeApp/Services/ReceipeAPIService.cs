@@ -23,6 +23,7 @@ namespace RecipeApp.Services
             httpClient = new()
             {
                 BaseAddress = new Uri(APIUrl),
+                Timeout = TimeSpan.FromSeconds(10)
             };
         }
 

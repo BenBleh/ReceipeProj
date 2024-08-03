@@ -1,31 +1,50 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="RecipeApp.MainPage"
-             xmlns:local="clr-namespace:RecipeApp"
-             xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
-             xmlns:apiModels="clr-namespace:RecipeApp.Models"
-             x:DataType="viewmodels:MainPageViewModel">
-    <CollectionView                   
-            ItemsSource="{Binding RecipeListItems}"            
-            SelectionMode="Single"
-            SelectionChanged="OnCollectionViewSelectionChanged">
-        <CollectionView.ItemTemplate>
-            <DataTemplate x:DataType="apiModels:RecipeListItem">
-                <Border HeightRequest="125" Padding="10" Background="Transparent"   StrokeShape="RoundRectangle 10,10,10,10">
-                    <Grid ColumnDefinitions="Auto, *"  HorizontalOptions="Center"  ColumnSpacing="50" >
-                        <Image 
+﻿<ContentPage
+    x:Class="RecipeApp.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:apiModels="clr-namespace:RecipeApp.Models"
+    xmlns:local="clr-namespace:RecipeApp"
+    xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+    x:DataType="viewmodels:MainPageViewModel">
+    <Grid>
+        <CollectionView
+            ItemsSource="{Binding RecipeListItems}"
+            SelectionChanged="OnCollectionViewSelectionChanged"
+            SelectionMode="Single">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="apiModels:RecipeListItem">
+                    <Border
+                        Padding="10"
+                        Background="Transparent"
+                        HeightRequest="125"
+                        StrokeShape="RoundRectangle 10,10,10,10">
+                        <Grid
+                            ColumnDefinitions="Auto, *"
+                            ColumnSpacing="50"
+                            HorizontalOptions="Center">
+                            <Image
                                 Grid.Column="0"
-                                Source="{Binding ImageData}" 
-                                HeightRequest ="120" 
-                                WidthRequest="120" 
                                 Aspect="AspectFill"
+                                HeightRequest="120"
                                 HorizontalOptions="Center"
+                                Source="{Binding ImageData}"
                                 VerticalOptions="Center"
-                            />
-                        <Label Text="{Binding Title}"  VerticalOptions="Center"  Grid.Column="1"/>
-                    </Grid>
-                </Border>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+                                WidthRequest="120" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding Title}"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+        <Image
+            HorizontalOptions="Center"
+            IsVisible="{Binding IsBusy}"
+            Rotation="{Binding LoadingRoatation}"
+            Source="kittys.png"
+            VerticalOptions="Center" />
+    </Grid>
 </ContentPage>
