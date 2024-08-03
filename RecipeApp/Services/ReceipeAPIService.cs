@@ -23,7 +23,7 @@ namespace RecipeApp.Services
             httpClient = new()
             {
                 BaseAddress = new Uri(APIUrl),
-                Timeout = TimeSpan.FromSeconds(10)
+                Timeout = TimeSpan.FromSeconds(5)
             };
         }
 
@@ -44,11 +44,8 @@ namespace RecipeApp.Services
 
                 SetUpFileSystem(recipeListItems);
 
-                await GetThumbnails(recipeListItems);
-
-                //kick off downloading the other files
-                GetReceipeFiles(recipeListItems);
-                //could also download step pics but that hasn't been used in any recipe                
+                await GetReceipeFiles(recipeListItems);
+                
             }
             catch (Exception ex)
             {
@@ -63,13 +60,30 @@ namespace RecipeApp.Services
                         recipeListItems.Add(new RecipeListItem()
                         {
                             Id = values[0],
-                            Title = values[1],
-                            ImageData = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", values[0], values[0] + ".jpeg")
+                            Title = values[1]
                         });
                     }
                 }
 
             }
+
+            //set up 'main' image
+
+            foreach (var recpie in recipeListItems) 
+            {
+
+                var path = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recpie.Id, recpie.Id + ".jpeg");
+                if (File.Exists(path))
+                {
+                    recpie.ImageData = path;
+                }
+                else
+                {
+                    recpie.ImageData = "kittys.png";
+                }
+                
+            }
+
 
             return recipeListItems;
         }
@@ -130,8 +144,8 @@ namespace RecipeApp.Services
                 fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id + ".json");
                 DownloadAFile(uri, fileName);
 
-                //get the 'big picture'
-
+                
+                //get the main image
                 uri = new Uri(FilesUrl + "/" + recipe.Id + "/" + recipe.Id + ".jpeg");
                 fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
                 DownloadAFile(uri, fileName);

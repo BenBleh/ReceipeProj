@@ -1,43 +1,58 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="RecipeApp.RecipeDetailsPage"
-             xmlns:local="clr-namespace:RecipeApp"
-             xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
-             xmlns:apiModels="clr-namespace:RecipeApp.Models"
-             
-             x:DataType="viewmodels:RecipeDetailsViewModel">
+<ContentPage
+    x:Class="RecipeApp.RecipeDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:apiModels="clr-namespace:RecipeApp.Models"
+    xmlns:local="clr-namespace:RecipeApp"
+    xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+    x:DataType="viewmodels:RecipeDetailsViewModel">
     <ScrollView>
-        <Grid ColumnDefinitions="*,auto" RowDefinitions="auto,auto, *" HorizontalOptions="Center" Margin="25">
-            <Label Text="{Binding Recipe.Title}" FontSize="Header" Grid.ColumnSpan="2"/>
-            <Image Grid.Row="1" Source="{Binding Recipe.ImageData}" />
-            <CollectionView Grid.Column="1"
-                            Grid.Row="1"
-                        ItemsSource="{Binding Recipe.Ingredients}">
+        <Grid
+            Margin="25"
+            ColumnDefinitions="*,auto"
+            HorizontalOptions="Center"
+            RowDefinitions="auto,auto, *">
+            <Label
+                Grid.ColumnSpan="2"
+                FontSize="Header"
+                Text="{Binding Recipe.Title}" />
+            <Image
+                Grid.Row="1"
+                HeightRequest="400"
+                Source="{Binding Recipe.ImageData}" />
+            <CollectionView
+                Grid.Row="1"
+                Grid.Column="1"
+                ItemsSource="{Binding Recipe.Ingredients}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="apiModels:Ingredient">
                         <HorizontalStackLayout>
-                            <CheckBox/>
-                            <Label VerticalOptions="Center" Text="{Binding IngredientString}"></Label>
+                            <CheckBox />
+                            <Label Text="{Binding IngredientString}" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <CollectionView Grid.Row="2" HorizontalOptions="Center" Grid.ColumnSpan="2" Margin="25"
-                        ItemsSource="{Binding Recipe.Steps}">
+            <CollectionView
+                Grid.Row="2"
+                Grid.ColumnSpan="2"
+                Margin="25"
+                HorizontalOptions="Center"
+                ItemsSource="{Binding Recipe.Steps}">
                 <CollectionView.ItemTemplate Margin="25">
-                <DataTemplate x:DataType="apiModels:Step" >
-                        <Frame Background="Transparent" Margin="5">
+                    <DataTemplate x:DataType="apiModels:Step">
+                        <Frame Margin="5" Background="Transparent">
                             <VerticalStackLayout Padding="5">
-                                <Label Text="{Binding StepNumberDisplay}" FontSize="Large" />
-                            <Label VerticalOptions="Center" Text="{Binding Instructions}"></Label>
-                        </VerticalStackLayout>
+                                <Label FontSize="Large" Text="{Binding StepNumberDisplay}" />
+                                <Label Text="{Binding Instructions}" VerticalOptions="Center" />
+                            </VerticalStackLayout>
                         </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-    </Grid>
+        </Grid>
     </ScrollView>
 </ContentPage>

@@ -12,11 +12,13 @@ namespace RecipeApp
         }
 
         public async void OnCollectionViewSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            string previous = (e.PreviousSelection.FirstOrDefault() as RecipeListItem)?.Id;
+        {            
             var current = (e.CurrentSelection.FirstOrDefault() as RecipeListItem);
-
-            await Navigation.PushAsync(new RecipeDetailsPage(current));
+            if (current != null)
+            {
+                await Navigation.PushAsync(new RecipeDetailsPage(current));
+                recipeListCollectionView.SelectedItem = null;
+            }
         }
     }
 

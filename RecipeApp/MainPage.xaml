@@ -6,36 +6,58 @@
     xmlns:local="clr-namespace:RecipeApp"
     xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
     x:DataType="viewmodels:MainPageViewModel">
+    <ContentPage.Resources>
+        <Style TargetType="Grid">
+            <Setter Property="VisualStateManager.VisualStateGroups">
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal" />
+                        <VisualState x:Name="Selected">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
     <Grid>
         <CollectionView
+            x:Name="recipeListCollectionView"
             ItemsSource="{Binding RecipeListItems}"
             SelectionChanged="OnCollectionViewSelectionChanged"
             SelectionMode="Single">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="apiModels:RecipeListItem">
-                    <Border
-                        Padding="10"
-                        Background="Transparent"
-                        HeightRequest="125"
-                        StrokeShape="RoundRectangle 10,10,10,10">
-                        <Grid
-                            ColumnDefinitions="Auto, *"
-                            ColumnSpacing="50"
-                            HorizontalOptions="Center">
-                            <Image
-                                Grid.Column="0"
-                                Aspect="AspectFill"
-                                HeightRequest="120"
-                                HorizontalOptions="Center"
-                                Source="{Binding ImageData}"
-                                VerticalOptions="Center"
-                                WidthRequest="120" />
-                            <Label
-                                Grid.Column="1"
-                                Text="{Binding Title}"
-                                VerticalOptions="Center" />
-                        </Grid>
-                    </Border>
+                    <Grid>
+                        <Border
+                            Padding="10"
+                            Background="Transparent"
+                            HorizontalOptions="Center"
+                            Stroke="DarkGray"
+                            StrokeShape="RoundRectangle 10,10,10,10"
+                            VerticalOptions="Center"
+                            WidthRequest="250">
+
+                            <VerticalStackLayout>
+                                <Image
+                                    Grid.Column="0"
+                                    Aspect="AspectFill"
+                                    HeightRequest="250"
+                                    HorizontalOptions="Center"
+                                    Source="{Binding ImageData}"
+                                    VerticalOptions="Center" />
+                                <Label
+                                    Grid.Column="1"
+                                    HorizontalOptions="Center"
+                                    LineBreakMode="WordWrap"
+                                    Text="{Binding Title}"
+                                    VerticalOptions="Center"
+                                    WidthRequest="120" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
 
