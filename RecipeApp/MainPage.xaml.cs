@@ -25,10 +25,12 @@ namespace RecipeApp
         }
 
         protected override void OnNavigatedTo(NavigatedToEventArgs args)
-        {             
+        {
+#if ANDROID
             base.OnNavigatedTo(args);
             CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
             CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
+#endif
         }
     }
 
