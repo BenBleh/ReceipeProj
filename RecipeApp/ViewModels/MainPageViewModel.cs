@@ -22,21 +22,21 @@ namespace RecipeApp.ViewModels
         [ObservableProperty]
         private bool isBusy;
 
+        System.Timers.Timer _timer;
+
         public MainPageViewModel()
         {
             this.ReceipeAPIService = new ReceipeAPIService();
 
-            LoadRecipeList();
+           Task.Run(async () => await LoadRecipeList());
 
         }
 
         private async Task LoadRecipeList()
         {
             IsBusy = true;
-            System.Timers.Timer _timer;
-            _timer = new System.Timers.Timer(50);
-            _timer.Elapsed += UpdateLoadingRotation;
-            _timer.Start();
+
+            SetUpTimer();
 
             //try get from server (which writes to file)
             var x = await ReceipeAPIService.GetMasterList();
@@ -45,12 +45,17 @@ namespace RecipeApp.ViewModels
                 RecipeListItems.Add(itm);
             }
 
-            OnPropertyChanged(nameof(RecipeListItems));
-            //read file
-
             IsBusy = false;
             _timer?.Dispose();
         }
+
+        private void SetUpTimer(int interval = 50)
+        {
+            _timer = new System.Timers.Timer(50);
+            _timer.Elapsed += UpdateLoadingRotation;
+            _timer.Start();
+        }
+
 
         private void UpdateLoadingRotation(object sender, ElapsedEventArgs e)
         {

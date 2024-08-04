@@ -1,5 +1,6 @@
 ﻿using RecipeApp.ViewModels;
 using RecipeApp.Models;
+using CommunityToolkit.Maui.Core;
 
 namespace RecipeApp
 {
@@ -12,13 +13,22 @@ namespace RecipeApp
         }
 
         public async void OnCollectionViewSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {            
+        {
+            (this.BindingContext as MainPageViewModel).IsBusy = true;
             var current = (e.CurrentSelection.FirstOrDefault() as RecipeListItem);
             if (current != null)
             {
                 await Navigation.PushAsync(new RecipeDetailsPage(current));
                 recipeListCollectionView.SelectedItem = null;
             }
+            (this.BindingContext as MainPageViewModel).IsBusy = false;
+        }
+
+        protected override void OnNavigatedTo(NavigatedToEventArgs args)
+        {             
+            base.OnNavigatedTo(args);
+            CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
+            CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
         }
     }
 

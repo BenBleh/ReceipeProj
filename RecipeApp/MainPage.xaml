@@ -4,7 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:apiModels="clr-namespace:RecipeApp.Models"
     xmlns:local="clr-namespace:RecipeApp"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+    x:Name="RootPage"
     x:DataType="viewmodels:MainPageViewModel">
     <ContentPage.Resources>
         <Style TargetType="Grid">
@@ -28,18 +30,13 @@
             ItemsSource="{Binding RecipeListItems}"
             SelectionChanged="OnCollectionViewSelectionChanged"
             SelectionMode="Single">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2" />
+            </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="apiModels:RecipeListItem">
                     <Grid>
-                        <Border
-                            Padding="10"
-                            Background="Transparent"
-                            HorizontalOptions="Center"
-                            Stroke="DarkGray"
-                            StrokeShape="RoundRectangle 10,10,10,10"
-                            VerticalOptions="Center"
-                            WidthRequest="250">
-
+                        <Border StrokeShape="RoundRectangle 20,20,20,20" StrokeThickness="2">
                             <VerticalStackLayout>
                                 <Image
                                     Grid.Column="0"
@@ -50,7 +47,10 @@
                                     VerticalOptions="Center" />
                                 <Label
                                     Grid.Column="1"
+                                    FontAttributes="Bold"
+                                    FontFamily="Montserrat"
                                     HorizontalOptions="Center"
+                                    HorizontalTextAlignment="Center"
                                     LineBreakMode="WordWrap"
                                     Text="{Binding Title}"
                                     VerticalOptions="Center"
@@ -67,6 +67,7 @@
             IsVisible="{Binding IsBusy}"
             Rotation="{Binding LoadingRoatation}"
             Source="kittys.png"
-            VerticalOptions="Center" />
+            VerticalOptions="Center"
+            WidthRequest="400" />
     </Grid>
 </ContentPage>

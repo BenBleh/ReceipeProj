@@ -6,38 +6,58 @@
     xmlns:apiModels="clr-namespace:RecipeApp.Models"
     xmlns:local="clr-namespace:RecipeApp"
     xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+    x:Name="RootPage"
     x:DataType="viewmodels:RecipeDetailsViewModel">
     <ScrollView>
         <Grid
             Margin="25"
-            ColumnDefinitions="*,auto"
+            ColumnDefinitions="*"
             HorizontalOptions="Center"
-            RowDefinitions="auto,auto, *">
+            RowDefinitions="auto,auto, auto, *">
             <Label
                 Grid.ColumnSpan="2"
-                FontSize="Header"
+                Padding="15"
+                FontSize="30"
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center"
+                LineBreakMode="WordWrap"
                 Text="{Binding Recipe.Title}" />
             <Image
                 Grid.Row="1"
                 HeightRequest="400"
                 Source="{Binding Recipe.ImageData}" />
-            <CollectionView
-                Grid.Row="1"
-                Grid.Column="1"
-                ItemsSource="{Binding Recipe.Ingredients}">
+            <CollectionView Grid.Row="2" ItemsSource="{Binding Recipe.Ingredients}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="2" />
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="apiModels:Ingredient">
                         <HorizontalStackLayout>
-                            <CheckBox />
+                            <CheckBox>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroupList>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Color" Value="Pink" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState x:Name="IsChecked">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Color" Value="Pink" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateGroupList>
+                                </VisualStateManager.VisualStateGroups>
+                            </CheckBox>
                             <Label Text="{Binding IngredientString}" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
             <CollectionView
-                Grid.Row="2"
-                Grid.ColumnSpan="2"
+                Grid.Row="3"
                 Margin="25"
                 HorizontalOptions="Center"
                 ItemsSource="{Binding Recipe.Steps}">
