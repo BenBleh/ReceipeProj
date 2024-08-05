@@ -40,12 +40,9 @@ namespace RecipeApp.Services
                 Console.WriteLine($"{jsonResponse}\n");
 
                 recipeListItems = JsonSerializer.Deserialize<List<RecipeListItem>>(jsonResponse);
-
-
                 SetUpFileSystem(recipeListItems);
-
                 await GetReceipeFiles(recipeListItems);
-                
+
             }
             catch (Exception ex)
             {
@@ -67,11 +64,11 @@ namespace RecipeApp.Services
 
             }
 
+            
             //set up 'main' image
 
-            foreach (var recpie in recipeListItems) 
+            foreach (var recpie in recipeListItems)
             {
-
                 var path = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recpie.Id, recpie.Id + ".jpeg");
                 if (File.Exists(path))
                 {
@@ -81,9 +78,7 @@ namespace RecipeApp.Services
                 {
                     recpie.ImageData = "kittys.png";
                 }
-                
             }
-
 
             return recipeListItems;
         }
@@ -99,7 +94,7 @@ namespace RecipeApp.Services
             foreach (var recipeListItem in recipeListItems)
             {
                 var recipePath = System.IO.Path.Combine(sourcePath, recipeListItem.Id);
-                if (File.Exists(recipePath))
+                if (!File.Exists(recipePath))
                 {
                     System.IO.Directory.CreateDirectory(recipePath);
                 }
@@ -135,20 +130,20 @@ namespace RecipeApp.Services
         {
             var uri = new Uri(FilesUrl + "/" + "MasterList.csv");
             var fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv");
-            DownloadAFile(uri, fileName);
+            await DownloadAFile(uri, fileName);
 
             foreach (var recipe in recipeListItems)
             {
                 //get the recipe file
                 uri = new Uri(FilesUrl + "/" + recipe.Id + ".json");
                 fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id + ".json");
-                DownloadAFile(uri, fileName);
+                await DownloadAFile(uri, fileName);
 
-                
+
                 //get the main image
                 uri = new Uri(FilesUrl + "/" + recipe.Id + "/" + recipe.Id + ".jpeg");
                 fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
-                DownloadAFile(uri, fileName);
+                await DownloadAFile(uri, fileName);
             }
         }
 
@@ -181,8 +176,7 @@ namespace RecipeApp.Services
                 {
                     while (!reader.EndOfStream)
                     {
-                        var x = JsonSerializer.Deserialize<Recipe>(reader.ReadToEnd());
-                        return x;
+                        return JsonSerializer.Deserialize<Recipe>(reader.ReadToEnd());
                     }
                 }
 

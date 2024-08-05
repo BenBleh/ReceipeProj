@@ -3,47 +3,44 @@
   "WorkspaceRootPath": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Ben\\AppData\\Local\\SourceServer\\3232e2ba5d227375407117ed8fb042ba80db40de1e72fca8ae3cf55d32335936\\RecipeApp\\RecipeDetailsPage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\recipedetailspage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\recipedetailspage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\mainpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\mainpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\services\\receipeapiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\services\\receipeapiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\viewmodels\\mainpageviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\viewmodels\\mainpageviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\recipeapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\recipeapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\recipeapp.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
       "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\recipeapp.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\platforms\\android\\androidmanifest.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\platforms\\android\\androidmanifest.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\recipedetailspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\recipedetailspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\recipeapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\recipeapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\platforms\\android\\androidmanifest.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\platforms\\android\\androidmanifest.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\mainpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\mainpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\recipedetailspage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\recipedetailspage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\viewmodels\\mainpageviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\viewmodels\\mainpageviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\users\\ben\\desktop\\2023-2024 code tests and practice\\receipeproj\\recipeapp\\platforms\\android\\resources\\values\\colors.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
@@ -57,37 +54,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "RecipeDetailsPage.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Ben\\AppData\\Local\\SourceServer\\3232e2ba5d227375407117ed8fb042ba80db40de1e72fca8ae3cf55d32335936\\RecipeApp\\RecipeDetailsPage.xaml.cs",
-              "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Local\\SourceServer\\3232e2ba5d227375407117ed8fb042ba80db40de1e72fca8ae3cf55d32335936\\RecipeApp\\RecipeDetailsPage.xaml.cs",
-              "ToolTip": "C:\\Users\\Ben\\AppData\\Local\\SourceServer\\3232e2ba5d227375407117ed8fb042ba80db40de1e72fca8ae3cf55d32335936\\RecipeApp\\RecipeDetailsPage.xaml.cs [Read Only]",
-              "RelativeToolTip": "..\\..\\..\\AppData\\Local\\SourceServer\\3232e2ba5d227375407117ed8fb042ba80db40de1e72fca8ae3cf55d32335936\\RecipeApp\\RecipeDetailsPage.xaml.cs [Read Only]",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABMAAAAIAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-04T11:07:35.406Z",
-              "EditorCaption": " [Read Only]"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "MainPage.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\MainPage.xaml.cs",
-              "RelativeDocumentMoniker": "RecipeApp\\MainPage.xaml.cs",
-              "ToolTip": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\MainPage.xaml.cs",
-              "RelativeToolTip": "RecipeApp\\MainPage.xaml.cs",
-              "ViewState": "AQIAAAQAAAAAAAAAAAAewBwAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-04T11:06:31.304Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
               "Title": "RecipeApp",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\RecipeApp.csproj",
               "RelativeDocumentMoniker": "RecipeApp\\RecipeApp.csproj",
@@ -99,7 +70,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 5,
               "Title": "AndroidManifest.xml",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\Platforms\\Android\\AndroidManifest.xml",
               "RelativeDocumentMoniker": "RecipeApp\\Platforms\\Android\\AndroidManifest.xml",
@@ -107,44 +78,43 @@
               "RelativeToolTip": "RecipeApp\\Platforms\\Android\\AndroidManifest.xml",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
-              "WhenOpened": "2024-08-04T10:46:40.985Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-04T10:46:40.985Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "ReceipeAPIService.cs",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\Services\\ReceipeAPIService.cs",
               "RelativeDocumentMoniker": "RecipeApp\\Services\\ReceipeAPIService.cs",
               "ToolTip": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\Services\\ReceipeAPIService.cs",
               "RelativeToolTip": "RecipeApp\\Services\\ReceipeAPIService.cs",
-              "ViewState": "AQIAAD8AAAAAAAAAAAAowCgAAAAAAAAA",
+              "ViewState": "AQIAABkAAAAAAAAAAAAgwDEAAAAXAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-04T10:30:15.157Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 3,
               "Title": "RecipeDetailsPage.xaml",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\RecipeDetailsPage.xaml",
               "RelativeDocumentMoniker": "RecipeApp\\RecipeDetailsPage.xaml",
               "ToolTip": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\RecipeDetailsPage.xaml",
               "RelativeToolTip": "RecipeApp\\RecipeDetailsPage.xaml",
-              "ViewState": "AQIAAAMAAAAAAAAAAAAAAC4AAABYAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAC4AAABYAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2024-08-04T09:55:30.77Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 1,
               "Title": "MainPage.xaml",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\MainPage.xaml",
               "RelativeDocumentMoniker": "RecipeApp\\MainPage.xaml",
               "ToolTip": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\MainPage.xaml",
               "RelativeToolTip": "RecipeApp\\MainPage.xaml",
-              "ViewState": "AQIAAA8AAAAAAAAAAAAAADMAAAAAAAAA",
+              "ViewState": "AQIAACQAAAAAAAAAAAAAADMAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2024-08-04T09:53:46.173Z",
               "EditorCaption": ""
@@ -159,12 +129,11 @@
               "RelativeToolTip": "RecipeApp\\MauiProgram.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABMAAABRAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-04T09:52:57.465Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-04T09:52:57.465Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 7,
               "Title": "RecipeDetailsPage.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\RecipeDetailsPage.xaml.cs",
               "RelativeDocumentMoniker": "RecipeApp\\RecipeDetailsPage.xaml.cs",
@@ -172,25 +141,36 @@
               "RelativeToolTip": "RecipeApp\\RecipeDetailsPage.xaml.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABYAAAAGAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-04T08:13:36.517Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-04T08:13:36.517Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "RecipeApp",
+              "DocumentIndex": 4,
+              "Title": "RecipeApp.csproj",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\RecipeApp.csproj",
               "RelativeDocumentMoniker": "RecipeApp\\RecipeApp.csproj",
               "ToolTip": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\RecipeApp.csproj",
               "RelativeToolTip": "RecipeApp\\RecipeApp.csproj",
-              "ViewState": "AQIAAAkAAAAAAAAAAAAAADEAAAAAAAAA",
+              "ViewState": "AQIAABsAAAAAAAAAAAAAADEAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
               "WhenOpened": "2024-08-04T08:08:20.037Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
+              "Title": "MainPage.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\MainPage.xaml.cs",
+              "RelativeDocumentMoniker": "RecipeApp\\MainPage.xaml.cs",
+              "ToolTip": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\MainPage.xaml.cs",
+              "RelativeToolTip": "RecipeApp\\MainPage.xaml.cs",
+              "ViewState": "AQIAAAQAAAAAAAAAAAAewBwAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-04T11:06:31.304Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
               "Title": "MainPageViewModel.cs",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\ViewModels\\MainPageViewModel.cs",
               "RelativeDocumentMoniker": "RecipeApp\\ViewModels\\MainPageViewModel.cs",
@@ -198,12 +178,11 @@
               "RelativeToolTip": "RecipeApp\\ViewModels\\MainPageViewModel.cs",
               "ViewState": "AQIAAA4AAAAAAAAAAAAQwC0AAAANAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-04T10:53:10.708Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-04T10:53:10.708Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 10,
               "Title": "colors.xml",
               "DocumentMoniker": "C:\\Users\\Ben\\Desktop\\2023-2024 code tests and practice\\ReceipeProj\\RecipeApp\\Platforms\\Android\\Resources\\values\\colors.xml",
               "RelativeDocumentMoniker": "RecipeApp\\Platforms\\Android\\Resources\\values\\colors.xml",
@@ -211,8 +190,7 @@
               "RelativeToolTip": "RecipeApp\\Platforms\\Android\\Resources\\values\\colors.xml",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAAhAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
-              "WhenOpened": "2024-08-04T07:49:24.728Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-04T07:49:24.728Z"
             }
           ]
         }
