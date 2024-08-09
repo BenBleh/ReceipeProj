@@ -72,13 +72,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="RecipeDetailsPage.xaml.cs">
+	  <Compile Update="Pages\RecipeDetailsPage.xaml.cs">
 	    <DependentUpon>RecipeDetailsPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="RecipeDetailsPage.xaml">
+	  <MauiXaml Update="Pages\AddEditPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\RecipeDetailsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

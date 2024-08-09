@@ -32,6 +32,11 @@ namespace RecipeApp
             CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
 #endif
         }
+
+        private async void AddButton_Clicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new AddEditPage());
+        }
     }
 
 }

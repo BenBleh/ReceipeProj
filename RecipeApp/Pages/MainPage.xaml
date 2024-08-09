@@ -23,10 +23,31 @@
                 </VisualStateGroupList>
             </Setter>
         </Style>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid>
+    <Grid RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="*, Auto">
+            <Entry
+                x:Name="searchBar"
+                HeightRequest="50"
+                IsVisible="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
+                Placeholder="Search..."
+                Text="{Binding SearchQuery}" />
+            <Button
+                Grid.Column="1"
+                Clicked="AddButton_Clicked"
+                FontAttributes="Bold"
+                HeightRequest="40"
+                IsVisible="{Binding CanAdd}"
+                Text="+"
+                WidthRequest="40" />
+        </Grid>
+
         <CollectionView
             x:Name="recipeListCollectionView"
+            Grid.Row="1"
             ItemsSource="{Binding RecipeListItems}"
             SelectionChanged="OnCollectionViewSelectionChanged"
             SelectionMode="Single">
@@ -35,7 +56,7 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="apiModels:RecipeListItem">
-                    <Grid>
+                    <Grid HeightRequest="325" WidthRequest="210">
                         <Border StrokeShape="RoundRectangle 20,20,20,20" StrokeThickness="2">
                             <VerticalStackLayout>
                                 <Image
@@ -63,6 +84,7 @@
 
         </CollectionView>
         <Image
+            Grid.RowSpan="2"
             HorizontalOptions="Center"
             IsVisible="{Binding IsBusy}"
             Rotation="{Binding LoadingRoatation}"

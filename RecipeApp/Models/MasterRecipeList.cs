@@ -5,6 +5,7 @@ namespace RecipeApp.Models
     public class MasterRecipeList
     {
         public List<RecipeListItem> Recipes { get; set; }
+        public bool LoadedFromServer { get; set; }
     }
 
     public class RecipeListItem 

@@ -28,8 +28,9 @@ namespace RecipeApp.Services
         }
 
 
-        public async Task<List<RecipeListItem>> GetMasterList()
+        public async Task<MasterRecipeList> GetMasterList()
         {
+            bool loadedFromServer = false;
             List<RecipeListItem> recipeListItems = [];
             try
             {
@@ -42,7 +43,7 @@ namespace RecipeApp.Services
                 recipeListItems = JsonSerializer.Deserialize<List<RecipeListItem>>(jsonResponse);
                 SetUpFileSystem(recipeListItems);
                 await GetReceipeFiles(recipeListItems);
-
+                loadedFromServer = true;
             }
             catch (Exception ex)
             {
@@ -61,10 +62,9 @@ namespace RecipeApp.Services
                         });
                     }
                 }
-
+                loadedFromServer = false;
             }
 
-            
             //set up 'main' image
 
             foreach (var recpie in recipeListItems)
@@ -80,7 +80,7 @@ namespace RecipeApp.Services
                 }
             }
 
-            return recipeListItems;
+            return new MasterRecipeList { Recipes = recipeListItems, LoadedFromServer = loadedFromServer };
         }
 
         private void SetUpFileSystem(List<RecipeListItem> recipeListItems)
