@@ -32,7 +32,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                     }
                 }
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -67,6 +67,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
 
                 manageRecipeImages(recipe);
                 OrderSteps(recipe);
+                UpdateLegacyIngredients(recipe);
 
                 //write to file
                 string jsonString = JsonSerializer.Serialize(recipe);
@@ -90,6 +91,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
 
             manageRecipeImages(recipe);
             OrderSteps(recipe);
+            UpdateLegacyIngredients(recipe);
 
             //write to file
             string jsonString = JsonSerializer.Serialize(recipe);
@@ -103,13 +105,30 @@ namespace RecipeAPI.DataAccess.JsonFileBased
         }
 
         //this should handle cases where steps between steps might have been deleted.
-        private void OrderSteps(Recipe recipe) 
+        private void OrderSteps(Recipe recipe)
         {
             if (recipe.Steps != null)
             {
                 for (int i = 0; i < recipe.Steps.Count; i++)
                 {
                     recipe.Steps[i].Num = i;
+                }
+            }
+        }
+
+        private void UpdateLegacyIngredients(Recipe recipe)
+        {
+            if (recipe.Ingredients is not null)
+            {
+                foreach (var ingredient in recipe.Ingredients)
+                {
+                    if (ingredient.Unit is not null
+                        || ingredient.Qty is not null
+                        || ingredient.Description is not null)
+                    {
+                        ingredient.FQIngrediantDescription = string.Format("{0} {1} {2}", ingredient.Qty, ingredient.Unit, ingredient.Description);
+
+                    }
                 }
             }
         }
@@ -146,7 +165,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             }
         }
 
-        private void manageRecipeImages(Recipe recipe) 
+        private void manageRecipeImages(Recipe recipe)
         {
             if (!string.IsNullOrEmpty(recipe.ImageData) && recipe.ImageData.Contains("base64"))
             {
@@ -155,7 +174,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                     , recipe.ImageData
                     , true
                     );
-                recipe.ImageData = null; 
+                recipe.ImageData = null;
             }
             foreach (var step in recipe.Steps)
             {
@@ -187,13 +206,13 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             using (MemoryStream ms = new MemoryStream(base64EncodedBytes))
             {
                 image = Image.FromStream(ms);
-                image.Save(filepath + fileName + ".jpeg",  System.Drawing.Imaging.ImageFormat.Jpeg);
+                image.Save(filepath + fileName + ".jpeg", System.Drawing.Imaging.ImageFormat.Jpeg);
             }
 
             if (createThumbNail)
             {
                 var thumbnail = image.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
-                thumbnail.Save(filepath + "thumb" + ".jpeg" , System.Drawing.Imaging.ImageFormat.Jpeg);
+                thumbnail.Save(filepath + "thumb" + ".jpeg", System.Drawing.Imaging.ImageFormat.Jpeg);
             }
         }
     }

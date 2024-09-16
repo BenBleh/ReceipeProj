@@ -9,24 +9,23 @@
     xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
     x:Name="RootPage"
     x:DataType="viewmodels:RecipeDetailsViewModel">
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
-    <ScrollView>
-        <Grid
-            Margin="25"
-            ColumnDefinitions="*"
-            HorizontalOptions="Center"
-            RowDefinitions="auto,auto, auto, *">
+    <Shell.TitleView>
+        <Grid>
+            <Label
+                FontAttributes="Bold"
+                HorizontalTextAlignment="Center"
+                LineBreakMode="WordWrap"
+                Text="{Binding Recipe.Title}"
+                VerticalTextAlignment="Center" />
             <Label
                 Grid.ColumnSpan="2"
-                FontSize="30"
+                Padding="0,0,15,0"
+                FontSize="25"
                 HorizontalOptions="End"
                 HorizontalTextAlignment="Center"
                 IsVisible="{Binding HasSourceLink}"
-                VerticalTextAlignment="Center">
+                VerticalOptions="Center"
+                VerticalTextAlignment="Start">
                 <Label.FormattedText>
                     <FormattedString>
                         <Span Text="🔗" TextColor="Blue">
@@ -37,31 +36,29 @@
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
-            <VerticalStackLayout>
-                <Label
-                    Grid.ColumnSpan="2"
-                    Padding="15"
-                    FontSize="30"
-                    HorizontalOptions="Center"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="WordWrap"
-                    Text="{Binding Recipe.Title}" />
-                <!--<Label IsVisible="{Binding HasSourceLink, Converter={StaticResource InvertedBoolConverter}}" Text="{Binding Recipe.Source}" />-->
+        </Grid>
+    </Shell.TitleView>
+    <ScrollView>
+        <Grid
+            Margin="25,0,25,25"
+            ColumnDefinitions="*"
+            HorizontalOptions="Center"
+            RowDefinitions="auto,auto, auto, auto, *">
+            <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2">
+                <Label IsVisible="{Binding HasSourceLink, Converter={toolkit:InvertedBoolConverter}}" Text="{Binding Recipe.Source}" />
             </VerticalStackLayout>
-
-
             <Image
-                Grid.Row="1"
+                Grid.Row="2"
                 HeightRequest="400"
                 Source="{Binding Recipe.ImageData}" />
-            <CollectionView Grid.Row="2" ItemsSource="{Binding Recipe.Ingredients}">
+            <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
                 <CollectionView.ItemsLayout>
                     <GridItemsLayout Orientation="Vertical" Span="2" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="apiModels:Ingredient">
-                        <HorizontalStackLayout>
-                            <CheckBox>
+                        <Grid ColumnDefinitions="auto, *">
+                            <CheckBox Grid.Column="0">
                                 <VisualStateManager.VisualStateGroups>
                                     <VisualStateGroupList>
                                         <VisualStateGroup x:Name="CommonStates">
@@ -79,13 +76,17 @@
                                     </VisualStateGroupList>
                                 </VisualStateManager.VisualStateGroups>
                             </CheckBox>
-                            <Label Text="{Binding IngredientString}" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
+                            <Label
+                                Grid.Column="1"
+                                LineBreakMode="WordWrap"
+                                Text="{Binding FQIngrediantDescription}"
+                                VerticalOptions="Center" />
+                        </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
             <CollectionView
-                Grid.Row="3"
+                Grid.Row="4"
                 Margin="25"
                 HorizontalOptions="Center"
                 ItemsSource="{Binding Recipe.Steps}">
