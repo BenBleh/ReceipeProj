@@ -1,12 +1,13 @@
 using RecipeApp.ViewModels;
 using RecipeApp.Models;
 using CommunityToolkit.Maui.Core;
+using System.Windows.Input;
 
 namespace RecipeApp;
 
 public partial class RecipeDetailsPage : ContentPage
 {
-	public RecipeDetailsPage(RecipeListItem recipe)
+    public RecipeDetailsPage(RecipeListItem recipe)
 	{
 		InitializeComponent();				
 

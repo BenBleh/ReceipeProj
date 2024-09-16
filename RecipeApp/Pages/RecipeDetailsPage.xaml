@@ -5,9 +5,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:apiModels="clr-namespace:RecipeApp.Models"
     xmlns:local="clr-namespace:RecipeApp"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
     x:Name="RootPage"
     x:DataType="viewmodels:RecipeDetailsViewModel">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
     <ScrollView>
         <Grid
             Margin="25"
@@ -16,12 +22,34 @@
             RowDefinitions="auto,auto, auto, *">
             <Label
                 Grid.ColumnSpan="2"
-                Padding="15"
                 FontSize="30"
-                HorizontalOptions="Center"
+                HorizontalOptions="End"
                 HorizontalTextAlignment="Center"
-                LineBreakMode="WordWrap"
-                Text="{Binding Recipe.Title}" />
+                IsVisible="{Binding HasSourceLink}"
+                VerticalTextAlignment="Center">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="🔗" TextColor="Blue">
+                            <Span.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding TapCommand}" CommandParameter="{Binding Recipe.Source}" />
+                            </Span.GestureRecognizers>
+                        </Span>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <VerticalStackLayout>
+                <Label
+                    Grid.ColumnSpan="2"
+                    Padding="15"
+                    FontSize="30"
+                    HorizontalOptions="Center"
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="WordWrap"
+                    Text="{Binding Recipe.Title}" />
+                <!--<Label IsVisible="{Binding HasSourceLink, Converter={StaticResource InvertedBoolConverter}}" Text="{Binding Recipe.Source}" />-->
+            </VerticalStackLayout>
+
+
             <Image
                 Grid.Row="1"
                 HeightRequest="400"
@@ -74,5 +102,6 @@
             </CollectionView>
 
         </Grid>
+
     </ScrollView>
 </ContentPage>
