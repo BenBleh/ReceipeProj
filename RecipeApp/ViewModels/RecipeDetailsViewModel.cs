@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using RecipeApp.Models;
 using RecipeApp.Services;
+using System;
 using System.Windows.Input;
 
 namespace RecipeApp.ViewModels
@@ -13,7 +15,13 @@ namespace RecipeApp.ViewModels
         [ObservableProperty]
         bool hasSourceLink = false;
 
-        public ICommand TapCommand => new Command<string>(async (url) => await Launcher.OpenAsync(url));
+
+        [RelayCommand]
+        private async void OpenLink()
+        {
+            if (recipe.Source is not null)
+                await Launcher.OpenAsync(recipe.Source);
+        }
 
         public RecipeDetailsViewModel(string recipeId)
         {

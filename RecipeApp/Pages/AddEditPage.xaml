@@ -1,12 +1,64 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="RecipeApp.AddEditPage"
-             Title="AddEditPage">
+<ContentPage
+    x:Class="RecipeApp.AddEditPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:apiModels="clr-namespace:RecipeApp.Models"
+    xmlns:local="clr-namespace:RecipeApp"
+    xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+    Title="AddEditPage"
+    x:DataType="viewmodels:AddEditViewModel">
     <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+        <Label Text="Title" />
+        <Entry Text="{Binding Recipe.Title}" />
+
+        <Label Text="Source" />
+        <Entry Text="{Binding Recipe.Source}" />
+
+        <Label Text="image" />
+
+        <HorizontalStackLayout>
+            <Label Text="Ingredients" />
+            <Button Command="{Binding AddNewIngredientCommand}" Text="+" />
+        </HorizontalStackLayout>
+        <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="apiModels:Ingredient">
+                    <Grid ColumnDefinitions="auto, *">
+
+                        <Entry
+                            Grid.Column="1"
+                            Text="{Binding FQIngrediantDescription}"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <HorizontalStackLayout>
+            <Label Text="Steps" />
+            <Button Command="{Binding AddNewStepCommand}" Text="+" />
+        </HorizontalStackLayout>
+        <CollectionView
+            Grid.Row="4"
+            Margin="25"
+            HorizontalOptions="Center"
+            ItemsSource="{Binding Recipe.Steps}">
+            <CollectionView.ItemTemplate Margin="25">
+                <DataTemplate x:DataType="apiModels:Step">
+                    <Frame Margin="5" Background="Transparent">
+                        <VerticalStackLayout Padding="5">
+                            <Label FontSize="Large" Text="{Binding StepNumberDisplay}" />
+                            <Entry Text="{Binding Instructions}" VerticalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+
     </VerticalStackLayout>
 </ContentPage>

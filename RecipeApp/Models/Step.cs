@@ -1,10 +1,12 @@
-﻿namespace RecipeApp.Models
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace RecipeApp.Models
 {
-    public class Step
+    public class Step : ObservableObject
     {
         public int Num { get; set; }
 
-        public string Instructions { get; set; }
+        public string? Instructions { get; set; }
 
         public string? ImageData { get; set; }
 

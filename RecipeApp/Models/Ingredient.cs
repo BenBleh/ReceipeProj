@@ -1,6 +1,8 @@
-﻿namespace RecipeApp.Models
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace RecipeApp.Models
 {
-    public class Ingredient
+    public class Ingredient : ObservableObject
     {
         [Obsolete("Description is deprecated, please use FQIngrediantDescription instead.")]
         public string? Description { get; set; }

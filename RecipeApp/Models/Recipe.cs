@@ -1,8 +1,10 @@
-﻿using System.Diagnostics.Contracts;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 
 namespace RecipeApp.Models
 {
-    public class Recipe
+    public class Recipe : ObservableObject
     {
         public string? Id { get; set; }
         public string? Title { get; set; }
@@ -22,9 +24,9 @@ namespace RecipeApp.Models
             }
         }
 
+        
+        public ObservableCollection<Step>? Steps { get; set; } = [];
 
-        public List<Step>? Steps { get; set; }
-
-        public List<Ingredient>? Ingredients { get; set; }
+        public ObservableCollection<Ingredient>? Ingredients { get; set; } = [];
     }
 }

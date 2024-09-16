@@ -30,7 +30,7 @@
                     <FormattedString>
                         <Span Text="🔗" TextColor="Blue">
                             <Span.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding TapCommand}" CommandParameter="{Binding Recipe.Source}" />
+                                <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="{Binding Recipe.Source}" />
                             </Span.GestureRecognizers>
                         </Span>
                     </FormattedString>
