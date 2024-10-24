@@ -18,10 +18,10 @@ namespace RecipeApp.ViewModels
         ReceipeAPIService receipeAPIService;
 
        [RelayCommand]
-        private async void OpenLink()
+        private async Task OpenLink()
         {
-            if (recipe.Source is not null)
-                await Launcher.OpenAsync(recipe.Source);
+            if (Recipe.Source is not null)
+                await Launcher.OpenAsync(Recipe.Source);
         }
 
         string recipeId;
@@ -35,11 +35,11 @@ namespace RecipeApp.ViewModels
 
         public void RefreshRecipe() 
         {
-            this.recipe = receipeAPIService.GetRecipe(this.recipeId).Result;
+            this.Recipe = receipeAPIService.GetRecipe(this.recipeId).Result;
 
-            if (this.recipe.Source is not null)
+            if (this.Recipe.Source is not null)
             {
-                hasSourceLink = this.recipe.Source.Contains("http");
+                HasSourceLink = this.Recipe.Source.Contains("http");
             }
         }
     }

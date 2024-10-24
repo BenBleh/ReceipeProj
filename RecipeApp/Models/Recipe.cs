@@ -21,6 +21,9 @@ namespace RecipeApp.Models
         [JsonIgnore]
         public string? ImagePath { get; set; }
 
+        [JsonIgnore]
+        public ImageSource? ImageStream { get; set; }
+
         public ObservableCollection<Step>? Steps { get; set; } = [];
 
         public ObservableCollection<Ingredient>? Ingredients { get; set; } = [];

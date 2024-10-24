@@ -8,13 +8,18 @@ namespace RecipeApp.Models
         public bool LoadedFromServer { get; set; }
     }
 
-    public class RecipeListItem 
+    public class RecipeListItem
     {
         [JsonPropertyName("id")]
         public string Id { get; set; }
+
         [JsonPropertyName("title")]
         public string Title { get; set; }
+
         [JsonPropertyName("imageData")]
         public string? ImageData { get; set; }
+
+        [JsonIgnore]
+        public ImageSource? ImageStream { get; set; }
     }
 }

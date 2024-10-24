@@ -86,19 +86,6 @@ namespace RecipeApp.Services
         private void SetUpFileSystem(List<RecipeListItem> recipeListItems)
         {
             var sourcePath = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles");
-            try  //clean up a previous load.
-            {
-                var files = Directory.GetFiles(sourcePath);
-
-                System.IO.Directory.Delete(sourcePath, true);
-                File.Delete(sourcePath);
-
-                files = Directory.GetFiles(sourcePath);
-            }
-            catch(Exception ex) //ignore
-            {
-
-            }
             if (!File.Exists(sourcePath))
             {
                 System.IO.Directory.CreateDirectory(sourcePath);
@@ -156,10 +143,6 @@ namespace RecipeApp.Services
                 //get the main image
                 uri = new Uri(FilesUrl + "/" + recipe.Id + "/" + recipe.Id + ".jpeg");
                 fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
-                if (File.Exists(fileName))//clean up old files
-                {
-                    File.Delete(fileName);
-                }
                 await DownloadAFile(uri, fileName);
             }
         }
