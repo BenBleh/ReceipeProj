@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Maui.Storage;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Text.Json.Serialization;
@@ -22,7 +23,20 @@ namespace RecipeApp.Models
         public string? ImagePath { get; set; }
 
         [JsonIgnore]
-        public ImageSource? ImageStream { get; set; }
+        public ImageSource? ImageStream
+        {
+            get
+            {
+                if (!String.IsNullOrWhiteSpace(ImagePath))
+                {
+                    return ImageSource.FromStream(() =>
+                    {
+                        return File.OpenRead(ImagePath);
+                    });
+                }
+                return null;
+            }
+        }
 
         public ObservableCollection<Step>? Steps { get; set; } = [];
 

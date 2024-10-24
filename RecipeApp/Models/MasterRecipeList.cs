@@ -20,6 +20,19 @@ namespace RecipeApp.Models
         public string? ImageData { get; set; }
 
         [JsonIgnore]
-        public ImageSource? ImageStream { get; set; }
+        public ImageSource? ImageStream
+        {
+            get
+            {
+                if (!String.IsNullOrWhiteSpace(ImageData))
+                {
+                    return ImageSource.FromStream(() =>
+                    {
+                        return File.OpenRead(ImageData);
+                    });
+                }
+                return null;
+            }
+        }
     }
 }

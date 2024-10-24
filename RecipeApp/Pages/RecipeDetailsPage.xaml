@@ -67,7 +67,7 @@
             <Image
                 Grid.Row="2"
                 HeightRequest="400"
-                Source="{Binding Recipe.ImagePath}" />
+                Source="{Binding Recipe.ImageStream}" />
             <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
                 <CollectionView.ItemsLayout>
                     <GridItemsLayout Orientation="Vertical" Span="2" />

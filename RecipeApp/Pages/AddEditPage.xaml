@@ -33,7 +33,7 @@
             <Image
                 HeightRequest="250"
                 IsVisible="{Binding HasImage}"
-                Source="{Binding ImagePath}" />
+                Source="{Binding ImageStream}" />
             <Button Command="{Binding GetImageCommand}" Text="GET IMAGE" />
 
             <HorizontalStackLayout>

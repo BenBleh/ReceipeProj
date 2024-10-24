@@ -27,7 +27,7 @@ namespace RecipeApp.ViewModels
             AddNewIngredient();
             AddNewStep();
             this.ReceipeAPIService = new ReceipeAPIService();
-            this.CurrentError = string.Empty;            
+            this.CurrentError = string.Empty;
             this.PropertyChanged += AddEditViewModel_PropertyChanged;
         }
 
@@ -39,9 +39,10 @@ namespace RecipeApp.ViewModels
 
             ImagePath = this.Recipe.ImagePath;
             HasImage = (ImagePath is not null);
+            SetImageStream();
 
             var sb = new StringBuilder();
-            foreach (var ing in this.Recipe.Ingredients) 
+            foreach (var ing in this.Recipe.Ingredients)
             {
                 sb.AppendLine(ing.FQIngrediantDescription);
             }
@@ -50,6 +51,20 @@ namespace RecipeApp.ViewModels
             this.PropertyChanged += AddEditViewModel_PropertyChanged;
         }
 
+
+        private void SetImageStream() 
+        {
+            if (HasImage)
+            {
+                if (!String.IsNullOrWhiteSpace(ImagePath))
+                {
+                    ImageStream = ImageSource.FromStream(() =>
+                    {
+                        return File.OpenRead(ImagePath);
+                    });
+                }
+            }
+        }
 
         private void AddEditViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
@@ -82,9 +97,13 @@ namespace RecipeApp.ViewModels
                 try
                 {
                     FileResult fileResult = await MediaPicker.PickPhotoAsync();
-                    ImagePath = fileResult.FullPath;
-                    HasImage = (ImagePath is not null);
-                    hasImageBeenUpdated = true;
+                    if (fileResult is not null)
+                    {
+                        ImagePath = fileResult.FullPath;
+                        HasImage = (ImagePath is not null);
+                        SetImageStream();
+                        hasImageBeenUpdated = true;
+                    }
                 }
                 catch { }
             }
@@ -96,7 +115,26 @@ namespace RecipeApp.ViewModels
         [ObservableProperty]
         string imagePath = string.Empty;
 
-        bool hasImageBeenUpdated = false;   
+        bool hasImageBeenUpdated = false;
+
+        [ObservableProperty]
+        ImageSource imageStream;
+
+        //public ImageSource? ImageStream
+        //{
+        //    get
+        //    {
+        //        if (!String.IsNullOrWhiteSpace(ImagePath))
+        //        {
+        //            return ImageSource.FromStream(() =>
+        //            {
+        //                return File.OpenRead(ImagePath);
+        //            });
+        //        }
+        //        return null;
+        //    }
+        //}
+
 
         [RelayCommand]
         private void AddNewIngredient()
@@ -110,7 +148,7 @@ namespace RecipeApp.ViewModels
             if (IsValid())
             {
 
-                if (hasImageBeenUpdated) 
+                if (hasImageBeenUpdated)
                 {
                     var imageData = await File.ReadAllBytesAsync(ImagePath);
                     this.Recipe.ImageData = Convert.ToBase64String(imageData);

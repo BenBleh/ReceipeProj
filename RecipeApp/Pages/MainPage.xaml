@@ -64,7 +64,7 @@
                                     Aspect="AspectFill"
                                     HeightRequest="250"
                                     HorizontalOptions="Center"
-                                    Source="{Binding ImageData}"
+                                    Source="{Binding ImageStream}"
                                     VerticalOptions="Center" />
                                 <Label
                                     Grid.Column="1"
