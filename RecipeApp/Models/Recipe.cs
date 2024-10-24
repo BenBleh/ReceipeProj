@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
+using System.Text.Json.Serialization;
 
 namespace RecipeApp.Models
 {
@@ -15,16 +16,11 @@ namespace RecipeApp.Models
 
         public string? Source { get; set; }
 
-        public string? ImageData
-        {
-            get
-            {
-                return
-                    Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", Id, Id + ".jpeg");
-            }
-        }
+        public string? ImageData { get; set; }
 
-        
+        [JsonIgnore]
+        public string? ImagePath { get; set; }
+
         public ObservableCollection<Step>? Steps { get; set; } = [];
 
         public ObservableCollection<Ingredient>? Ingredients { get; set; } = [];

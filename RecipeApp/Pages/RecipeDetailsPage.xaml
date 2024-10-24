@@ -10,32 +10,49 @@
     x:Name="RootPage"
     x:DataType="viewmodels:RecipeDetailsViewModel">
     <Shell.TitleView>
-        <Grid>
+        <Grid ColumnDefinitions="*,Auto">
             <Label
+                Grid.Column="0"
                 FontAttributes="Bold"
                 HorizontalTextAlignment="Center"
                 LineBreakMode="WordWrap"
                 Text="{Binding Recipe.Title}"
                 VerticalTextAlignment="Center" />
-            <Label
-                Grid.ColumnSpan="2"
-                Padding="0,0,15,0"
-                FontSize="25"
-                HorizontalOptions="End"
-                HorizontalTextAlignment="Center"
-                IsVisible="{Binding HasSourceLink}"
-                VerticalOptions="Center"
-                VerticalTextAlignment="Start">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="🔗" TextColor="Blue">
-                            <Span.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="{Binding Recipe.Source}" />
-                            </Span.GestureRecognizers>
-                        </Span>
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+            <HorizontalStackLayout Grid.Column="1" Padding="0,0,15,0">
+                <Label
+                    FontSize="25"
+                    HorizontalOptions="End"
+                    HorizontalTextAlignment="Center"
+                    IsVisible="{Binding HasSourceLink}"
+                    VerticalOptions="Center"
+                    VerticalTextAlignment="Start">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="🔗" TextColor="Blue">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="{Binding Recipe.Source}" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Label
+                    FontSize="25"
+                    HorizontalOptions="End"
+                    HorizontalTextAlignment="Center"
+                    VerticalOptions="Center"
+                    VerticalTextAlignment="Start">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="✏️" TextColor="Blue">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </HorizontalStackLayout>
         </Grid>
     </Shell.TitleView>
     <ScrollView>
@@ -50,7 +67,7 @@
             <Image
                 Grid.Row="2"
                 HeightRequest="400"
-                Source="{Binding Recipe.ImageData}" />
+                Source="{Binding Recipe.ImagePath}" />
             <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
                 <CollectionView.ItemsLayout>
                     <GridItemsLayout Orientation="Vertical" Span="2" />

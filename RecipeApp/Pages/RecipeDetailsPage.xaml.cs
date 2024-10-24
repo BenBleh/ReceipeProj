@@ -23,4 +23,11 @@ public partial class RecipeDetailsPage : ContentPage
             CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
 #endif
     }
+
+    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var vm = BindingContext as RecipeDetailsViewModel;
+        await Navigation.PushAsync(new AddEditPage(vm.Recipe));
+        vm.RefreshRecipe();
+    }
 }

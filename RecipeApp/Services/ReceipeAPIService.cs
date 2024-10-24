@@ -86,6 +86,19 @@ namespace RecipeApp.Services
         private void SetUpFileSystem(List<RecipeListItem> recipeListItems)
         {
             var sourcePath = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles");
+            try  //clean up a previous load.
+            {
+                var files = Directory.GetFiles(sourcePath);
+
+                System.IO.Directory.Delete(sourcePath, true);
+                File.Delete(sourcePath);
+
+                files = Directory.GetFiles(sourcePath);
+            }
+            catch(Exception ex) //ignore
+            {
+
+            }
             if (!File.Exists(sourcePath))
             {
                 System.IO.Directory.CreateDirectory(sourcePath);
@@ -143,6 +156,10 @@ namespace RecipeApp.Services
                 //get the main image
                 uri = new Uri(FilesUrl + "/" + recipe.Id + "/" + recipe.Id + ".jpeg");
                 fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
+                if (File.Exists(fileName))//clean up old files
+                {
+                    File.Delete(fileName);
+                }
                 await DownloadAFile(uri, fileName);
             }
         }
@@ -176,7 +193,9 @@ namespace RecipeApp.Services
                 {
                     while (!reader.EndOfStream)
                     {
-                        return JsonSerializer.Deserialize<Recipe>(reader.ReadToEnd());
+                        var recipe = JsonSerializer.Deserialize<Recipe>(reader.ReadToEnd());
+                        recipe.ImagePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
+                        return recipe;
                     }
                 }
 
@@ -187,6 +206,38 @@ namespace RecipeApp.Services
             }
 
             return null;
+        }
+
+        public async Task<bool> PostNewRecipe(Recipe recipe)
+        {
+            var json = JsonSerializer.Serialize<Recipe>(recipe);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync("Recipe", content);
+            try
+            {
+                response.EnsureSuccessStatusCode();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateRecipe(Recipe recipe)
+        {
+            var json = JsonSerializer.Serialize<Recipe>(recipe);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClient.PutAsync("Recipe/" + recipe.Id, content);
+            try
+            {
+                response.EnsureSuccessStatusCode();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }

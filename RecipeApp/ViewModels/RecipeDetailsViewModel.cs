@@ -15,19 +15,27 @@ namespace RecipeApp.ViewModels
         [ObservableProperty]
         bool hasSourceLink = false;
 
+        ReceipeAPIService receipeAPIService;
 
-        [RelayCommand]
+       [RelayCommand]
         private async void OpenLink()
         {
             if (recipe.Source is not null)
                 await Launcher.OpenAsync(recipe.Source);
         }
 
+        string recipeId;
+
         public RecipeDetailsViewModel(string recipeId)
         {
-            ReceipeAPIService receipeAPIService = new ReceipeAPIService();
+            receipeAPIService = new ReceipeAPIService();
+            this.recipeId = recipeId;
+            RefreshRecipe();
+        }
 
-            this.recipe = receipeAPIService.GetRecipe(recipeId).Result;
+        public void RefreshRecipe() 
+        {
+            this.recipe = receipeAPIService.GetRecipe(this.recipeId).Result;
 
             if (this.recipe.Source is not null)
             {

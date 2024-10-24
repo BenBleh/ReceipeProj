@@ -140,3 +140,5 @@ bin
 /.vs/ProjectEvaluation/recipeproj.metadata.v8.bin
 /.vs/ProjectEvaluation/recipeproj.projects.v8.bin
 /.vs/ProjectEvaluation/recipeproj.strings.v8.bin
+/RecipeApp/Pages/*.TMP
+/RecipeApp/ViewModels/*.TMP

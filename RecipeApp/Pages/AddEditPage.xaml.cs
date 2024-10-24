@@ -1,3 +1,4 @@
+using RecipeApp.Models;
 using RecipeApp.ViewModels;
 using System.Windows.Input;
 
@@ -10,4 +11,10 @@ public partial class AddEditPage : ContentPage
 		InitializeComponent();
 		this.BindingContext = new AddEditViewModel();
 	}
+
+    public AddEditPage(Recipe recipe)
+    {
+        InitializeComponent();
+        this.BindingContext = new AddEditViewModel(recipe);
+    }
 }

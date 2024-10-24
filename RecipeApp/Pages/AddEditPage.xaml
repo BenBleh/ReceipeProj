@@ -8,57 +8,92 @@
     xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
     Title="AddEditPage"
     x:DataType="viewmodels:AddEditViewModel">
-    <VerticalStackLayout>
-        <Label Text="Title" />
-        <Entry Text="{Binding Recipe.Title}" />
+    <Shell.TitleView>
+        <StackLayout>
+            <Button
+                Command="{Binding SaveCommand}"
+                HorizontalOptions="End"
+                Text="💾" />
+        </StackLayout>
+    </Shell.TitleView>
+    <ScrollView>
+        <VerticalStackLayout Padding="25">
 
-        <Label Text="Source" />
-        <Entry Text="{Binding Recipe.Source}" />
+            <Label FontSize="Subtitle" Text="Title" />
+            <Border StrokeShape="RoundRectangle 5,5,5,5" StrokeThickness="3">
+                <Entry Text="{Binding Recipe.Title}" />
+            </Border>
 
-        <Label Text="image" />
+            <Label FontSize="Subtitle" Text="Source" />
+            <Border StrokeShape="RoundRectangle 5,5,5,5" StrokeThickness="3">
+                <Entry Text="{Binding Recipe.Source}" />
+            </Border>
 
-        <HorizontalStackLayout>
-            <Label Text="Ingredients" />
-            <Button Command="{Binding AddNewIngredientCommand}" Text="+" />
-        </HorizontalStackLayout>
-        <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" Span="2" />
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="apiModels:Ingredient">
-                    <Grid ColumnDefinitions="auto, *">
+            <Label FontSize="Subtitle" Text="Image" />
+            <Image
+                HeightRequest="250"
+                IsVisible="{Binding HasImage}"
+                Source="{Binding ImagePath}" />
+            <Button Command="{Binding GetImageCommand}" Text="GET IMAGE" />
 
-                        <Entry
-                            Grid.Column="1"
-                            Text="{Binding FQIngrediantDescription}"
-                            VerticalOptions="Center" />
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            <HorizontalStackLayout>
+                <Label FontSize="Subtitle" Text="Ingredients" />
+                <Button Command="{Binding AddNewIngredientCommand}" Text="+" />
+            </HorizontalStackLayout>
 
-        <HorizontalStackLayout>
-            <Label Text="Steps" />
-            <Button Command="{Binding AddNewStepCommand}" Text="+" />
-        </HorizontalStackLayout>
-        <CollectionView
-            Grid.Row="4"
-            Margin="25"
-            HorizontalOptions="Center"
-            ItemsSource="{Binding Recipe.Steps}">
-            <CollectionView.ItemTemplate Margin="25">
-                <DataTemplate x:DataType="apiModels:Step">
-                    <Frame Margin="5" Background="Transparent">
-                        <VerticalStackLayout Padding="5">
-                            <Label FontSize="Large" Text="{Binding StepNumberDisplay}" />
-                            <Entry Text="{Binding Instructions}" VerticalOptions="Center" />
-                        </VerticalStackLayout>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            <Label Text="Lazy/Smart add ingredients" />
+            <Border
+                Grid.Column="1"
+                StrokeShape="RoundRectangle 5,5,5,5"
+                StrokeThickness="3">
+                <Editor
+                    AutoSize="TextChanges"
+                    Text="{Binding LazyIngredientString}"
+                    VerticalOptions="Center" />
+            </Border>
+
+            <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="2" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="apiModels:Ingredient">
+                        <Grid ColumnDefinitions="auto, *">
+                            <Border
+                                Grid.Column="1"
+                                StrokeShape="RoundRectangle 5,5,5,5"
+                                StrokeThickness="3">
+                                <Entry Text="{Binding FQIngrediantDescription}" VerticalOptions="Center" />
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <HorizontalStackLayout>
+                <Label FontSize="Subtitle" Text="Steps" />
+                <Button Command="{Binding AddNewStepCommand}" Text="+" />
+            </HorizontalStackLayout>
+            <CollectionView
+                Grid.Row="4"
+                Margin="25"
+                HorizontalOptions="Center"
+                ItemsSource="{Binding Recipe.Steps}">
+                <CollectionView.ItemTemplate Margin="25">
+                    <DataTemplate x:DataType="apiModels:Step">
+                        <Frame Margin="5" Background="Transparent">
+                            <VerticalStackLayout Padding="5">
+                                <Label FontSize="Subtitle" Text="{Binding StepNumberDisplay}" />
+                                <Border StrokeShape="RoundRectangle 5,5,5,5" StrokeThickness="3">
+                                    <Entry Text="{Binding Instructions}" VerticalOptions="Center" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
 
-    </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
