@@ -142,3 +142,6 @@ bin
 /.vs/ProjectEvaluation/recipeproj.strings.v8.bin
 /RecipeApp/Pages/*.TMP
 /RecipeApp/ViewModels/*.TMP
+/.vs/RecipeProj/v17/DocumentLayout.backup.json
+/RecipeAPI/Properties/PublishProfiles/FolderProfile.pubxml
+/RecipeAPI/Properties/PublishProfiles/FolderProfile.pubxml.user

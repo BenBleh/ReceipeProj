@@ -13,8 +13,8 @@ namespace RecipeApp.Services
 {
     public class ReceipeAPIService
     {
-        private readonly string APIUrl = "http://192.168.1.116:8080/";
-        private readonly string FilesUrl = "http://192.168.1.116:8081/";
+        private readonly string APIUrl = "http://shiropc:8080/";
+        private readonly string FilesUrl = "http://shiropc:8081/";
 
         HttpClient httpClient;
 
