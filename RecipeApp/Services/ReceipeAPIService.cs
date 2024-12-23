@@ -1,12 +1,6 @@
 ﻿using RecipeApp.Models;
-using RecipeApp.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Net;
 
 
 namespace RecipeApp.Services
@@ -185,7 +179,7 @@ namespace RecipeApp.Services
             }
             catch (Exception ex)
             {
-
+                throw ex;
             }
 
             return null;

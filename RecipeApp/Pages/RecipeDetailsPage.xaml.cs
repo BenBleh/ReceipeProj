@@ -28,6 +28,6 @@ public partial class RecipeDetailsPage : ContentPage
     {
         var vm = BindingContext as RecipeDetailsViewModel;
         await Navigation.PushAsync(new AddEditPage(vm.Recipe));
-        vm.RefreshRecipe();
+        vm.RefreshRecipeAsync();
     }
 }

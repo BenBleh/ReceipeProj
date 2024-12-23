@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using RecipeApp.Models;
 using RecipeApp.Services;
 using System.Collections.ObjectModel;
@@ -50,15 +51,17 @@ namespace RecipeApp.ViewModels
 
         }
 
+        [RelayCommand]
         private async Task LoadRecipeList()
         {
             IsBusy = true;
-            SetUpTimer();           
+            SetUpTimer();
 
             var masterList = await ReceipeAPIService.GetMasterList();
             CanAdd = masterList.LoadedFromServer;
 
             _recipeList = masterList.Recipes;
+            RecipeListItems.Clear();
             foreach (var itm in _recipeList)
             {
                 RecipeListItems.Add(itm);
@@ -106,25 +109,6 @@ namespace RecipeApp.ViewModels
             {
 
             }
-
-            //    //something like this but better when not tired
-            //    IEnumerable<RecipeListItem> filteredRecipeListItems = [];
-            //    if (string.IsNullOrEmpty(SearchQuery))
-            //    {
-            //        filteredRecipeListItems = RecipeListItems.Where(r1 => _recipeList!.Any(r2 => r2.Id == r1.Id));
-            //        foreach (var itm in filteredRecipeListItems)
-            //        {
-            //            RecipeListItems.Add(itm);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        filteredRecipeListItems = _recipeList.Where(w => !w.Title.ToLower().Contains(SearchQuery.ToLower()));
-            //        foreach (var itm in filteredRecipeListItems)
-            //        {
-            //            RecipeListItems.Remove(itm);
-            //        }
-            //    }            
         }
     }
 }

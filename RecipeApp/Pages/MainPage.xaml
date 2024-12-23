@@ -27,84 +27,88 @@
             <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid RowDefinitions="Auto,*">
-        <Grid Padding="10" ColumnDefinitions="*, Auto">
-            <Border WidthRequest="500">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="10" />
-                </Border.StrokeShape>
-                <Entry
-                    x:Name="searchBar"
-                    HeightRequest="50"
-                    IsVisible="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
-                    Placeholder="Search..."
-                    Text="{Binding SearchQuery}" />
-            </Border>
-            <Label
-                Padding="5"
-                FontSize="25"
-                HorizontalOptions="End"
-                HorizontalTextAlignment="Center"
-                IsVisible="{Binding CanAdd}"
+    <RefreshView Command="{Binding LoadRecipeListCommand}" IsRefreshing="{Binding IsBusy}">
+        <Grid Padding="5" RowDefinitions="Auto,*">
+            <Grid Padding="10" ColumnDefinitions="*, Auto">
+                <Border>
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                    <Entry
+                        x:Name="searchBar"
+                        HeightRequest="50"
+                        IsVisible="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
+                        Placeholder="Search..."
+                        Text="{Binding SearchQuery}" />
+                </Border>
+                <Label
+                    Grid.Column="1"
+                    Padding="5"
+                    FontSize="25"
+                    HorizontalOptions="End"
+                    HorizontalTextAlignment="Center"
+                    IsVisible="{Binding CanAdd}"
+                    VerticalOptions="Center"
+                    VerticalTextAlignment="Start">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="➕">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="AddButton_Clicked" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </Grid>
+
+            <CollectionView
+                x:Name="recipeListCollectionView"
+                Grid.Row="1"
+                ItemsSource="{Binding RecipeListItems}"
+                SelectionChanged="OnCollectionViewSelectionChanged"
+                SelectionMode="Single">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="2" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="apiModels:RecipeListItem">
+                        <Grid>
+                            <Border StrokeShape="RoundRectangle 20,20,20,20" StrokeThickness="1">
+                                <VerticalStackLayout>
+                                    <Image
+                                        Grid.Column="0"
+                                        Aspect="AspectFill"
+                                        HeightRequest="250"
+                                        HorizontalOptions="Center"
+                                        Source="{Binding ImageData}"
+                                        VerticalOptions="Center"
+                                        WidthRequest="200" />
+                                    <Label
+                                        Grid.Column="1"
+                                        FontAttributes="Bold"
+                                        FontFamily="Montserrat"
+                                        HorizontalOptions="Center"
+                                        HorizontalTextAlignment="Center"
+                                        LineBreakMode="WordWrap"
+                                        Text="{Binding Title}"
+                                        VerticalOptions="Center"
+                                        WidthRequest="120" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+            <Image
+                Grid.RowSpan="2"
+                HorizontalOptions="Center"
+                IsVisible="{Binding IsBusy}"
+                Rotation="{Binding LoadingRoatation}"
+                Source="kittys.png"
                 VerticalOptions="Center"
-                VerticalTextAlignment="Start">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="➕">
-                            <Span.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="AddButton_Clicked" />
-                            </Span.GestureRecognizers>
-                        </Span>
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+                WidthRequest="400" />
         </Grid>
-
-        <CollectionView
-            x:Name="recipeListCollectionView"
-            Grid.Row="1"
-            ItemsSource="{Binding RecipeListItems}"
-            SelectionChanged="OnCollectionViewSelectionChanged"
-            SelectionMode="Single">
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" Span="2" />
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="apiModels:RecipeListItem">
-                    <Grid HeightRequest="325" WidthRequest="210">
-                        <Border StrokeShape="RoundRectangle 20,20,20,20" StrokeThickness="2">
-                            <VerticalStackLayout>
-                                <Image
-                                    Grid.Column="0"
-                                    Aspect="AspectFill"
-                                    HeightRequest="250"
-                                    HorizontalOptions="Center"
-                                    Source="{Binding ImageData}"
-                                    VerticalOptions="Center" />
-                                <Label
-                                    Grid.Column="1"
-                                    FontAttributes="Bold"
-                                    FontFamily="Montserrat"
-                                    HorizontalOptions="Center"
-                                    HorizontalTextAlignment="Center"
-                                    LineBreakMode="WordWrap"
-                                    Text="{Binding Title}"
-                                    VerticalOptions="Center"
-                                    WidthRequest="120" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-
-        </CollectionView>
-        <Image
-            Grid.RowSpan="2"
-            HorizontalOptions="Center"
-            IsVisible="{Binding IsBusy}"
-            Rotation="{Binding LoadingRoatation}"
-            Source="kittys.png"
-            VerticalOptions="Center"
-            WidthRequest="400" />
-    </Grid>
+    </RefreshView>
 </ContentPage>

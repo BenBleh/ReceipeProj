@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using RecipeApp.Popups;
 using RecipeApp.Services;
 using RecipeApp.ViewModels;
 
@@ -30,6 +31,8 @@ namespace RecipeApp
             builder.Services.AddSingleton<RecipeDetailsViewModel>();
 
             builder.Services.AddSingleton<ReceipeAPIService>();
+
+            builder.Services.AddTransientPopup<BasePopup, BasePopupViewModel>();
 
             return builder.Build();
         }

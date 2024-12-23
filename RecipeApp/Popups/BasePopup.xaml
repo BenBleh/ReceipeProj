@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+    x:Class="RecipeApp.Popups.BasePopup"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:viewmodels="clr-namespace:RecipeApp.ViewModels"
+    x:Name="this"
+    x:DataType="viewmodels:BasePopupViewModel">
+
+    <VerticalStackLayout x:Name="mainLayout">
+        <Label x:Name="titleLabel" Text="{Binding Title}" />
+        <Label x:Name="mainMessageLabel" Text="{Binding Message}" />
+        <Button Clicked="OnOKButtonClicked" Text="OK" />
+    </VerticalStackLayout>
+
+</toolkit:Popup>
