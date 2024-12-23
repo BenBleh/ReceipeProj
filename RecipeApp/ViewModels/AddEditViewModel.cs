@@ -52,7 +52,7 @@ namespace RecipeApp.ViewModels
         }
 
 
-        private void SetImageStream() 
+        private void SetImageStream()
         {
             if (HasImage)
             {
@@ -70,20 +70,23 @@ namespace RecipeApp.ViewModels
         {
             if (e.PropertyName == nameof(LazyIngredientString))
             {
-                this.Recipe.Ingredients.Clear();
+                Recipe.Ingredients.Clear();
 
                 //split lazyIngredientString by line
-                string[] lines = LazyIngredientString.Split(
-                     new string[] { "\r\n", "\r", "\n" },
+                string[] lines = LazyIngredientString.Trim().Split(
+                     ["\r\n", "\r", "\n"],
                      StringSplitOptions.None
                  );
 
                 foreach (var line in lines)
                 {
-                    this.Recipe.Ingredients.Add(new Ingredient()
+                    if (!string.IsNullOrEmpty(line))
                     {
-                        FQIngrediantDescription = line.Trim()
-                    });
+                        this.Recipe.Ingredients.Add(new Ingredient()
+                        {
+                            FQIngrediantDescription = line.Trim()
+                        });
+                    }
                 }
 
             }
@@ -119,22 +122,6 @@ namespace RecipeApp.ViewModels
 
         [ObservableProperty]
         ImageSource imageStream;
-
-        //public ImageSource? ImageStream
-        //{
-        //    get
-        //    {
-        //        if (!String.IsNullOrWhiteSpace(ImagePath))
-        //        {
-        //            return ImageSource.FromStream(() =>
-        //            {
-        //                return File.OpenRead(ImagePath);
-        //            });
-        //        }
-        //        return null;
-        //    }
-        //}
-
 
         [RelayCommand]
         private void AddNewIngredient()

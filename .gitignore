@@ -145,3 +145,4 @@ bin
 /.vs/RecipeProj/v17/DocumentLayout.backup.json
 /RecipeAPI/Properties/PublishProfiles/FolderProfile.pubxml
 /RecipeAPI/Properties/PublishProfiles/FolderProfile.pubxml.user
+/.vs/ProjectEvaluation/*.bin

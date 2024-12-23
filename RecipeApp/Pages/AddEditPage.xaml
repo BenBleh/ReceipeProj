@@ -10,10 +10,23 @@
     x:DataType="viewmodels:AddEditViewModel">
     <Shell.TitleView>
         <StackLayout>
-            <Button
-                Command="{Binding SaveCommand}"
+            <Label
+                Padding="5"
+                FontSize="25"
                 HorizontalOptions="End"
-                Text="💾" />
+                HorizontalTextAlignment="Center"
+                VerticalOptions="Center"
+                VerticalTextAlignment="Start">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="💾" TextColor="Blue">
+                            <Span.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SaveCommand}" />
+                            </Span.GestureRecognizers>
+                        </Span>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
         </StackLayout>
     </Shell.TitleView>
     <ScrollView>
@@ -33,7 +46,7 @@
             <Image
                 HeightRequest="250"
                 IsVisible="{Binding HasImage}"
-                Source="{Binding ImageStream}" />
+                Source="{Binding ImagePath}" />
             <Button Command="{Binding GetImageCommand}" Text="GET IMAGE" />
 
             <HorizontalStackLayout>
@@ -63,7 +76,10 @@
                                 Grid.Column="1"
                                 StrokeShape="RoundRectangle 5,5,5,5"
                                 StrokeThickness="3">
-                                <Entry Text="{Binding FQIngrediantDescription}" VerticalOptions="Center" />
+                                <Entry
+                                    IsReadOnly="True"
+                                    Text="{Binding FQIngrediantDescription}"
+                                    VerticalOptions="Center" />
                             </Border>
                         </Grid>
                     </DataTemplate>
