@@ -61,7 +61,6 @@ namespace RecipeApp.ViewModels
             CanAdd = masterList.LoadedFromServer;
 
             _recipeList = masterList.Recipes;
-            RecipeListItems.Clear();
             foreach (var itm in _recipeList)
             {
                 RecipeListItems.Add(itm);
@@ -69,6 +68,15 @@ namespace RecipeApp.ViewModels
 
             IsBusy = false;
             _timer?.Dispose();
+        }
+
+        [RelayCommand]
+        private async Task Refresh()
+        {
+
+            RecipeListItems.Clear();
+
+            await LoadRecipeList();
         }
 
         private void SetUpTimer(int interval = 50)

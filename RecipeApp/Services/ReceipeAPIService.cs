@@ -1,4 +1,5 @@
 ﻿using RecipeApp.Models;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -7,8 +8,8 @@ namespace RecipeApp.Services
 {
     public class ReceipeAPIService
     {
-        private readonly string APIUrl = "http://192.168.1.101:8080/";
-        private readonly string FilesUrl = "http://192.168.1.101:8081/";
+        private readonly string APIUrl = "http://192.168.1.108:8080/";
+        private readonly string FilesUrl = "http://192.168.1.108:8081/";
 
         HttpClient httpClient;
 
@@ -33,11 +34,18 @@ namespace RecipeApp.Services
                 response.EnsureSuccessStatusCode();
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"{jsonResponse}\n");
+                if (jsonResponse is not null)
+                {
+                    recipeListItems = JsonSerializer.Deserialize<List<RecipeListItem>>(jsonResponse);
 
-                recipeListItems = JsonSerializer.Deserialize<List<RecipeListItem>>(jsonResponse);
-                SetUpFileSystem(recipeListItems);
-                await GetReceipeFiles(recipeListItems);
-                loadedFromServer = true;
+                    SetUpFileSystem(recipeListItems);
+                    await GetReceipeFiles(recipeListItems);
+                    loadedFromServer = true;
+                }
+                else
+                {
+                    throw new Exception("no response from server");
+                }
             }
             catch (Exception ex)
             {
@@ -47,13 +55,15 @@ namespace RecipeApp.Services
                     while (!reader.EndOfStream)
                     {
                         var line = reader.ReadLine();
-                        var values = line.Split(',');
-
-                        recipeListItems.Add(new RecipeListItem()
+                        var values = line?.Split(',');
+                        if (values is not null && values.Count() > 0)
                         {
-                            Id = values[0],
-                            Title = values[1]
-                        });
+                            recipeListItems.Add(new RecipeListItem()
+                            {
+                                Id = values[0],
+                                Title = values[1]
+                            });
+                        }
                     }
                 }
                 loadedFromServer = false;
@@ -79,18 +89,18 @@ namespace RecipeApp.Services
 
         private void SetUpFileSystem(List<RecipeListItem> recipeListItems)
         {
-            var sourcePath = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles");
+            var sourcePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles");
             if (!File.Exists(sourcePath))
             {
-                System.IO.Directory.CreateDirectory(sourcePath);
+                Directory.CreateDirectory(sourcePath);
             }
 
             foreach (var recipeListItem in recipeListItems)
             {
-                var recipePath = System.IO.Path.Combine(sourcePath, recipeListItem.Id);
+                var recipePath = Path.Combine(sourcePath, recipeListItem.Id);
                 if (!File.Exists(recipePath))
                 {
-                    System.IO.Directory.CreateDirectory(recipePath);
+                    Directory.CreateDirectory(recipePath);
                 }
             }
         }
@@ -102,13 +112,13 @@ namespace RecipeApp.Services
                 foreach (var recipe in recipeListItems)
                 {
                     var uri = new Uri(FilesUrl + "/" + recipe.Id + "/thumb.jpeg");
-                    var filePath = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id);
+                    var filePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id);
                     if (!File.Exists(filePath))
                     {
-                        System.IO.Directory.CreateDirectory(filePath);
+                        Directory.CreateDirectory(filePath);
                     }
 
-                    filePath = System.IO.Path.Combine(filePath, recipe.Id + ".jpeg");
+                    filePath = Path.Combine(filePath, recipe.Id + ".jpeg");
                     recipe.ImageData = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
 
                     await DownloadAFile(uri, filePath);
@@ -123,20 +133,20 @@ namespace RecipeApp.Services
         private async Task GetReceipeFiles(List<RecipeListItem> recipeListItems)
         {
             var uri = new Uri(FilesUrl + "/" + "MasterList.csv");
-            var fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv");
+            var fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv");
             await DownloadAFile(uri, fileName);
 
             foreach (var recipe in recipeListItems)
             {
                 //get the recipe file
                 uri = new Uri(FilesUrl + "/" + recipe.Id + ".json");
-                fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id + ".json");
+                fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id + ".json");
                 await DownloadAFile(uri, fileName);
 
 
                 //get the main image
                 uri = new Uri(FilesUrl + "/" + recipe.Id + "/" + recipe.Id + ".jpeg");
-                fileName = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
+                fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
                 await DownloadAFile(uri, fileName);
             }
         }
@@ -165,7 +175,7 @@ namespace RecipeApp.Services
         {
             try
             {
-                var path = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipeId + ".json");
+                var path = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipeId + ".json");
                 using (var reader = new StreamReader(path))
                 {
                     while (!reader.EndOfStream)
