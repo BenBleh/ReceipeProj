@@ -32,7 +32,7 @@ namespace RecipeApp
 
             builder.Services.AddSingleton<ReceipeAPIService>();
 
-            builder.Services.AddTransientPopup<BasePopup, BasePopupViewModel>();
+            //builder.Services.AddTransientPopup<BasePopup, BasePopupViewModel>();
 
             return builder.Build();
         }

@@ -27,7 +27,7 @@
             <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
-    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}">
         <Grid Padding="5" RowDefinitions="Auto,*">
             <Grid Padding="10" ColumnDefinitions="*, Auto">
                 <Border>

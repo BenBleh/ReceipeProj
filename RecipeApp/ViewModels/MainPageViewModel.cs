@@ -11,7 +11,7 @@ namespace RecipeApp.ViewModels
     public partial class MainPageViewModel : ObservableObject
     {
         private List<RecipeListItem> _recipeList;
-        public ObservableCollection<RecipeListItem> RecipeListItems { get; } = new();
+        public ObservableCollection<RecipeListItem> RecipeListItems { get; } = [];
 
         ReceipeAPIService ReceipeAPIService;
 
@@ -20,6 +20,9 @@ namespace RecipeApp.ViewModels
 
         [ObservableProperty]
         private bool isBusy;
+
+        [ObservableProperty]
+        private bool isRefreshing;
 
         [ObservableProperty]
         private bool canAdd;
@@ -46,37 +49,58 @@ namespace RecipeApp.ViewModels
         public MainPageViewModel()
         {
             this.ReceipeAPIService = new ReceipeAPIService();
-
-            Task.Run(async () => await LoadRecipeList());
+            LoadRecipeList();
 
         }
 
         [RelayCommand]
         private async Task LoadRecipeList()
         {
-            IsBusy = true;
-            SetUpTimer();
-
-            var masterList = await ReceipeAPIService.GetMasterList();
-            CanAdd = masterList.LoadedFromServer;
-
-            _recipeList = masterList.Recipes;
-            foreach (var itm in _recipeList)
+            if (!IsBusy)
             {
-                RecipeListItems.Add(itm);
-            }
+                IsBusy = true;
+                if (RecipeListItems.Count > 0)
+                {
+                    RecipeListItems.Clear();
+                }
+                try
+                {
+                    SetUpTimer();
 
-            IsBusy = false;
-            _timer?.Dispose();
+                    var masterList = await ReceipeAPIService.GetMasterList();
+                    CanAdd = masterList.LoadedFromServer;
+
+                    _recipeList = masterList.Recipes;
+                    foreach (var itm in _recipeList)
+                    {
+                        RecipeListItems.Add(itm);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await Shell.Current.CurrentPage.DisplayAlert("Loading issue", $"Something went wrong loading recipe list ex messsage: " + ex.Message, "OK");
+                }
+                finally
+                {
+
+                    IsBusy = false;
+                    _timer?.Dispose();
+                }
+            }
         }
 
         [RelayCommand]
         private async Task Refresh()
         {
-
-            RecipeListItems.Clear();
-
-            await LoadRecipeList();
+            try
+            {
+                RecipeListItems.Clear();
+                await LoadRecipeList();
+            }
+            finally
+            {
+                IsRefreshing = false;
+            }
         }
 
         private void SetUpTimer(int interval = 50)
@@ -94,28 +118,31 @@ namespace RecipeApp.ViewModels
 
         public void PerformSearch()
         {
-            // this flashes each time the entry is updated
-            try
+            if (!IsBusy)
             {
-                RecipeListItems.Clear();
+                // this flashes each time the entry is updated
+                try
+                {
+                    RecipeListItems.Clear();
 
-                IEnumerable<RecipeListItem> filteredRecipeListItems = [];
-                if (string.IsNullOrEmpty(SearchQuery))
-                {
-                    filteredRecipeListItems = _recipeList;
+                    IEnumerable<RecipeListItem> filteredRecipeListItems = [];
+                    if (string.IsNullOrEmpty(SearchQuery))
+                    {
+                        filteredRecipeListItems = _recipeList;
+                    }
+                    else
+                    {
+                        filteredRecipeListItems = _recipeList.Where(w => w.Title.Contains(SearchQuery, StringComparison.CurrentCultureIgnoreCase));
+                    }
+                    foreach (var itm in filteredRecipeListItems)
+                    {
+                        RecipeListItems.Add(itm);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    filteredRecipeListItems = _recipeList.Where(w => w.Title.ToLower().Contains(SearchQuery.ToLower()));
-                }
-                foreach (var itm in filteredRecipeListItems)
-                {
-                    RecipeListItems.Add(itm);
-                }
-            }
-            catch (Exception ex)
-            {
 
+                }
             }
         }
     }
