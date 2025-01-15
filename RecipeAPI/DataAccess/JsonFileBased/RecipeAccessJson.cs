@@ -5,6 +5,7 @@ using RecipeAPI.Interfaces;
 using RecipeAPI.Models;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Text;
 using System.Text.Json;
 
@@ -199,20 +200,20 @@ namespace RecipeAPI.DataAccess.JsonFileBased
             var base64EncodedBytes = System.Convert.FromBase64String(base64);
             //var decodedImg = Convert.FromBase64String()
 
-            System.IO.FileInfo file = new System.IO.FileInfo(filepath);
+            var file = new FileInfo(filepath);
             file.Directory.Create(); // If the directory already exists, this method does nothing.            
 
             Image image;
             using (MemoryStream ms = new MemoryStream(base64EncodedBytes))
             {
                 image = Image.FromStream(ms);
-                image.Save(filepath + fileName + ".jpeg", System.Drawing.Imaging.ImageFormat.Jpeg);
+                image.Save(filepath + fileName + ".jpeg", ImageFormat.Jpeg);
             }
 
             if (createThumbNail)
             {
                 var thumbnail = image.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
-                thumbnail.Save(filepath + "thumb" + ".jpeg", System.Drawing.Imaging.ImageFormat.Jpeg);
+                thumbnail.Save(filepath + "thumb" + ".jpeg", ImageFormat.Jpeg);
             }
         }
     }

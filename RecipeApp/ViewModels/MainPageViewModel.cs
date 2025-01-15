@@ -78,7 +78,7 @@ namespace RecipeApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await Shell.Current.CurrentPage.DisplayAlert("Loading issue", $"Something went wrong loading recipe list ex messsage: " + ex.Message, "OK");
+                    await Shell.Current.CurrentPage.DisplayAlert("Loading issue", $"Something went wrong loading recipe list ex messsage: {ex.Message}", "OK");
                 }
                 finally
                 {
