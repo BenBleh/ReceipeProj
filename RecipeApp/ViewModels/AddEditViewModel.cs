@@ -5,6 +5,7 @@ using RecipeApp.Models;
 using RecipeApp.Services;
 using System.ComponentModel;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RecipeApp.ViewModels
 {
@@ -116,6 +117,9 @@ namespace RecipeApp.ViewModels
         bool hasImage = false;
 
         [ObservableProperty]
+        bool isSaving = false;
+
+        [ObservableProperty]
         string imagePath = string.Empty;
 
         bool hasImageBeenUpdated = false;
@@ -134,33 +138,40 @@ namespace RecipeApp.ViewModels
         {
             if (IsValid())
             {
+                try
+                {
+                    IsSaving = true;
+                    if (hasImageBeenUpdated)
+                    {
+                        var imageData = await File.ReadAllBytesAsync(ImagePath);
+                        this.Recipe.ImageData = Convert.ToBase64String(imageData);
+                        //this is a hack so I don't have to update the webAPI
+                        this.Recipe.ImageData = "??;base64," + this.Recipe.ImageData;
+                    }
 
-                if (hasImageBeenUpdated)
-                {
-                    var imageData = await File.ReadAllBytesAsync(ImagePath);
-                    this.Recipe.ImageData = Convert.ToBase64String(imageData);
-                    //this is a hack so I don't have to update the webAPI
-                    this.Recipe.ImageData = "??;base64," + this.Recipe.ImageData;
+                    bool saveResult = false;
+                    if (Recipe.Id is not null)
+                    {
+                        saveResult = await this.ReceipeAPIService.UpdateRecipe(this.Recipe);
+                    }
+                    else
+                    {
+                        saveResult = await this.ReceipeAPIService.PostNewRecipe(this.Recipe);
+                    }
+                    if (saveResult)
+                    {
+                        //refresh back end data
+                        await this.ReceipeAPIService.GetMasterList();
+                        await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+                    }
+                    else
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Save failed!", "🤷 The save failed for some reason 🤷", "OK");
+                    }
                 }
-
-                bool saveResult = false;
-                if (Recipe.Id is not null)
+                finally 
                 {
-                    saveResult = await this.ReceipeAPIService.UpdateRecipe(this.Recipe);
-                }
-                else
-                {
-                    saveResult = await this.ReceipeAPIService.PostNewRecipe(this.Recipe);
-                }
-                if (saveResult)
-                {
-                    //refresh back end data
-                    await this.ReceipeAPIService.GetMasterList();
-                    await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
-                }
-                else
-                {
-                    await Application.Current.MainPage.DisplayAlert("Save failed!", "🤷 The save failed for some reason 🤷", "OK");
+                    IsSaving = false;
                 }
 
             }
@@ -174,12 +185,12 @@ namespace RecipeApp.ViewModels
         [RelayCommand]
         private void AddNewStep()
         {
-            this.Recipe.Steps.Add(new Step()
+            Recipe?.Steps?.Add(new Step()
             {
                 Num = Recipe.Steps.Count
             });
 
-            OnPropertyChanged("Steps");
+            OnPropertyChanged(nameof(Recipe.Steps));
         }
 
         private bool IsValid()
@@ -188,8 +199,11 @@ namespace RecipeApp.ViewModels
             var sb = new StringBuilder();
             if (Recipe is null)
                 sb.AppendLine("Recipe is null");
-            if (string.IsNullOrEmpty(Recipe.Title))
+            if (string.IsNullOrEmpty(Recipe?.Title))
                 sb.AppendLine("Recipe has no title");
+            //sanitise title
+            Recipe.Title = Regex.Replace(Recipe?.Title, @"\t|\n|\r", "");
+
             if (Recipe.Ingredients is null || Recipe.Ingredients.Count < 1)
                 sb.AppendLine("Recipe has no ingredients");
             if (Recipe.Steps is null || Recipe.Steps.Count < 1)
@@ -209,6 +223,21 @@ namespace RecipeApp.ViewModels
 
             this.CurrentError = sb.ToString();
             return String.IsNullOrEmpty(sb.ToString());
+        }
+
+        [RelayCommand]
+        private void RemoveStep(int stepNum)
+        {
+            Recipe?.Steps?.RemoveAt(stepNum);
+
+            //Update step number
+            for (int i = 0; i < Recipe?.Steps?.Count; i++)
+            {
+                Recipe.Steps[i].Num = i;
+            }
+
+            OnPropertyChanged(nameof(Recipe.Steps));
+
         }
     }
 }
