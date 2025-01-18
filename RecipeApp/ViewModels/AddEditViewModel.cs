@@ -136,7 +136,7 @@ namespace RecipeApp.ViewModels
         [RelayCommand]
         private async Task Save()
         {
-            if (IsValid())
+            if (!IsSaving && IsValid())
             {
                 try
                 {

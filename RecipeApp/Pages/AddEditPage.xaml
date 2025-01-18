@@ -22,6 +22,7 @@
                 FontSize="25"
                 HorizontalOptions="End"
                 HorizontalTextAlignment="Center"
+                IsVisible="{Binding IsSaving, Converter={StaticResource InvertedBoolConverter}}"
                 VerticalOptions="Center"
                 VerticalTextAlignment="Start">
                 <Label.FormattedText>

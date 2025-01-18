@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Dev\\ReceipeProj\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\dev\\receipeproj\\recipeapp\\pages\\addeditpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\pages\\addeditpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\dev\\receipeproj\\recipeapp\\viewmodels\\addeditviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\viewmodels\\addeditviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\dev\\receipeproj\\recipeapp\\pages\\addeditpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\pages\\addeditpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\dev\\receipeproj\\recipeapp\\pages\\addeditpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|solutionrelative:recipeapp\\pages\\addeditpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{4E9745C0-5669-4467-8258-B72C9D17141F}|RecipeApp\\RecipeApp.csproj|c:\\dev\\receipeproj\\recipeapp\\models\\step.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -26,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
@@ -38,44 +38,41 @@
               "RelativeToolTip": "RecipeApp\\Models\\Step.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-15T22:44:58.061Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-15T22:44:58.061Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "AddEditPage.xaml.cs",
               "DocumentMoniker": "C:\\Dev\\ReceipeProj\\RecipeApp\\Pages\\AddEditPage.xaml.cs",
               "RelativeDocumentMoniker": "RecipeApp\\Pages\\AddEditPage.xaml.cs",
               "ToolTip": "C:\\Dev\\ReceipeProj\\RecipeApp\\Pages\\AddEditPage.xaml.cs",
               "RelativeToolTip": "RecipeApp\\Pages\\AddEditPage.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-15T22:35:21.083Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-15T22:35:21.083Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "AddEditViewModel.cs",
               "DocumentMoniker": "C:\\Dev\\ReceipeProj\\RecipeApp\\ViewModels\\AddEditViewModel.cs",
               "RelativeDocumentMoniker": "RecipeApp\\ViewModels\\AddEditViewModel.cs",
               "ToolTip": "C:\\Dev\\ReceipeProj\\RecipeApp\\ViewModels\\AddEditViewModel.cs",
               "RelativeToolTip": "RecipeApp\\ViewModels\\AddEditViewModel.cs",
-              "ViewState": "AgIAAKYAAAAAAAAAAAAjwL0AAAAoAAAAAAAAAA==",
+              "ViewState": "AgIAAIEAAAAAAAAAAAAWwIoAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-15T22:25:38.205Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-15T22:25:38.205Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "AddEditPage.xaml",
               "DocumentMoniker": "C:\\Dev\\ReceipeProj\\RecipeApp\\Pages\\AddEditPage.xaml",
               "RelativeDocumentMoniker": "RecipeApp\\Pages\\AddEditPage.xaml",
               "ToolTip": "C:\\Dev\\ReceipeProj\\RecipeApp\\Pages\\AddEditPage.xaml",
               "RelativeToolTip": "RecipeApp\\Pages\\AddEditPage.xaml",
-              "ViewState": "AgIAAGAAAAAAAAAAAAAAACEAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-01-15T21:48:58.939Z",
               "EditorCaption": ""
