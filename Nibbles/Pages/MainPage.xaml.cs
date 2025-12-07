@@ -25,11 +25,13 @@ namespace Nibbles
 
         protected override void OnNavigatedTo(NavigatedToEventArgs args)
         {
+            /* TODO FIX using being dropped
 #if ANDROID
             base.OnNavigatedTo(args);
             CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
             CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
 #endif
+            */
         }
 
         private async void AddButton_Clicked(object sender, EventArgs e)

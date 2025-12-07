@@ -1,7 +1,4 @@
 <Solution>
-  <Project Path="RecipeApp/RecipeApp.csproj">
-     <Deploy Solution="Debug|*" />
-  </Project>
    <Project Path="Nibbles/Nibbles.csproj" Id="08adf5cd-bf0b-4a30-9ab4-4daed3e63caa">
       <Deploy Solution="Debug|*" />
    </Project>
