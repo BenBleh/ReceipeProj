@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Nibbles.RecipeDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:apiModels="clr-namespace:Nibbles.Models"
+    xmlns:local="clr-namespace:RecipeApp"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
+    x:Name="RootPage"
+    x:DataType="viewmodels:RecipeDetailsViewModel">
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="*,Auto">
+            <Label
+                Grid.Column="0"
+                FontAttributes="Bold"
+                HorizontalTextAlignment="Center"
+                LineBreakMode="WordWrap"
+                Text="{Binding Recipe.Title}"
+                VerticalTextAlignment="Center" />
+            <HorizontalStackLayout Grid.Column="1" Padding="0,0,15,0">
+                <Label
+                    FontSize="25"
+                    HorizontalOptions="End"
+                    HorizontalTextAlignment="Center"
+                    IsVisible="{Binding HasSourceLink}"
+                    VerticalOptions="Center"
+                    VerticalTextAlignment="Start">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="🔗" TextColor="Blue">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="{Binding Recipe.Source}" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Label
+                    FontSize="25"
+                    HorizontalOptions="End"
+                    HorizontalTextAlignment="Center"
+                    VerticalOptions="Center"
+                    VerticalTextAlignment="Start">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="✏️" TextColor="Blue">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </HorizontalStackLayout>
+        </Grid>
+    </Shell.TitleView>
+    <ScrollView>
+        <Grid
+            Margin="25,0,25,25"
+            ColumnDefinitions="*"
+            HorizontalOptions="Center"
+            RowDefinitions="auto,auto, auto, auto, *">
+            <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2">
+                <Label IsVisible="{Binding HasSourceLink, Converter={toolkit:InvertedBoolConverter}}" Text="{Binding Recipe.Source}" />
+            </VerticalStackLayout>
+            <Image
+                Grid.Row="2"
+                HeightRequest="400"
+                Source="{Binding Recipe.ImagePath}" />
+            <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="2" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="apiModels:Ingredient">
+                        <Grid ColumnDefinitions="auto, *">
+                            <CheckBox Grid.Column="0">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroupList>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Color" Value="Pink" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState x:Name="IsChecked">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Color" Value="Pink" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateGroupList>
+                                </VisualStateManager.VisualStateGroups>
+                            </CheckBox>
+                            <Label
+                                Grid.Column="1"
+                                LineBreakMode="WordWrap"
+                                Text="{Binding FQIngrediantDescription}"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <CollectionView
+                Grid.Row="4"
+                Margin="25"
+                HorizontalOptions="Center"
+                ItemsSource="{Binding Recipe.Steps}">
+                <CollectionView.ItemTemplate Margin="25">
+                    <DataTemplate x:DataType="apiModels:Step">
+                        <Frame Margin="5" Background="Transparent">
+                            <VerticalStackLayout Padding="5">
+                                <Label FontSize="Large" Text="{Binding StepNumberDisplay}" />
+                                <Label Text="{Binding Instructions}" VerticalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </Grid>
+
+    </ScrollView>
+</ContentPage>

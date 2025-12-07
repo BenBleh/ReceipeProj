@@ -1,12 +1,8 @@
-﻿using Microsoft.Build.Globbing;
-using Newtonsoft.Json.Serialization;
-using RecipeAPI.Helpers;
+﻿using RecipeAPI.Helpers;
 using RecipeAPI.Interfaces;
 using RecipeAPI.Models;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Text;
 using System.Text.Json;
 
 namespace RecipeAPI.DataAccess.JsonFileBased
@@ -23,7 +19,7 @@ namespace RecipeAPI.DataAccess.JsonFileBased
                     while (!reader.EndOfStream)
                     {
                         var line = reader.ReadLine();
-                        var values = line.Split(',');
+                        var values = line?.Split(',');
 
                         masterList.Recipes.Add(new RecipeListItem()
                         {
