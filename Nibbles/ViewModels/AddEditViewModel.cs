@@ -168,6 +168,10 @@ namespace Nibbles.ViewModels
                         await Application.Current.MainPage.DisplayAlert("Save failed!", "🤷 The save failed for some reason 🤷", "OK");
                     }
                 }
+                catch (Exception ex)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Save failed!", $"🤷 The save failed for some reason 🤷/n {ex.Message}", "OK");
+                }
                 finally
                 {
                     IsSaving = false;

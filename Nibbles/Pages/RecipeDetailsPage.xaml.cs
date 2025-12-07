@@ -16,14 +16,14 @@ public partial class RecipeDetailsPage : ContentPage
         this.BindingContext = vm;
 
     }
-    protected override void OnNavigatedTo(NavigatedToEventArgs args)
-    {
-#if ANDROID
-            base.OnNavigatedTo(args);
-            CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
-            CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
-#endif
-    }
+    //    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    //    {
+    //#if ANDROID
+    //            base.OnNavigatedTo(args);
+    //            CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
+    //            CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
+    //#endif
+    //    }
 
     private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {

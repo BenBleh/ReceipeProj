@@ -1,5 +1,9 @@
 ﻿using Nibbles.Models;
 using Nibbles.ViewModels;
+#if ANDROID
+using CommunityToolkit.Maui.Core;
+using System.Windows.Input;
+#endif
 
 namespace Nibbles
 {
@@ -23,16 +27,14 @@ namespace Nibbles
             (this.BindingContext as MainPageViewModel).IsBusy = false;
         }
 
-        protected override void OnNavigatedTo(NavigatedToEventArgs args)
-        {
-            /* TODO FIX using being dropped
-#if ANDROID
-            base.OnNavigatedTo(args);
-            CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
-            CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
-#endif
-            */
-        }
+        //        protected override void OnNavigatedTo(NavigatedToEventArgs args)
+        //        {
+        //#if ANDROID
+        //            base.OnNavigatedTo(args);
+        //            CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
+        //            CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
+        //#endif           
+        //        }
 
         private async void AddButton_Clicked(object sender, EventArgs e)
         {

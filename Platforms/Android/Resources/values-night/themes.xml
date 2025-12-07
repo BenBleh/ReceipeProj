@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- App theme for dark (night) mode -->
+  <style name="Theme.Maui" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Use the maui_status_bar_color defined in values-night/colors.xml -->
+    <item name="android:statusBarColor">@color/maui_status_bar_color</item>
+    <!-- false = light icons/text on status bar (for dark status bar background) -->
+    <item name="android:windowLightStatusBar">false</item>
+  </style>
+</resources>
