@@ -1,148 +1,271 @@
-recipeproj.metadata.v7.bin
-recipeproj.projects.v7.bin
-11f64fcf-6e02-4e20-83e8-c796fd786992.vsidx
-1958e5f7-d25f-46e8-993b-18d96b48d0a8.vsidx
-1fcac709-b14e-4ba2-a28c-74f1dca772e8.vsidx
-3dffec99-540e-410f-b774-07f646dcb656.vsidx
-cace1bb3-cce8-4c7e-844d-0e3910c5bc59.vsidx
-.dtbcache.v2
-applicationhost.config
-.futdcache.v2
-.suo
-ReceipieSite.esproj.CoreCompileInputs.cache
-ReceipieSite.esproj.FileListAbsolute.txt
-RecipeSite.esproj.CoreCompileInputs.cache
-RecipeSite.esproj.FileListAbsolute.txt
-Humanizer.dll
-Microsoft.AspNetCore.Authorization.dll
-Microsoft.AspNetCore.Components.Forms.dll
-Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter.dll
-Microsoft.AspNetCore.Components.QuickGrid.dll
-Microsoft.AspNetCore.Components.Web.dll
-Microsoft.AspNetCore.Components.dll
-Microsoft.AspNetCore.Metadata.dll
-Microsoft.AspNetCore.OpenApi.dll
-Microsoft.AspNetCore.Razor.Language.dll
-Microsoft.Bcl.AsyncInterfaces.dll
-Microsoft.Build.Framework.dll
-Microsoft.Build.dll
-Microsoft.CodeAnalysis.AnalyzerUtilities.dll
-Microsoft.CodeAnalysis.CSharp.Features.dll
-Microsoft.CodeAnalysis.CSharp.Workspaces.dll
-Microsoft.CodeAnalysis.CSharp.dll
-Microsoft.CodeAnalysis.Elfie.dll
-Microsoft.CodeAnalysis.Features.dll
-Microsoft.CodeAnalysis.Razor.dll
-Microsoft.CodeAnalysis.Scripting.dll
-Microsoft.CodeAnalysis.Workspaces.dll
-Microsoft.CodeAnalysis.dll
-Microsoft.DiaSymReader.dll
-Microsoft.DotNet.Scaffolding.Shared.dll
-Microsoft.EntityFrameworkCore.Abstractions.dll
-Microsoft.EntityFrameworkCore.dll
-Microsoft.Extensions.DependencyModel.dll
-Microsoft.Extensions.Options.dll
-Microsoft.JSInterop.dll
-Microsoft.NET.StringTools.dll
-Microsoft.OpenApi.dll
-Microsoft.VisualStudio.Web.CodeGeneration.Core.dll
-Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore.dll
-Microsoft.VisualStudio.Web.CodeGeneration.Templating.dll
-Microsoft.VisualStudio.Web.CodeGeneration.Utils.dll
-Microsoft.VisualStudio.Web.CodeGeneration.dll
-Microsoft.VisualStudio.Web.CodeGenerators.Mvc.dll
-Microsoft.Win32.SystemEvents.dll
-Mono.TextTemplating.dll
-Newtonsoft.Json.dll
-NuGet.Common.dll
-NuGet.Configuration.dll
-NuGet.DependencyResolver.Core.dll
-NuGet.Frameworks.dll
-NuGet.LibraryModel.dll
-NuGet.Packaging.dll
-NuGet.ProjectModel.dll
-NuGet.Protocol.dll
-NuGet.Versioning.dll
-RecipeAPI.deps.json
-RecipeAPI.dll
-RecipeAPI.exe
-RecipeAPI.pdb
-RecipeAPI.runtimeconfig.json
-RecipeAPI.staticwebassets.runtime.json
-Swashbuckle.AspNetCore.Swagger.dll
-Swashbuckle.AspNetCore.SwaggerGen.dll
-Swashbuckle.AspNetCore.SwaggerUI.dll
-System.CodeDom.dll
-System.Composition.AttributedModel.dll
-System.Composition.Convention.dll
-System.Composition.Hosting.dll
-System.Composition.Runtime.dll
-System.Composition.TypedParts.dll
-System.Configuration.ConfigurationManager.dll
-System.Drawing.Common.dll
-System.Reflection.MetadataLoadContext.dll
-System.Security.Cryptography.ProtectedData.dll
-System.Security.Permissions.dll
-System.Windows.Extensions.dll
-Humanizer.resources.dll
-appsettings.Development.json
-appsettings.json
-Microsoft.CodeAnalysis.CSharp.Features.resources.dll
-Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-Microsoft.CodeAnalysis.CSharp.resources.dll
-Microsoft.CodeAnalysis.Features.resources.dll
-Microsoft.CodeAnalysis.Scripting.resources.dll
-Microsoft.CodeAnalysis.Workspaces.resources.dll
-Microsoft.CodeAnalysis.resources.dll
-dotnet-aspnet-codegenerator-design.dll
-.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
-RecipeAPI.AssemblyInfo.cs
-RecipeAPI.AssemblyInfoInputs.cache
-RecipeAPI.GeneratedMSBuildEditorConfig.editorconfig
-RecipeAPI.GlobalUsings.g.cs
-RecipeAPI.MvcApplicationPartsAssemblyInfo.cache
-RecipeAPI.MvcApplicationPartsAssemblyInfo.cs
-RecipeAPI.assets.cache
-RecipeAPI.csproj.AssemblyReference.cache
-RecipeAPI.csproj.BuildWithSkipAnalyzers
-RecipeAPI.csproj.CopyComplete
-RecipeAPI.csproj.CoreCompileInputs.cache
-RecipeAPI.csproj.FileListAbsolute.txt
-RecipeAPI.genruntimeconfig.cache
-apphost.exe
-RecipeAPI.styles.css
-staticwebassets.build.json
-staticwebassets.development.json
-msbuild.build.RecipeAPI.props
-msbuild.buildMultiTargeting.RecipeAPI.props
-msbuild.buildTransitive.RecipeAPI.props
-RecipeAPI.csproj.nuget.dgspec.json
-RecipeAPI.csproj.nuget.g.props
-RecipeAPI.csproj.nuget.g.targets
-project.assets.json
-project.nuget.cache
-/.vs/RecipeProj/FileContentIndex/*.vsidx
-/RecipeAPI/obj/Debug/net8.0/RecipeAPI.sourcelink.json
-dotnet-tools.json
-FolderProfile1.pubxml
-FolderProfile1.pubxml.user
-FolderProfile2.pubxml
-FolderProfile2.pubxml.user
-RecipeAPI.csproj.EntityFrameworkCore.targets
-web.config
-Microsoft.AspNetCore.Components.QuickGrid.bundle.scp.css
-QuickGrid.razor.js
-PublishOutputs.ae19921290.txt
-RecipeAPI.sourcelink.json
-staticwebassets.publish.json
-obj
-bin
-/.vs/ProjectEvaluation/recipeproj.metadata.v8.bin
-/.vs/ProjectEvaluation/recipeproj.projects.v8.bin
-/.vs/ProjectEvaluation/recipeproj.strings.v8.bin
-/RecipeApp/Pages/*.TMP
-/RecipeApp/ViewModels/*.TMP
-/.vs/RecipeProj/v17/DocumentLayout.backup.json
-/RecipeAPI/Properties/PublishProfiles/FolderProfile.pubxml
-/RecipeAPI/Properties/PublishProfiles/FolderProfile.pubxml.user
-/.vs/ProjectEvaluation/*.bin
+## Ignore Visual Studio temporary files, build results, and
+## files generated by popular Visual Studio add-ons.
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+
+# ignore Xamarin.Android Resource.Designer.cs files
+**/*.Droid/**/[Rr]esource.[Dd]esigner.cs
+**/*.Android/**/[Rr]esource.[Dd]esigner.cs
+**/Android/**/[Rr]esource.[Dd]esigner.cs
+**/Droid/**/[Rr]esource.[Dd]esigner.cs
+
+# Visual Studio 2015 cache/options directory
+.vs/
+# Uncomment if you have tasks that create the project's static files in wwwroot
+#wwwroot/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUNIT
+*.VisualState.xml
+TestResult.xml
+
+# Build Results of an ATL Project
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# DNX
+project.lock.json
+artifacts/
+
+*_i.c
+*_p.c
+*_i.h
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Chutzpah Test files
+_Chutzpah*
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# TFS 2012 Local Workspace
+$tf/
+
+# Guidance Automation Toolkit
+*.gpState
+
+# ReSharper is a .NET coding add-in
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# JustCode is a .NET coding add-in
+.JustCode
+
+# TeamCity is a build add-in
+_TeamCity*
+
+# DotCover is a Code Coverage Tool
+*.dotCover
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# Web workbench (sass)
+.sass-cache/
+
+# Installshield output folder
+[Ee]xpress/
+
+# DocProject is a documentation generator add-in
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Click-Once directory
+publish/
+
+# Publish Web Output
+*.[Pp]ublish.xml
+*.azurePubxml
+# TODO: Comment the next line if you want to checkin your web deploy settings
+# but database connection strings (with potential passwords) will be unencrypted
+*.pubxml
+*.publishproj
+
+# Microsoft Azure Web App publish settings. Comment the next line if you want to
+# checkin your Azure Web App publish settings, but sensitive information contained
+# in these scripts will be unencrypted
+PublishScripts/
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+# except build/, which is used as an MSBuild target.
+!**/packages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/packages/repositories.config
+# NuGet v3's project.json files produces more ignoreable files
+*.nuget.props
+*.nuget.targets
+
+# Microsoft Azure Build Output
+csx/
+*.build.csdef
+
+# Microsoft Azure Emulator
+ecf/
+rcf/
+
+# Windows Store app package directories and files
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+
+# Visual Studio cache files
+# files ending in .cache can be ignored
+*.[Cc]ache
+# but keep track of directories ending in .cache
+!*.[Cc]ache/
+
+# Others
+ClientBin/
+~$*
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.pfx
+*.publishsettings
+node_modules/
+orleans.codegen.cs
+
+# Since there are multiple workflows, uncomment next line to ignore bower_components
+# (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
+#bower_components/
+
+# RIA/Silverlight projects
+Generated_Code/
+
+# Backup & report files from converting an old project file
+# to a newer Visual Studio version. Backup files are not needed,
+# because we have git ;-)
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+
+# SQL Server files
+*.mdf
+*.ldf
+
+# Business Intelligence projects
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+
+# Microsoft Fakes
+FakesAssemblies/
+
+# GhostDoc plugin setting file
+*.GhostDoc.xml
+
+# Node.js Tools for Visual Studio
+.ntvs_analysis.dat
+
+# Visual Studio 6 build log
+*.plg
+
+# Visual Studio 6 workspace options file
+*.opt
+
+# Visual Studio LightSwitch build output
+**/*.HTMLClient/GeneratedArtifacts
+**/*.DesktopClient/GeneratedArtifacts
+**/*.DesktopClient/ModelManifest.xml
+**/*.Server/GeneratedArtifacts
+**/*.Server/ModelManifest.xml
+_Pvt_Extensions
+
+# Paket dependency manager
+.paket/paket.exe
+paket-files/
+
+# FAKE - F# Make
+.fake/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+**/.DS_Store
+**/.meteor
+
+# MFractors (Xamarin productivity tool) working folder
+.mfractor/
+
+# Visual Studio Code
+.vscode
+/samples/workload-install.ps1
+
+# Benchmarkdot
+BenchmarkDotNet.Artifacts/
