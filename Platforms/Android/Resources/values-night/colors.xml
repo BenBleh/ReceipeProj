@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-  <!-- Night / Dark theme status bar color (change to your app's dark-mode color) -->
-  <color name="maui_status_bar_color">#FF121212</color>
-</resources>
