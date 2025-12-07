@@ -7,7 +7,7 @@ namespace Nibbles.Services
 {
     public class ReceipeAPIService
     {
-        private readonly string APIUrl = "http://192.168.1.110:7087/"; // debug URL https://localhost:7087/
+        private readonly string APIUrl = "http://192.168.1.110:8080/"; // debug URL https://localhost:7087/
         private readonly string FilesUrl = "http://192.168.1.110:8081/";
 
         HttpClient httpClient;

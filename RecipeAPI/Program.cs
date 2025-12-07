@@ -1,8 +1,6 @@
-﻿using RecipeAPI.Controllers;
-using RecipeAPI.DataAccess.JsonFileBased;
+﻿using RecipeAPI.DataAccess.JsonFileBased;
 using RecipeAPI.Helpers;
 using RecipeAPI.Interfaces;
-using System.Collections;
 var builder = WebApplication.CreateBuilder(args);
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -30,7 +28,7 @@ app.UseCors(x => x
 .AllowAnyMethod());
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
