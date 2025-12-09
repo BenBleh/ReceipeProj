@@ -28,7 +28,7 @@
                     VerticalTextAlignment="Start">
                     <Label.FormattedText>
                         <FormattedString>
-                            <Span Text="🔗" TextColor="Blue">
+                            <Span Text="{x:Static local:IconFont.Link}" FontFamily="IconFonts">
                                 <Span.GestureRecognizers>
                                     <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="{Binding Recipe.Source}" />
                                 </Span.GestureRecognizers>
@@ -44,7 +44,7 @@
                     VerticalTextAlignment="Start">
                     <Label.FormattedText>
                         <FormattedString>
-                            <Span Text="✏️" TextColor="Blue">
+                            <Span Text="{x:Static local:IconFont.Pencil}" FontFamily="IconFonts">
                                 <Span.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
                                 </Span.GestureRecognizers>

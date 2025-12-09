@@ -45,6 +45,7 @@
                     Grid.Column="1"
                     Padding="5"
                     FontSize="25"
+                    Margin="10,0,0,0"
                     HorizontalOptions="End"
                     HorizontalTextAlignment="Center"
                     IsVisible="{Binding CanAdd}"
@@ -52,7 +53,7 @@
                     VerticalTextAlignment="Start">
                     <Label.FormattedText>
                         <FormattedString>
-                            <Span Text="➕">
+                            <Span Text="{x:Static local:IconFont.FilePlusCorner}" FontFamily="IconFonts" >
                                 <Span.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="AddButton_Clicked" />
                                 </Span.GestureRecognizers>

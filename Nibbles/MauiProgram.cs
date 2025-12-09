@@ -17,6 +17,8 @@ namespace Nibbles
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("lucide.ttf", "IconFonts");
+
                 });
 
 #if DEBUG

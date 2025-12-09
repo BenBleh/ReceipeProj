@@ -18,7 +18,7 @@
     <Shell.TitleView>
         <StackLayout>
             <Label
-                Padding="5"
+                Padding="15"
                 FontSize="25"
                 HorizontalOptions="End"
                 HorizontalTextAlignment="Center"
@@ -27,7 +27,7 @@
                 VerticalTextAlignment="Start">
                 <Label.FormattedText>
                     <FormattedString>
-                        <Span Text="💾" TextColor="Blue">
+                        <Span  Text="{x:Static local:IconFont.Save}" FontFamily="IconFonts">
                             <Span.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding SaveCommand}" />
                             </Span.GestureRecognizers>
