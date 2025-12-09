@@ -26,16 +26,6 @@ namespace Nibbles
             }
             (this.BindingContext as MainPageViewModel).IsBusy = false;
         }
-
-        //        protected override void OnNavigatedTo(NavigatedToEventArgs args)
-        //        {
-        //#if ANDROID
-        //            base.OnNavigatedTo(args);
-        //            CommunityToolkit.Maui.Core.Platform.StatusBar.SetColor(RootPage.BackgroundColor);
-        //            CommunityToolkit.Maui.Core.Platform.StatusBar.SetStyle(StatusBarStyle.LightContent);
-        //#endif           
-        //        }
-
         private async void AddButton_Clicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new AddEditPage());
