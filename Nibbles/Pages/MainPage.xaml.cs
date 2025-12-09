@@ -1,9 +1,5 @@
 ﻿using Nibbles.Models;
 using Nibbles.ViewModels;
-#if ANDROID
-using CommunityToolkit.Maui.Core;
-using System.Windows.Input;
-#endif
 
 namespace Nibbles
 {
