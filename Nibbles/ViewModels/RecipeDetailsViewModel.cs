@@ -8,10 +8,10 @@ namespace Nibbles.ViewModels
     public partial class RecipeDetailsViewModel : ObservableObject
     {
         [ObservableProperty]
-        Recipe? recipe;
+        public partial Recipe? Recipe { get; set; }
 
         [ObservableProperty]
-        bool hasSourceLink = false;
+        public partial bool HasSourceLink { get; set; } = false;
 
 
         ReceipeAPIService receipeAPIService;

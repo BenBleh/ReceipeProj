@@ -11,15 +11,20 @@ namespace Nibbles
             Routing.RegisterRoute(nameof(RecipeDetailsPage), typeof(RecipeDetailsPage));
             Routing.RegisterRoute(nameof(AddEditPage), typeof(AddEditPage));
 #if ANDROID
-            this.Navigated += Shell_Navigated;
+            Navigated += Shell_Navigated;
 #endif
             // Apply shell colors now and when system theme changes
-            ApplyShellTheme(Application.Current.RequestedTheme);
-            Application.Current.RequestedThemeChanged += (s, e) => ApplyShellTheme(e.RequestedTheme);
+            var currentApp = Application.Current;
+            var requestedTheme = currentApp?.RequestedTheme ?? AppTheme.Light;
+            ApplyShellTheme(requestedTheme);
+            if (currentApp is not null)
+            {
+                currentApp.RequestedThemeChanged += (s, e) => ApplyShellTheme(e.RequestedTheme);
+            }
         }
 
 #if ANDROID
-        void Shell_Navigated(object sender, ShellNavigatedEventArgs e)
+        void Shell_Navigated(object? sender, ShellNavigatedEventArgs e)
         {
             MainActivity.Current?.RefreshToolbarColor();
         }
@@ -27,17 +32,22 @@ namespace Nibbles
 
         void ApplyShellTheme(AppTheme theme)
         {
+            var resources = Application.Current?.Resources;
+            var white = (Microsoft.Maui.Graphics.Color?)(resources?[(object)"White"]) ?? Microsoft.Maui.Graphics.Colors.White;
+            var black = (Microsoft.Maui.Graphics.Color?)(resources?[(object)"Black"]) ?? Microsoft.Maui.Graphics.Colors.Black;
+            var offBlack = (Microsoft.Maui.Graphics.Color?)(resources?[(object)"OffBlack"]) ?? Microsoft.Maui.Graphics.Colors.Black;
+
             if (theme == AppTheme.Dark)
             {
-                this.BackgroundColor = (Microsoft.Maui.Graphics.Color)Application.Current.Resources["OffBlack"];
-                this.SetValue(Shell.ForegroundColorProperty, (Microsoft.Maui.Graphics.Color)Application.Current.Resources["White"]);
-                this.SetValue(Shell.TitleColorProperty, (Microsoft.Maui.Graphics.Color)Application.Current.Resources["White"]);
+                BackgroundColor = offBlack;
+                SetValue(Shell.ForegroundColorProperty, white);
+                SetValue(Shell.TitleColorProperty, white);
             }
             else
             {
-                this.BackgroundColor = (Microsoft.Maui.Graphics.Color)Application.Current.Resources["White"];
-                this.SetValue(Shell.ForegroundColorProperty, (Microsoft.Maui.Graphics.Color)Application.Current.Resources["Black"]);
-                this.SetValue(Shell.TitleColorProperty, (Microsoft.Maui.Graphics.Color)Application.Current.Resources["Black"]);
+                BackgroundColor = white;
+                SetValue(Shell.ForegroundColorProperty, black);
+                SetValue(Shell.TitleColorProperty, black);
             }
         }
     }

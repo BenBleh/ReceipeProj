@@ -10,7 +10,7 @@ namespace Nibbles
     {
         public static MainActivity? Current { get; private set; }
 
-        protected override void OnCreate(Bundle savedInstanceState)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
             Current = this;
             base.OnCreate(savedInstanceState);
@@ -35,10 +35,9 @@ namespace Nibbles
         {
             try
             {
-                var root = Window?.DecorView;
-                if (root != null)
+                if (Window?.DecorView is Android.Views.View rootView)
                 {
-                    ApplyToolbarColor(root);
+                    ApplyToolbarColor(rootView);
                 }
             }
             catch { }
@@ -66,7 +65,10 @@ namespace Nibbles
             {
                 for (int i = 0; i < group.ChildCount; i++)
                 {
-                    ApplyToolbarColor(group.GetChildAt(i));
+                    if (group.GetChildAt(i) is Android.Views.View childView)
+                    {
+                        ApplyToolbarColor(childView);
+                    }
                 }
             }
         }

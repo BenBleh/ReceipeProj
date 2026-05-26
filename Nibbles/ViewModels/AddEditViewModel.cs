@@ -12,10 +12,10 @@ namespace Nibbles.ViewModels
     public partial class AddEditViewModel : ObservableObject
     {
         [ObservableProperty]
-        Recipe? recipe = new();
+        public partial Recipe? Recipe { get; set; } = new();
 
         [ObservableProperty]
-        string lazyIngredientString = string.Empty;
+        public partial string LazyIngredientString { get; set; } = string.Empty;
 
         public string CurrentError;
 
@@ -118,18 +118,18 @@ namespace Nibbles.ViewModels
         }
 
         [ObservableProperty]
-        bool hasImage = false;
+        public partial bool HasImage { get; set; } = false;
 
         [ObservableProperty]
-        bool isSaving = false;
+        public partial bool IsSaving { get; set; } = false;
 
         [ObservableProperty]
-        string imagePath = string.Empty;
+        public partial string ImagePath { get; set; } = string.Empty;
 
         bool hasImageBeenUpdated = false;
 
         [ObservableProperty]
-        ImageSource? imageStream;
+        public partial ImageSource? ImageStream { get; set; }
 
         [RelayCommand]
         private void AddNewIngredient()

@@ -16,16 +16,16 @@ namespace Nibbles.ViewModels
         ReceipeAPIService ReceipeAPIService;
 
         [ObservableProperty]
-        private int loadingRoatation;
+        public partial int LoadingRoatation { get; set; }
 
         [ObservableProperty]
-        private bool isBusy;
+        public partial bool IsBusy { get; set; }
 
         [ObservableProperty]
-        private bool isRefreshing;
+        public partial bool IsRefreshing { get; set; }
 
         [ObservableProperty]
-        private bool canAdd;
+        public partial bool CanAdd { get; set; }
 
         public string SearchQuery
         {
