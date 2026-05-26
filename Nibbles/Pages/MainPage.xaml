@@ -53,7 +53,7 @@
                     VerticalTextAlignment="Start">
                     <Label.FormattedText>
                         <FormattedString>
-                            <Span Text="{x:Static local:IconFont.FilePlusCorner}" FontFamily="IconFonts" >
+                            <Span FontFamily="IconFonts" Text="{x:Static local:IconFont.FilePlusCorner}">
                                 <Span.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="AddButton_Clicked" />
                                 </Span.GestureRecognizers>
