@@ -35,10 +35,10 @@ namespace Nibbles.Services
                 Console.WriteLine($"{jsonResponse}\n");
                 if (jsonResponse is not null)
                 {
-                    recipeListItems = JsonSerializer.Deserialize<List<RecipeListItem>>(jsonResponse);
+                    recipeListItems = JsonSerializer.Deserialize<List<RecipeListItem>>(jsonResponse) ?? [];
 
-                    SetUpFileSystem(recipeListItems);
-                    await GetReceipeFiles(recipeListItems);
+                    SetUpFileSystem(recipeListItems ?? []);
+                    await GetReceipeFiles(recipeListItems ?? []);
                     loadedFromServer = true;
                 }
                 else
@@ -46,15 +46,15 @@ namespace Nibbles.Services
                     throw new Exception("no response from server");
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 //if connection to server failed use local files
                 using (var reader = new StreamReader(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv")))
                 {
-                    while (!reader.EndOfStream)
+                    string? line;
+                    while ((line = await reader.ReadLineAsync()) is not null)
                     {
-                        var line = reader.ReadLine();
-                        var values = line?.Split(',');
+                        var values = line.Split(',');
                         if (values is not null && values.Count() > 0)
                         {
                             recipeListItems.Add(new RecipeListItem()
@@ -70,8 +70,9 @@ namespace Nibbles.Services
 
             //set up 'main' image
 
-            foreach (var recpie in recipeListItems)
+            foreach (var recpie in recipeListItems ?? [])
             {
+                if (recpie?.Id is null) continue;
                 var path = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recpie.Id, recpie.Id + ".jpeg");
                 if (File.Exists(path))
                 {
@@ -94,8 +95,9 @@ namespace Nibbles.Services
                 Directory.CreateDirectory(sourcePath);
             }
 
-            foreach (var recipeListItem in recipeListItems)
+            foreach (var recipeListItem in recipeListItems ?? [])
             {
+                if (recipeListItem?.Id is null) continue;
                 var recipePath = Path.Combine(sourcePath, recipeListItem.Id);
                 if (!File.Exists(recipePath))
                 {
@@ -108,8 +110,9 @@ namespace Nibbles.Services
         {
             try
             {
-                foreach (var recipe in recipeListItems)
+                foreach (var recipe in recipeListItems ?? [])
                 {
+                    if (recipe?.Id is null) continue;
                     var uri = new Uri(FilesUrl + "/" + recipe.Id + "/thumb.jpeg");
                     var filePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id);
                     if (!File.Exists(filePath))
@@ -135,8 +138,9 @@ namespace Nibbles.Services
             var fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv");
             await DownloadAFile(uri, fileName);
 
-            foreach (var recipe in recipeListItems)
+            foreach (var recipe in recipeListItems ?? [])
             {
+                if (recipe?.Id is null) continue;
                 //get the recipe file
                 uri = new Uri(FilesUrl + "/" + recipe.Id + ".json");
                 fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id + ".json");
@@ -170,25 +174,29 @@ namespace Nibbles.Services
             }
         }
 
-        public async Task<Recipe> GetRecipe(string recipeId)
+        public async Task<Recipe?> GetRecipe(string recipeId)
         {
             try
             {
                 var path = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipeId + ".json");
                 using (var reader = new StreamReader(path))
                 {
-                    while (!reader.EndOfStream)
+                    var content = await reader.ReadToEndAsync();
+                    if (!string.IsNullOrEmpty(content))
                     {
-                        var recipe = JsonSerializer.Deserialize<Recipe>(reader.ReadToEnd());
-                        recipe.ImagePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
-                        return recipe;
+                        var recipe = JsonSerializer.Deserialize<Recipe>(content);
+                        if (recipe?.Id is not null)
+                        {
+                            recipe.ImagePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
+                            return recipe;
+                        }
                     }
                 }
 
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return null;
@@ -204,7 +212,7 @@ namespace Nibbles.Services
                 response.EnsureSuccessStatusCode();
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -220,7 +228,7 @@ namespace Nibbles.Services
                 response.EnsureSuccessStatusCode();
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }

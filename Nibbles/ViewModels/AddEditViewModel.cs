@@ -147,20 +147,26 @@ namespace Nibbles.ViewModels
                     IsSaving = true;
                     if (hasImageBeenUpdated)
                     {
-                        var imageData = await File.ReadAllBytesAsync(ImagePath);
-                        this.Recipe!.ImageData = Convert.ToBase64String(imageData);
-                        //this is a hack so I don't have to update the webAPI
-                        this.Recipe.ImageData = "??;base64," + this.Recipe.ImageData;
+                        if (Recipe is not null)
+                        {
+                            var imageData = await File.ReadAllBytesAsync(ImagePath);
+                            Recipe.ImageData = Convert.ToBase64String(imageData);
+                            //this is a hack so I don't have to update the webAPI
+                            Recipe.ImageData = "??;base64," + Recipe.ImageData;
+                        }
                     }
 
                     bool saveResult = false;
-                    if (Recipe.Id is not null)
+                    if (Recipe?.Id is not null)
                     {
                         saveResult = await this.ReceipeAPIService.UpdateRecipe(this.Recipe);
                     }
                     else
                     {
-                        saveResult = await this.ReceipeAPIService.PostNewRecipe(this.Recipe);
+                        if (Recipe is not null)
+                        {
+                            saveResult = await this.ReceipeAPIService.PostNewRecipe(this.Recipe);
+                        }
                     }
                     if (saveResult)
                     {

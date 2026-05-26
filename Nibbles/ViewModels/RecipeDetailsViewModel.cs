@@ -19,7 +19,7 @@ namespace Nibbles.ViewModels
         [RelayCommand]
         private async Task OpenLink()
         {
-            if (Recipe.Source is not null)
+            if (Recipe?.Source is not null)
                 await Launcher.OpenAsync(Recipe.Source);
         }
 

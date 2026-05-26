@@ -70,7 +70,7 @@ namespace Nibbles.ViewModels
                     CanAdd = masterList.LoadedFromServer;
 
                     _recipeList = masterList.Recipes;
-                    foreach (var itm in _recipeList)
+                    foreach (var itm in _recipeList ?? [])
                     {
                         RecipeListItems.Add(itm);
                     }
@@ -131,7 +131,7 @@ namespace Nibbles.ViewModels
                     }
                     else
                     {
-                        filteredRecipeListItems = _recipeList?.Where(w => w.Title.Contains(SearchQuery, StringComparison.CurrentCultureIgnoreCase)) ?? [];
+                        filteredRecipeListItems = _recipeList?.Where(w => w?.Title?.Contains(SearchQuery, StringComparison.CurrentCultureIgnoreCase) == true) ?? [];
                     }
                     foreach (var itm in filteredRecipeListItems)
                     {

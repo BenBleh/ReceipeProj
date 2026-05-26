@@ -10,7 +10,7 @@ public partial class RecipeDetailsPage : ContentPage
     {
         InitializeComponent();
 
-        var vm = new RecipeDetailsViewModel(recipe.Id);
+        var vm = new RecipeDetailsViewModel(recipe.Id ?? string.Empty);
         this.BindingContext = vm;
 
     }
@@ -18,7 +18,10 @@ public partial class RecipeDetailsPage : ContentPage
     private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
         var vm = BindingContext as RecipeDetailsViewModel;
-        await Navigation.PushAsync(new AddEditPage(vm.Recipe));
-        vm.RefreshRecipeAsync();
+        if (vm?.Recipe != null)
+        {
+            await Navigation.PushAsync(new AddEditPage(vm.Recipe));
+            _ = vm.RefreshRecipeAsync();
+        }
     }
 }

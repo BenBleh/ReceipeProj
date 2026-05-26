@@ -14,14 +14,21 @@ namespace Nibbles
 
         public async void OnCollectionViewSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            (this.BindingContext as MainPageViewModel).IsBusy = true;
-            var current = (e.CurrentSelection.FirstOrDefault() as RecipeListItem);
+            var viewModel = this.BindingContext as MainPageViewModel;
+            if (viewModel != null)
+            {
+                viewModel.IsBusy = true;
+            }
+            var current = e.CurrentSelection.FirstOrDefault() as RecipeListItem;
             if (current != null)
             {
                 await Navigation.PushAsync(new RecipeDetailsPage(current));
                 recipeListCollectionView.SelectedItem = null;
             }
-            (this.BindingContext as MainPageViewModel).IsBusy = false;
+            if (viewModel != null)
+            {
+                viewModel.IsBusy = false;
+            }
         }
         private async void AddButton_Clicked(object sender, EventArgs e)
         {
