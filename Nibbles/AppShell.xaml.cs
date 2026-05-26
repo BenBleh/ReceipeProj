@@ -33,9 +33,9 @@ namespace Nibbles
         void ApplyShellTheme(AppTheme theme)
         {
             var resources = Application.Current?.Resources;
-            var white = (Microsoft.Maui.Graphics.Color?)(resources?[(object)"White"]) ?? Microsoft.Maui.Graphics.Colors.White;
-            var black = (Microsoft.Maui.Graphics.Color?)(resources?[(object)"Black"]) ?? Microsoft.Maui.Graphics.Colors.Black;
-            var offBlack = (Microsoft.Maui.Graphics.Color?)(resources?[(object)"OffBlack"]) ?? Microsoft.Maui.Graphics.Colors.Black;
+            var white = resources?["White"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.White;
+            var black = resources?["Black"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.Black;
+            var offBlack = resources?["OffBlack"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.Black;
 
             if (theme == AppTheme.Dark)
             {

@@ -23,8 +23,8 @@ namespace Nibbles.ViewModels
 
         public AddEditViewModel()
         {
-            recipe.Ingredients = [];
-            recipe.Steps = [];
+            Recipe!.Ingredients = [];
+            Recipe!.Steps = [];
             AddNewIngredient();
             AddNewStep();
             this.ReceipeAPIService = new ReceipeAPIService();
@@ -34,7 +34,7 @@ namespace Nibbles.ViewModels
 
         public AddEditViewModel(Recipe recipe)
         {
-            this.recipe = recipe;
+            Recipe = recipe;
             this.ReceipeAPIService = new ReceipeAPIService();
             this.CurrentError = string.Empty;
 
