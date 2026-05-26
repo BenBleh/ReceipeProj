@@ -9,9 +9,7 @@
     xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
     x:Name="ThaPage"
     Title="AddEditPage"
-    x:DataType="viewmodels:AddEditViewModel"
-    NavigationPage.BarBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
-    NavigationPage.BarTextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
+    x:DataType="viewmodels:AddEditViewModel">
     <ContentPage.Resources>
         <ResourceDictionary>
             <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
