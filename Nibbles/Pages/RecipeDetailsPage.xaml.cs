@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices;
 using Nibbles.Models;
 using Nibbles.ViewModels;
 
@@ -25,11 +26,19 @@ public partial class RecipeDetailsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        DeviceDisplay.KeepScreenOn = true;
+
         if (!string.IsNullOrEmpty(RecipeId))
         {
             var vm = new RecipeDetailsViewModel(RecipeId);
             this.BindingContext = vm;
         }
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        DeviceDisplay.KeepScreenOn = false;
     }
 
     private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
