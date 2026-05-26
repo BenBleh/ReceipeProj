@@ -8,6 +8,9 @@
     xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
     x:Name="RootPage"
     x:DataType="viewmodels:MainPageViewModel">
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior StatusBarColor="Red" StatusBarStyle="DarkContent" />
+    </ContentPage.Behaviors>
     <ContentPage.Resources>
         <Style TargetType="Grid">
             <Setter Property="VisualStateManager.VisualStateGroups">

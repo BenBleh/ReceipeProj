@@ -9,6 +9,9 @@
     xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
     x:Name="RootPage"
     x:DataType="viewmodels:RecipeDetailsViewModel">
+        <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior StatusBarColor="Red" StatusBarStyle="DarkContent"  />
+    </ContentPage.Behaviors>
     <Shell.TitleView>
         <Grid ColumnDefinitions="*,Auto">
             <Label

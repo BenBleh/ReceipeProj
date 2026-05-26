@@ -1,4 +1,6 @@
-﻿namespace Nibbles
+﻿using Microsoft.Maui.Controls;
+
+namespace Nibbles
 {
     public partial class AppShell : Shell
     {
