@@ -29,38 +29,47 @@
     </ContentPage.Resources>
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}">
         <Grid Padding="5" RowDefinitions="Auto,*">
-            <Grid Padding="10" ColumnDefinitions="*, Auto">
-                <Border>
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
-                    </Border.StrokeShape>
+            <Grid Padding="10" ColumnDefinitions="*, Auto" RowDefinitions="Auto">
+                <Border
+                    Style="{StaticResource MainPageSearchBorderStyle}"
+                    StrokeShape="RoundRectangle 15"
+                    Padding="10"
+                    StrokeThickness="0">
                     <Entry
                         x:Name="searchBar"
-                        HeightRequest="50"
+                        Style="{StaticResource MainPageSearchEntryStyle}"
+                        HeightRequest="48"
                         IsVisible="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
-                        Placeholder="Search..."
-                        Text="{Binding SearchQuery}" />
+                        Placeholder="Search recipes..."
+                        Text="{Binding SearchQuery}"
+                        BackgroundColor="Transparent"
+                        Margin="0"
+                        VerticalOptions="Center" />
                 </Border>
-                <Label
+
+                <Border
                     Grid.Column="1"
-                    Margin="10,0,0,0"
-                    Padding="5"
-                    FontSize="25"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 15"
+                    StrokeThickness="0"
+                    BackgroundColor="Transparent"
+                    HeightRequest="48"
+                    WidthRequest="48"
                     HorizontalOptions="End"
-                    HorizontalTextAlignment="Center"
-                    IsVisible="{Binding CanAdd}"
                     VerticalOptions="Center"
-                    VerticalTextAlignment="Start">
-                    <Label.FormattedText>
-                        <FormattedString>
-                            <Span FontFamily="IconFonts" Text="{x:Static local:IconFont.FilePlusCorner}">
-                                <Span.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="AddButton_Clicked" />
-                                </Span.GestureRecognizers>
-                            </Span>
-                        </FormattedString>
-                    </Label.FormattedText>
-                </Label>
+                    IsVisible="{Binding CanAdd}">
+                    <Label
+                        FontFamily="IconFonts"
+                        Text="{x:Static local:IconFont.FilePlusCorner}"
+                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                        FontSize="24"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="AddButton_Clicked" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Border>
             </Grid>
 
             <CollectionView
@@ -68,39 +77,63 @@
                 Grid.Row="1"
                 ItemsSource="{Binding RecipeListItems}"
                 SelectionChanged="OnCollectionViewSelectionChanged"
-                SelectionMode="Single">
+                SelectionMode="Single"
+                Margin="0,12,0,0"
+                BackgroundColor="Transparent">
+                <CollectionView.EmptyView>
+                    <StackLayout Padding="20" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label
+                            Text="No recipes found"
+                            HorizontalTextAlignment="Center"
+                            TextColor="{StaticResource Gray500}"
+                            FontSize="16" />
+                    </StackLayout>
+                </CollectionView.EmptyView>
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" Span="2" />
+                    <GridItemsLayout
+                        Orientation="Vertical"
+                        Span="2"
+                        HorizontalItemSpacing="12"
+                        VerticalItemSpacing="12" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="apiModels:RecipeListItem">
-                        <Grid>
-                            <Border StrokeShape="RoundRectangle 20,20,20,20" StrokeThickness="1">
-                                <VerticalStackLayout>
+                        <Grid BackgroundColor="Transparent">
+                            <Border
+                                Style="{StaticResource RecipeCardBorderStyle}"
+                                StrokeShape="RoundRectangle 20"
+                                StrokeThickness="1"
+                                Padding="0"
+                                Margin="0">
+                                <Border.Shadow>
+                                    <Shadow
+                                        Brush="{StaticResource Gray400Brush}"
+                                        Opacity="0.12"
+                                        Radius="12"
+                                        Offset="0,4" />
+                                </Border.Shadow>
+                                <VerticalStackLayout Spacing="8">
                                     <Image
-                                        Grid.Column="0"
                                         Aspect="AspectFill"
-                                        HeightRequest="250"
-                                        HorizontalOptions="Center"
+                                        HeightRequest="225"
                                         Source="{Binding ImageData}"
-                                        VerticalOptions="Center"
-                                        WidthRequest="200" />
+                                        HorizontalOptions="Fill"
+                                        VerticalOptions="Fill" />
                                     <Label
-                                        Grid.Column="1"
+                                        Style="{StaticResource RecipeCardTitleStyle}"
                                         FontAttributes="Bold"
                                         FontFamily="Montserrat"
-                                        HorizontalOptions="Center"
+                                        FontSize="16"
+                                        Margin="12,0,12,12"
                                         HorizontalTextAlignment="Center"
                                         LineBreakMode="WordWrap"
-                                        Text="{Binding Title}"
-                                        VerticalOptions="Center"
-                                        WidthRequest="120" />
+                                        MaxLines="3"
+                                        Text="{Binding Title}" />
                                 </VerticalStackLayout>
                             </Border>
                         </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
-
             </CollectionView>
             <Image
                 Grid.RowSpan="2"
