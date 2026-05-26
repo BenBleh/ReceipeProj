@@ -8,10 +8,9 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
     x:Name="RootPage"
-    x:DataType="viewmodels:RecipeDetailsViewModel">
-        <ContentPage.Behaviors>
-        <toolkit:StatusBarBehavior StatusBarColor="Red" StatusBarStyle="DarkContent"  />
-    </ContentPage.Behaviors>
+    x:DataType="viewmodels:RecipeDetailsViewModel"
+    NavigationPage.BarBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
+    NavigationPage.BarTextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
     <Shell.TitleView>
         <Grid ColumnDefinitions="*,Auto">
             <Label

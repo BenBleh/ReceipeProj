@@ -7,6 +7,9 @@ namespace Nibbles
         public AppShell()
         {
             InitializeComponent();
+            // Register routes for Shell navigation
+            Routing.RegisterRoute(nameof(RecipeDetailsPage), typeof(RecipeDetailsPage));
+            Routing.RegisterRoute(nameof(AddEditPage), typeof(AddEditPage));
         }
     }
 }

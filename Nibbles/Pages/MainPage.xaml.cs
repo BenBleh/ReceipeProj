@@ -22,7 +22,8 @@ namespace Nibbles
             var current = e.CurrentSelection.FirstOrDefault() as RecipeListItem;
             if (current != null)
             {
-                await Navigation.PushAsync(new RecipeDetailsPage(current));
+                var id = Uri.EscapeDataString(current.Id ?? string.Empty);
+                await Shell.Current.GoToAsync($"{nameof(RecipeDetailsPage)}?recipeId={id}");
                 recipeListCollectionView.SelectedItem = null;
             }
             if (viewModel != null)
@@ -32,7 +33,7 @@ namespace Nibbles
         }
         private async void AddButton_Clicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AddEditPage());
+            await Shell.Current.GoToAsync(nameof(AddEditPage));
         }
     }
 

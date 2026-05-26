@@ -4,15 +4,32 @@ using Nibbles.ViewModels;
 
 namespace Nibbles;
 
+[QueryProperty(nameof(RecipeId), "recipeId")]
 public partial class RecipeDetailsPage : ContentPage
 {
-    public RecipeDetailsPage(RecipeListItem recipe)
+    string recipeId = string.Empty;
+    public string RecipeId
+    {
+        get => recipeId;
+        set
+        {
+            recipeId = value;
+        }
+    }
+
+    public RecipeDetailsPage()
     {
         InitializeComponent();
+    }
 
-        var vm = new RecipeDetailsViewModel(recipe.Id ?? string.Empty);
-        this.BindingContext = vm;
-
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (!string.IsNullOrEmpty(RecipeId))
+        {
+            var vm = new RecipeDetailsViewModel(RecipeId);
+            this.BindingContext = vm;
+        }
     }
 
     private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
@@ -20,7 +37,8 @@ public partial class RecipeDetailsPage : ContentPage
         var vm = BindingContext as RecipeDetailsViewModel;
         if (vm?.Recipe != null)
         {
-            await Navigation.PushAsync(new AddEditPage(vm.Recipe));
+            var id = Uri.EscapeDataString(vm.Recipe.Id ?? string.Empty);
+            await Shell.Current.GoToAsync($"{nameof(AddEditPage)}?recipeId={id}");
             _ = vm.RefreshRecipeAsync();
         }
     }
