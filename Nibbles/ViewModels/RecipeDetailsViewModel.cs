@@ -8,7 +8,7 @@ namespace Nibbles.ViewModels
     public partial class RecipeDetailsViewModel : ObservableObject
     {
         [ObservableProperty]
-        Recipe recipe;
+        Recipe? recipe;
 
         [ObservableProperty]
         bool hasSourceLink = false;
@@ -30,7 +30,7 @@ namespace Nibbles.ViewModels
             //_popupService = popupService;
             receipeAPIService = new ReceipeAPIService();
             this.recipeId = recipeId;
-            Task.Run(async () => await RefreshRecipeAsync());
+            _ = RefreshRecipeAsync();
         }
 
 
@@ -38,7 +38,7 @@ namespace Nibbles.ViewModels
         {
             try
             {
-                this.Recipe = receipeAPIService.GetRecipe(this.recipeId).Result;
+                this.Recipe = await receipeAPIService.GetRecipe(this.recipeId);
                 if (this.Recipe is null)
                 {
 

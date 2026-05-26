@@ -12,7 +12,7 @@ namespace Nibbles.ViewModels
     public partial class AddEditViewModel : ObservableObject
     {
         [ObservableProperty]
-        Recipe recipe = new();
+        Recipe? recipe = new();
 
         [ObservableProperty]
         string lazyIngredientString = string.Empty;
@@ -38,12 +38,12 @@ namespace Nibbles.ViewModels
             this.ReceipeAPIService = new ReceipeAPIService();
             this.CurrentError = string.Empty;
 
-            ImagePath = this.Recipe.ImagePath;
+            ImagePath = this.Recipe?.ImagePath ?? string.Empty;
             HasImage = (ImagePath is not null);
             SetImageStream();
 
             var sb = new StringBuilder();
-            foreach (var ing in this.Recipe.Ingredients)
+            foreach (var ing in this.Recipe?.Ingredients ?? [])
             {
                 sb.AppendLine(ing.FQIngrediantDescription);
             }
@@ -71,7 +71,7 @@ namespace Nibbles.ViewModels
         {
             if (e.PropertyName == nameof(LazyIngredientString))
             {
-                Recipe.Ingredients.Clear();
+                Recipe?.Ingredients?.Clear();
 
                 //split lazyIngredientString by line
                 string[] lines = LazyIngredientString.Trim().Split(
@@ -83,7 +83,7 @@ namespace Nibbles.ViewModels
                 {
                     if (!string.IsNullOrEmpty(line))
                     {
-                        this.Recipe.Ingredients.Add(new Ingredient()
+                        this.Recipe?.Ingredients?.Add(new Ingredient()
                         {
                             FQIngrediantDescription = line.Trim()
                         });
@@ -100,7 +100,8 @@ namespace Nibbles.ViewModels
             {
                 try
                 {
-                    FileResult fileResult = await MediaPicker.PickPhotoAsync();
+                    var fileResults = await MediaPicker.Default.PickPhotosAsync();
+                    var fileResult = fileResults?.FirstOrDefault();
                     if (fileResult is not null)
                     {
                         ImagePath = fileResult.FullPath;
@@ -109,7 +110,10 @@ namespace Nibbles.ViewModels
                         hasImageBeenUpdated = true;
                     }
                 }
-                catch { }
+                catch
+                {
+                    await Shell.Current.CurrentPage.DisplayAlertAsync("Error", "Failed to pick photo", "OK");
+                }
             }
         }
 
@@ -125,12 +129,12 @@ namespace Nibbles.ViewModels
         bool hasImageBeenUpdated = false;
 
         [ObservableProperty]
-        ImageSource imageStream;
+        ImageSource? imageStream;
 
         [RelayCommand]
         private void AddNewIngredient()
         {
-            this.Recipe.Ingredients.Add(new Ingredient());
+            this.Recipe?.Ingredients?.Add(new Ingredient());
         }
 
         [RelayCommand]
@@ -144,7 +148,7 @@ namespace Nibbles.ViewModels
                     if (hasImageBeenUpdated)
                     {
                         var imageData = await File.ReadAllBytesAsync(ImagePath);
-                        this.Recipe.ImageData = Convert.ToBase64String(imageData);
+                        this.Recipe!.ImageData = Convert.ToBase64String(imageData);
                         //this is a hack so I don't have to update the webAPI
                         this.Recipe.ImageData = "??;base64," + this.Recipe.ImageData;
                     }
@@ -166,12 +170,12 @@ namespace Nibbles.ViewModels
                     }
                     else
                     {
-                        await Application.Current.MainPage.DisplayAlert("Save failed!", "🤷 The save failed for some reason 🤷", "OK");
+                        await Shell.Current.CurrentPage.DisplayAlertAsync("Save failed!", "🤷 The save failed for some reason 🤷", "OK");
                     }
                 }
                 catch (Exception ex)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Save failed!", $"🤷 The save failed for some reason 🤷/n {ex.Message}", "OK");
+                    await Shell.Current.CurrentPage.DisplayAlertAsync("Save failed!", $"🤷 The save failed for some reason 🤷\n {ex.Message}", "OK");
                 }
                 finally
                 {
@@ -182,7 +186,7 @@ namespace Nibbles.ViewModels
             else
             {
                 //this is probably not best practice.
-                await Application.Current.MainPage.DisplayAlert("Validation errors!", CurrentError, "OK");
+                await Shell.Current.CurrentPage.DisplayAlertAsync("Validation errors!", CurrentError, "OK");
             }
         }
 
@@ -206,20 +210,20 @@ namespace Nibbles.ViewModels
             if (string.IsNullOrEmpty(Recipe?.Title))
                 sb.AppendLine("Recipe has no title");
             //sanitise title
-            Recipe.Title = Regex.Replace(Recipe?.Title, @"\t|\n|\r", "");
+            Recipe!.Title = Regex.Replace(Recipe?.Title ?? "", @"\t|\n|\r", "");
 
-            if (Recipe.Ingredients is null || Recipe.Ingredients.Count < 1)
+            if (Recipe?.Ingredients is null || Recipe.Ingredients.Count < 1)
                 sb.AppendLine("Recipe has no ingredients");
-            if (Recipe.Steps is null || Recipe.Steps.Count < 1)
+            if (Recipe?.Steps is null || Recipe.Steps.Count < 1)
                 sb.AppendLine("Recipe has no steps");
 
             //ensure all steps and ingredients are valid
-            foreach (var ing in Recipe.Ingredients)
+            foreach (var ing in Recipe?.Ingredients ?? [])
             {
                 if (string.IsNullOrEmpty(ing.FQIngrediantDescription))
                     sb.AppendLine("An ingredient has no description");
             }
-            foreach (var step in Recipe.Steps)
+            foreach (var step in Recipe?.Steps ?? [])
             {
                 if (string.IsNullOrEmpty(step.Instructions))
                     sb.AppendLine("A step has no instructions");

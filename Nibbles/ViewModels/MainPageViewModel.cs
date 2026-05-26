@@ -10,7 +10,7 @@ namespace Nibbles.ViewModels
 {
     public partial class MainPageViewModel : ObservableObject
     {
-        private List<RecipeListItem> _recipeList;
+        private List<RecipeListItem>? _recipeList;
         public ObservableCollection<RecipeListItem> RecipeListItems { get; } = [];
 
         ReceipeAPIService ReceipeAPIService;
@@ -40,17 +40,16 @@ namespace Nibbles.ViewModels
                 OnPropertyChanged(nameof(SearchQuery));
             }
         }
-        private string searchQuery;
+        private string searchQuery = string.Empty;
 
-        System.Timers.Timer _timer;
+        System.Timers.Timer? _timer;
 
 
 
         public MainPageViewModel()
         {
             this.ReceipeAPIService = new ReceipeAPIService();
-            LoadRecipeList();
-
+            _ = LoadRecipeList();
         }
 
         [RelayCommand]
@@ -78,7 +77,7 @@ namespace Nibbles.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await Shell.Current.CurrentPage.DisplayAlert("Loading issue", $"Something went wrong loading recipe list ex messsage: {ex.Message}", "OK");
+                    await Shell.Current.CurrentPage.DisplayAlertAsync("Loading issue", $"Something went wrong loading recipe list ex messsage: {ex.Message}", "OK");
                 }
                 finally
                 {
@@ -111,7 +110,7 @@ namespace Nibbles.ViewModels
         }
 
 
-        private void UpdateLoadingRotation(object sender, ElapsedEventArgs e)
+        private void UpdateLoadingRotation(object? sender, ElapsedEventArgs e)
         {
             LoadingRoatation += 5;
         }
@@ -128,11 +127,11 @@ namespace Nibbles.ViewModels
                     IEnumerable<RecipeListItem> filteredRecipeListItems = [];
                     if (string.IsNullOrEmpty(SearchQuery))
                     {
-                        filteredRecipeListItems = _recipeList;
+                        filteredRecipeListItems = _recipeList ?? [];
                     }
                     else
                     {
-                        filteredRecipeListItems = _recipeList.Where(w => w.Title.Contains(SearchQuery, StringComparison.CurrentCultureIgnoreCase));
+                        filteredRecipeListItems = _recipeList?.Where(w => w.Title.Contains(SearchQuery, StringComparison.CurrentCultureIgnoreCase)) ?? [];
                     }
                     foreach (var itm in filteredRecipeListItems)
                     {
@@ -141,7 +140,7 @@ namespace Nibbles.ViewModels
                 }
                 catch (Exception ex)
                 {
-
+                    System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
                 }
             }
         }
