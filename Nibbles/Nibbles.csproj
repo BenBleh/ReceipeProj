@@ -68,6 +68,9 @@
 
 
   <ItemGroup>
+	  <MauiXaml Update="Components\PawCheckbox.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Pages\AddEditPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace Nibbles.Models
 {
-    public class Ingredient : ObservableObject
+    public partial class Ingredient : ObservableObject
     {
         [Obsolete("Description is deprecated, please use FQIngrediantDescription instead.")]
         public string? Description { get; set; }
@@ -23,5 +24,14 @@ namespace Nibbles.Models
         }
 
         public string? FQIngrediantDescription { get; set; }
+
+        [ObservableProperty]
+        public partial bool IsChecked { get; set; } = false;
+
+        [RelayCommand]
+        public void ToggleChecked()
+        {
+            IsChecked = !IsChecked;
+        }
     }
 }

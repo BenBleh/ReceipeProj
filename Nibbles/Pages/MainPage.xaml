@@ -105,13 +105,6 @@
                                 StrokeThickness="1"
                                 Padding="0"
                                 Margin="0">
-                                <Border.Shadow>
-                                    <Shadow
-                                        Brush="{StaticResource Gray400Brush}"
-                                        Opacity="0.12"
-                                        Radius="12"
-                                        Offset="0,4" />
-                                </Border.Shadow>
                                 <VerticalStackLayout Spacing="8">
                                     <Image
                                         Aspect="AspectFill"

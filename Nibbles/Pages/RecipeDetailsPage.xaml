@@ -75,29 +75,21 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="apiModels:Ingredient">
                         <Grid ColumnDefinitions="auto, *">
-                            <CheckBox Grid.Column="0">
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroupList>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualState x:Name="Normal">
-                                                <VisualState.Setters>
-                                                    <Setter Property="Color" Value="Pink" />
-                                                </VisualState.Setters>
-                                            </VisualState>
-                                            <VisualState x:Name="IsChecked">
-                                                <VisualState.Setters>
-                                                    <Setter Property="Color" Value="Pink" />
-                                                </VisualState.Setters>
-                                            </VisualState>
-                                        </VisualStateGroup>
-                                    </VisualStateGroupList>
-                                </VisualStateManager.VisualStateGroups>
-                            </CheckBox>
+                            <local:PawCheckbox
+                                Grid.Column="0"
+                                IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                Color="Pink"
+                                VerticalOptions="Center"
+                                Margin="0,0,8,0" /> 
                             <Label
                                 Grid.Column="1"
                                 LineBreakMode="WordWrap"
                                 Text="{Binding FQIngrediantDescription}"
-                                VerticalOptions="Center" />
+                                VerticalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleCheckedCommand}" />
+                                </Label.GestureRecognizers>
+                            </Label> 
                         </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
