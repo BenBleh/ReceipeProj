@@ -13,6 +13,8 @@ namespace Nibbles.ViewModels
         [ObservableProperty]
         public partial bool HasSourceLink { get; set; } = false;
 
+        [ObservableProperty]
+        public partial bool CanAdd { get; set; }
 
         ReceipeAPIService receipeAPIService;
 
@@ -21,6 +23,17 @@ namespace Nibbles.ViewModels
         {
             if (Recipe?.Source is not null)
                 await Launcher.OpenAsync(Recipe.Source);
+        }
+
+        [RelayCommand]
+        private async Task EditRecipe()
+        {
+            if (Recipe?.Id is not null)
+            {
+                var id = Uri.EscapeDataString(Recipe.Id);
+                await Shell.Current.GoToAsync($"{nameof(AddEditPage)}?recipeId={id}");
+                _ = RefreshRecipeAsync();
+            }
         }
 
         string recipeId;

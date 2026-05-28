@@ -40,15 +40,4 @@ public partial class RecipeDetailsPage : ContentPage
         base.OnDisappearing();
         DeviceDisplay.KeepScreenOn = false;
     }
-
-    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
-    {
-        var vm = BindingContext as RecipeDetailsViewModel;
-        if (vm?.Recipe != null)
-        {
-            var id = Uri.EscapeDataString(vm.Recipe.Id ?? string.Empty);
-            await Shell.Current.GoToAsync($"{nameof(AddEditPage)}?recipeId={id}");
-            _ = vm.RefreshRecipeAsync();
-        }
-    }
 }
