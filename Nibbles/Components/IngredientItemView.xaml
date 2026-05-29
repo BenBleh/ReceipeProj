@@ -11,8 +11,7 @@
             Grid.Column="0"
             Margin="0,0,8,0"
             IsChecked="{Binding IsChecked, Mode=TwoWay}"
-            VerticalOptions="Center"
-            Color="Pink" />
+            VerticalOptions="Center" />
         <Label
             Grid.Column="1"
             LineBreakMode="WordWrap"
@@ -21,6 +20,6 @@
             <Label.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding ToggleCheckedCommand}" />
             </Label.GestureRecognizers>
-        </Label> 
+        </Label>
     </Grid>
 </ContentView>

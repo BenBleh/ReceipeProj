@@ -29,41 +29,45 @@
     </ContentPage.Resources>
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}">
         <Grid Padding="5" RowDefinitions="Auto,*">
-            <Grid Padding="10" ColumnDefinitions="*, Auto" RowDefinitions="Auto">
+            <Grid
+                Padding="10"
+                ColumnDefinitions="*, Auto"
+                RowDefinitions="Auto">
                 <Border
-                    Style="{StaticResource MainPageSearchBorderStyle}"
-                    StrokeShape="RoundRectangle 15"
                     Padding="10"
-                    StrokeThickness="0">
+                    StrokeShape="RoundRectangle 15"
+                    StrokeThickness="0"
+                    Style="{StaticResource MainPageSearchBorderStyle}">
                     <Entry
                         x:Name="searchBar"
-                        Style="{StaticResource MainPageSearchEntryStyle}"
+                        Margin="0"
+                        BackgroundColor="Transparent"
                         HeightRequest="48"
                         IsVisible="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
                         Placeholder="Search recipes..."
+                        Style="{StaticResource MainPageSearchEntryStyle}"
                         Text="{Binding SearchQuery}"
-                        BackgroundColor="Transparent"
-                        Margin="0"
                         VerticalOptions="Center" />
                 </Border>
 
                 <Border
                     Grid.Column="1"
+                    BackgroundColor="Transparent"
+                    HeightRequest="48"
+                    HorizontalOptions="End"
+                    IsVisible="{Binding CanAdd}"
                     Stroke="Transparent"
                     StrokeShape="RoundRectangle 15"
                     StrokeThickness="0"
-                    BackgroundColor="Transparent"
-                    HeightRequest="48"
-                    WidthRequest="48"
-                    HorizontalOptions="End"
                     VerticalOptions="Center"
-                    IsVisible="{Binding CanAdd}">
+                    WidthRequest="48">
                     <Label
                         FontFamily="IconFonts"
-                        Text="{x:Static local:IconFont.FilePlusCorner}"
-                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
                         FontSize="24"
                         HorizontalOptions="Center"
+                        Text="{x:Static local:IconFont.FilePlusCorner}"
+                        TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                    Dark={StaticResource White}}"
                         VerticalOptions="Center">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Tapped="AddButton_Clicked" />
@@ -75,52 +79,54 @@
             <CollectionView
                 x:Name="recipeListCollectionView"
                 Grid.Row="1"
+                Margin="0,12,0,0"
+                BackgroundColor="Transparent"
                 ItemsSource="{Binding RecipeListItems}"
                 SelectionChanged="OnCollectionViewSelectionChanged"
-                SelectionMode="Single"
-                Margin="0,12,0,0"
-                BackgroundColor="Transparent">
+                SelectionMode="Single">
                 <CollectionView.EmptyView>
-                    <StackLayout Padding="20" HorizontalOptions="Center" VerticalOptions="Center">
+                    <StackLayout
+                        Padding="20"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
                         <Label
-                            Text="No recipes found"
+                            FontSize="16"
                             HorizontalTextAlignment="Center"
-                            TextColor="{StaticResource Gray500}"
-                            FontSize="16" />
+                            Text="No recipes found"
+                            TextColor="{StaticResource Gray500}" />
                     </StackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemsLayout>
                     <GridItemsLayout
+                        HorizontalItemSpacing="12"
                         Orientation="Vertical"
                         Span="2"
-                        HorizontalItemSpacing="12"
                         VerticalItemSpacing="12" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="apiModels:RecipeListItem">
                         <Grid BackgroundColor="Transparent">
                             <Border
-                                Style="{StaticResource RecipeCardBorderStyle}"
+                                Margin="0"
+                                Padding="0"
                                 StrokeShape="RoundRectangle 20"
                                 StrokeThickness="1"
-                                Padding="0"
-                                Margin="0">
+                                Style="{StaticResource RecipeCardBorderStyle}">
                                 <VerticalStackLayout Spacing="8">
                                     <Image
                                         Aspect="AspectFill"
                                         HeightRequest="225"
-                                        Source="{Binding ImageData}"
                                         HorizontalOptions="Fill"
+                                        Source="{Binding ImageData}"
                                         VerticalOptions="Fill" />
                                     <Label
-                                        Style="{StaticResource RecipeCardTitleStyle}"
-                                        FontAttributes="Bold"
-                                        FontFamily="Montserrat"
-                                        FontSize="16"
                                         Margin="12,0,12,12"
+                                        FontAttributes="Bold"
+                                        FontSize="16"
                                         HorizontalTextAlignment="Center"
                                         LineBreakMode="WordWrap"
                                         MaxLines="3"
+                                        Style="{StaticResource RecipeCardTitleStyle}"
                                         Text="{Binding Title}" />
                                 </VerticalStackLayout>
                             </Border>
