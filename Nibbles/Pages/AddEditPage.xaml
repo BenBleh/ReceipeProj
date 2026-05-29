@@ -29,6 +29,8 @@
                 HorizontalOptions="End"
                 IsVisible="{Binding IsSaving, Converter={StaticResource InvertedBoolConverter}}"
                 Text="{x:Static local:IconFont.Save}"
+                TextColor="{AppThemeBinding Light={StaticResource Black},
+                                            Dark={StaticResource White}}"
                 VerticalOptions="Center"
                 WidthRequest="48" />
         </StackLayout>
@@ -142,6 +144,8 @@
                                                 FontFamily="IconFonts"
                                                 HorizontalOptions="End"
                                                 Text="{x:Static local:IconFont.Trash}"
+                                                TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                                            Dark={StaticResource White}}"
                                                 VerticalOptions="Center" />
                                         </Grid>
                                         <Border StrokeShape="RoundRectangle 5,5,5,5">
@@ -170,6 +174,8 @@
                             HeightRequest="48"
                             HorizontalOptions="Center"
                             Text="{x:Static local:IconFont.Plus}"
+                            TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                        Dark={StaticResource White}}"
                             WidthRequest="48" />
                     </VerticalStackLayout>
                 </Border>

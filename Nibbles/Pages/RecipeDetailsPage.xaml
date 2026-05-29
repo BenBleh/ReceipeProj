@@ -32,6 +32,8 @@
                     HorizontalOptions="End"
                     IsVisible="{Binding HasSourceLink}"
                     Text="{x:Static local:IconFont.Link}"
+                    TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                Dark={StaticResource White}}"
                     VerticalOptions="Center"
                     WidthRequest="40" />
                 <Button
@@ -45,6 +47,8 @@
                     HorizontalOptions="End"
                     IsVisible="{Binding CanAdd}"
                     Text="{x:Static local:IconFont.Pencil}"
+                    TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                Dark={StaticResource White}}"
                     VerticalOptions="Center"
                     WidthRequest="40" />
             </HorizontalStackLayout>
