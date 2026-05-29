@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:apiModels="clr-namespace:Nibbles.Models"
+    xmlns:components="clr-namespace:Nibbles.Components"
     xmlns:local="clr-namespace:Nibbles"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
@@ -17,24 +18,19 @@
     </ContentPage.Resources>
     <Shell.TitleView>
         <StackLayout>
-            <Label
-                Padding="15"
+            <Button
+                Padding="8"
+                BackgroundColor="Transparent"
+                BorderWidth="0"
+                Command="{Binding SaveCommand}"
+                FontFamily="IconFonts"
                 FontSize="25"
+                HeightRequest="48"
                 HorizontalOptions="End"
-                HorizontalTextAlignment="Center"
                 IsVisible="{Binding IsSaving, Converter={StaticResource InvertedBoolConverter}}"
+                Text="{x:Static local:IconFont.Save}"
                 VerticalOptions="Center"
-                VerticalTextAlignment="Start">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span FontFamily="IconFonts" Text="{x:Static local:IconFont.Save}">
-                            <Span.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding SaveCommand}" />
-                            </Span.GestureRecognizers>
-                        </Span>
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+                WidthRequest="48" />
         </StackLayout>
     </Shell.TitleView>
     <ScrollView>
@@ -61,7 +57,18 @@
                             HeightRequest="250"
                             IsVisible="{Binding HasImage}"
                             Source="{Binding ImagePath}" />
-                        <Button Command="{Binding GetImageCommand}" Text="GET IMAGE" />
+                        <Button
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White},
+                                                              Dark={StaticResource Black}}"
+                            BorderColor="{AppThemeBinding Light={StaticResource Black},
+                                                          Dark={StaticResource White}}"
+                            BorderWidth="2"
+                            Command="{Binding GetImageCommand}"
+                            CornerRadius="8"
+                            HorizontalOptions="Center"
+                            Text="Add Image"
+                            TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                        Dark={StaticResource White}}" />
 
                     </VerticalStackLayout>
                 </Border>
@@ -84,23 +91,19 @@
                         </Border>
 
                         <Label Padding="0,20,0,0" Text="Actual ingredients:" />
-                        <CollectionView Grid.Row="3" ItemsSource="{Binding Recipe.Ingredients}">
+                        <CollectionView
+                            Grid.Row="3"
+                            HorizontalOptions="Center"
+                            ItemsSource="{Binding Recipe.Ingredients}">
                             <CollectionView.ItemsLayout>
-                                <GridItemsLayout Orientation="Vertical" Span="2" />
+                                <GridItemsLayout
+                                    HorizontalItemSpacing="12"
+                                    Orientation="Vertical"
+                                    Span="2" />
                             </CollectionView.ItemsLayout>
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="apiModels:Ingredient">
-                                    <Grid ColumnDefinitions="auto, *">
-                                        <Border
-                                            Grid.Column="1"
-                                            StrokeShape="RoundRectangle 5,5,5,5"
-                                            StrokeThickness="3">
-                                            <Entry
-                                                IsReadOnly="True"
-                                                Text="{Binding FQIngrediantDescription}"
-                                                VerticalOptions="Center" />
-                                        </Border>
-                                    </Grid>
+                                    <components:IngredientItemView />
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
@@ -112,26 +115,10 @@
                     StrokeShape="RoundRectangle 5,5,5,5"
                     StrokeThickness="3">
                     <VerticalStackLayout Spacing="10">
-                        <Grid ColumnDefinitions="Auto,*">
-                            <Label
-                                Grid.Column="0"
-                                FontSize="Subtitle"
-                                Text="Steps" />
-                            <Label
-                                Grid.Column="1"
-                                FontSize="25"
-                                HorizontalOptions="End">
-                                <Label.FormattedText>
-                                    <FormattedString>
-                                        <Span Text="+" TextColor="Blue">
-                                            <Span.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding AddNewStepCommand}" />
-                                            </Span.GestureRecognizers>
-                                        </Span>
-                                    </FormattedString>
-                                </Label.FormattedText>
-                            </Label>
-                        </Grid>
+                        <Label
+                            Margin="0,10,0,0"
+                            FontSize="Subtitle"
+                            Text="Steps" />
                         <CollectionView
                             Grid.Row="4"
                             HorizontalOptions="Center"
@@ -139,8 +126,24 @@
                             <CollectionView.ItemTemplate Margin="25">
                                 <DataTemplate x:DataType="apiModels:Step">
 
-                                    <VerticalStackLayout Padding="5" Spacing="10">
-                                        <Label FontSize="Subtitle" Text="{Binding StepNumberDisplay}" />
+                                    <VerticalStackLayout Padding="5" Spacing="2">
+                                        <Grid ColumnDefinitions="Auto,*">
+                                            <Label
+                                                Grid.Column="0"
+                                                FontSize="Subtitle"
+                                                Text="{Binding StepNumberDisplay}"
+                                                VerticalOptions="Center" />
+                                            <Button
+                                                Grid.Column="1"
+                                                BackgroundColor="Transparent"
+                                                BorderWidth="0"
+                                                Command="{Binding Source={x:Reference ThaPage}, Path=BindingContext.RemoveStepCommand}"
+                                                CommandParameter="{Binding Num}"
+                                                FontFamily="IconFonts"
+                                                HorizontalOptions="End"
+                                                Text="{x:Static local:IconFont.Trash}"
+                                                VerticalOptions="Center" />
+                                        </Grid>
                                         <Border StrokeShape="RoundRectangle 5,5,5,5">
                                             <VerticalStackLayout>
                                                 <Editor
@@ -149,15 +152,25 @@
                                                     VerticalOptions="Center" />
                                             </VerticalStackLayout>
                                         </Border>
-                                        <Button
-                                            Command="{Binding Source={x:Reference ThaPage}, Path=BindingContext.RemoveStepCommand}"
-                                            CommandParameter="{Binding Num}"
-                                            Text="remove step" />
                                     </VerticalStackLayout>
 
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
+                        <Button
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White},
+                                                              Dark={StaticResource Black}}"
+                            BorderColor="{AppThemeBinding Light={StaticResource Black},
+                                                          Dark={StaticResource White}}"
+                            BorderWidth="2"
+                            Command="{Binding AddNewStepCommand}"
+                            CornerRadius="24"
+                            FontFamily="IconFonts"
+                            FontSize="25"
+                            HeightRequest="48"
+                            HorizontalOptions="Center"
+                            Text="{x:Static local:IconFont.Plus}"
+                            WidthRequest="48" />
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>

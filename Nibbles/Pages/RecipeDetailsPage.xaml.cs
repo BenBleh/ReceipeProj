@@ -6,6 +6,7 @@ using Nibbles.ViewModels;
 namespace Nibbles;
 
 [QueryProperty(nameof(RecipeId), "recipeId")]
+[QueryProperty(nameof(CanAdd), "canAdd")]
 public partial class RecipeDetailsPage : ContentPage
 {
     string recipeId = string.Empty;
@@ -15,6 +16,16 @@ public partial class RecipeDetailsPage : ContentPage
         set
         {
             recipeId = value;
+        }
+    }
+
+    bool canAdd = false;
+    public bool CanAdd
+    {
+        get => canAdd;
+        set
+        {
+            canAdd = value;
         }
     }
 
@@ -31,6 +42,7 @@ public partial class RecipeDetailsPage : ContentPage
         if (!string.IsNullOrEmpty(RecipeId))
         {
             var vm = new RecipeDetailsViewModel(RecipeId);
+            vm.CanAdd = CanAdd;
             this.BindingContext = vm;
         }
     }

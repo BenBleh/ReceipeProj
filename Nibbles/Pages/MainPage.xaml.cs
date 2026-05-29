@@ -23,7 +23,8 @@ namespace Nibbles
             if (current != null)
             {
                 var id = Uri.EscapeDataString(current.Id ?? string.Empty);
-                await Shell.Current.GoToAsync($"{nameof(RecipeDetailsPage)}?recipeId={id}");
+                var canAdd = viewModel?.CanAdd ?? false;
+                await Shell.Current.GoToAsync($"{nameof(RecipeDetailsPage)}?recipeId={id}&canAdd={canAdd}");
                 recipeListCollectionView.SelectedItem = null;
             }
             if (viewModel != null)

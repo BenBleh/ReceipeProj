@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:apiModels="clr-namespace:Nibbles.Models"
+    xmlns:components="clr-namespace:Nibbles.Components"
     xmlns:local="clr-namespace:Nibbles"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
@@ -74,23 +75,7 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="apiModels:Ingredient">
-                        <Grid ColumnDefinitions="auto, *">
-                            <local:PawCheckbox
-                                Grid.Column="0"
-                                Margin="0,0,8,0"
-                                IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                VerticalOptions="Center"
-                                Color="Pink" />
-                            <Label
-                                Grid.Column="1"
-                                LineBreakMode="WordWrap"
-                                Text="{Binding FQIngrediantDescription}"
-                                VerticalOptions="Center">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding ToggleCheckedCommand}" />
-                                </Label.GestureRecognizers>
-                            </Label>
-                        </Grid>
+                        <components:IngredientItemView />
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
