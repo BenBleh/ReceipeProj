@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+using Microsoft.Maui.ApplicationModel;
 using Nibbles.Models;
 using Nibbles.Services;
 
@@ -23,6 +26,33 @@ namespace Nibbles.ViewModels
         {
             if (Recipe?.Source is not null)
                 await Launcher.OpenAsync(Recipe.Source);
+        }
+
+        [RelayCommand]
+        private async Task CopyIngredients()
+        {
+            try
+            {
+                if (this.Recipe?.Ingredients is null)
+                {
+                    return;
+                }
+
+                var checkedIngredients = this.Recipe.Ingredients.Where(i => i.IsChecked).Select(i => i.FQIngrediantDescription).Where(s => !string.IsNullOrEmpty(s)).ToList();
+
+                if (checkedIngredients.Count == 0)
+                {
+                    return;
+                }
+
+                var text = string.Join(Environment.NewLine, checkedIngredients);
+
+                await Clipboard.SetTextAsync(text);
+
+                var toast = Toast.Make("Checked ingredients copied to clipboard.", ToastDuration.Short);
+                await toast.Show();
+            }
+            catch { }
         }
 
         [RelayCommand]

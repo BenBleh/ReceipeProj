@@ -40,6 +40,20 @@
                     Padding="8"
                     BackgroundColor="Transparent"
                     BorderWidth="0"
+                    Command="{Binding CopyIngredientsCommand}"
+                    FontFamily="IconFonts"
+                    FontSize="25"
+                    HeightRequest="40"
+                    HorizontalOptions="End"
+                    Text="{x:Static local:IconFont.Copy}"
+                    TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                Dark={StaticResource White}}"
+                    VerticalOptions="Center"
+                    WidthRequest="40" />
+                <Button
+                    Padding="8"
+                    BackgroundColor="Transparent"
+                    BorderWidth="0"
                     Command="{Binding EditRecipeCommand}"
                     FontFamily="IconFonts"
                     FontSize="25"
