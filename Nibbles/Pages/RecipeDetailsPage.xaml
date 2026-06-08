@@ -78,6 +78,7 @@
                 <Label IsVisible="{Binding HasSourceLink, Converter={toolkit:InvertedBoolConverter}}" Text="{Binding Recipe.Source}" />
             </VerticalStackLayout>
             <Image
+                Margin="0,0,0,5"
                 Grid.Row="2"
                 HeightRequest="400"
                 Source="{Binding Recipe.ImagePath}" />
@@ -104,12 +105,15 @@
                 ItemsSource="{Binding Recipe.Steps}">
                 <CollectionView.ItemTemplate Margin="25">
                     <DataTemplate x:DataType="apiModels:Step">
-                        <Frame Margin="5" Background="Transparent">
+                        <Border Margin="5" Background="Transparent">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
                             <VerticalStackLayout Padding="5">
                                 <Label FontSize="Large" Text="{Binding StepNumberDisplay}" />
                                 <Label Text="{Binding Instructions}" VerticalOptions="Center" />
                             </VerticalStackLayout>
-                        </Frame>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
