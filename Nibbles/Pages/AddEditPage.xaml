@@ -93,22 +93,13 @@
                         </Border>
 
                         <Label Padding="0,20,0,0" Text="Actual ingredients:" />
-                        <CollectionView
-                            Grid.Row="3"
-                            HorizontalOptions="Center"
-                            ItemsSource="{Binding Recipe.Ingredients}">
-                            <CollectionView.ItemsLayout>
-                                <GridItemsLayout
-                                    HorizontalItemSpacing="12"
-                                    Orientation="Vertical"
-                                    Span="2" />
-                            </CollectionView.ItemsLayout>
-                            <CollectionView.ItemTemplate>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Recipe.Ingredients}">
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="apiModels:Ingredient">
                                     <components:IngredientItemView />
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 
@@ -121,11 +112,8 @@
                             Margin="0,10,0,0"
                             FontSize="Subtitle"
                             Text="Steps" />
-                        <CollectionView
-                            Grid.Row="4"
-                            HorizontalOptions="Center"
-                            ItemsSource="{Binding Recipe.Steps}">
-                            <CollectionView.ItemTemplate Margin="25">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Recipe.Steps}">
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="apiModels:Step">
 
                                     <VerticalStackLayout Padding="5" Spacing="2">
@@ -159,8 +147,8 @@
                                     </VerticalStackLayout>
 
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                         <Button
                             BackgroundColor="{AppThemeBinding Light={StaticResource White},
                                                               Dark={StaticResource Black}}"
