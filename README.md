@@ -19,3 +19,27 @@ Steps to set up
 	I enabled directory browsing, may not be nessicary
 8. if end point url has changed, you may need to update the app
 
+## Nibbles Android development
+
+Open the `Nibbles` folder in VS Code with Microsoft's .NET MAUI extension enabled.
+Select an Android emulator or device using `.NET MAUI: Select Android Device`, then
+select the `.NET MAUI Android` launch configuration and press F5.
+If prompted for a startup project, select `Nibbles`. The launch profile uses the
+loaded startup project rather than a `${workspaceFolder}` project path, which the
+MAUI extension tries to resolve before VS Code expands the variable.
+The project uses Mono for Android; Meteor 10 requires .NET 11+ / CoreCLR and is not
+compatible with this .NET 10 Mono debugging setup.
+
+To build from PowerShell:
+
+```powershell
+Set-Location C:\Dev\ReceipeProj\Nibbles
+dotnet build Nibbles.csproj -f net10.0-android -c Debug
+```
+
+If Android resource extraction fails with `XARLP7000`, stop active builds/debugging
+and regenerate the intermediate resources:
+
+```powershell
+dotnet build Nibbles.csproj -f net10.0-android -c Debug -t:Rebuild
+```

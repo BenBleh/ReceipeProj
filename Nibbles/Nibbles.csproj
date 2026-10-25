@@ -38,6 +38,10 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<UseMonoRuntime>true</UseMonoRuntime>
+	</PropertyGroup>
+
 	<ItemGroup>
     
     <!-- App Icon -->
