@@ -1,177 +1,187 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="Nibbles.AddEditPage"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:apiModels="clr-namespace:Nibbles.Models"
-    xmlns:components="clr-namespace:Nibbles.Components"
-    xmlns:local="clr-namespace:Nibbles"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
-    x:Name="ThaPage"
-    Title="AddEditPage"
-    x:DataType="viewmodels:AddEditViewModel">
+<ContentPage x:Class="Nibbles.AddEditPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Nibbles.Models"
+             xmlns:vm="clr-namespace:Nibbles.ViewModels"
+             x:DataType="vm:AddEditViewModel" Shell.NavBarIsVisible="False"
+             Title="{Binding EditorTitle}" SizeChanged="Page_SizeChanged">
     <ContentPage.Resources>
-        <ResourceDictionary>
-            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-        </ResourceDictionary>
+        <Style x:Key="DetailsTab" TargetType="Button" BasedOn="{StaticResource QuietButton}">
+            <Setter Property="Command" Value="{Binding SelectSectionCommand}" />
+            <Setter Property="CommandParameter" Value="0" />
+            <Style.Triggers><DataTrigger TargetType="Button" Binding="{Binding IsDetails}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" /></DataTrigger></Style.Triggers>
+        </Style>
+        <Style x:Key="IngredientsTab" TargetType="Button" BasedOn="{StaticResource QuietButton}">
+            <Setter Property="Command" Value="{Binding SelectSectionCommand}" />
+            <Setter Property="CommandParameter" Value="1" />
+            <Style.Triggers><DataTrigger TargetType="Button" Binding="{Binding IsIngredients}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" /></DataTrigger></Style.Triggers>
+        </Style>
+        <Style x:Key="MethodTab" TargetType="Button" BasedOn="{StaticResource QuietButton}">
+            <Setter Property="Command" Value="{Binding SelectSectionCommand}" />
+            <Setter Property="CommandParameter" Value="2" />
+            <Style.Triggers><DataTrigger TargetType="Button" Binding="{Binding IsMethod}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" /></DataTrigger></Style.Triggers>
+        </Style>
     </ContentPage.Resources>
-    <Shell.TitleView>
-        <StackLayout>
-            <Button
-                Padding="8"
-                BackgroundColor="Transparent"
-                BorderWidth="0"
-                Command="{Binding SaveCommand}"
-                FontFamily="IconFonts"
-                FontSize="25"
-                HeightRequest="48"
-                HorizontalOptions="End"
-                IsVisible="{Binding IsSaving, Converter={StaticResource InvertedBoolConverter}}"
-                Text="{x:Static local:IconFont.Save}"
-                TextColor="{AppThemeBinding Light={StaticResource Black},
-                                            Dark={StaticResource White}}"
-                VerticalOptions="Center"
-                WidthRequest="48" />
-        </StackLayout>
-    </Shell.TitleView>
-    <ScrollView>
-        <VerticalStackLayout>
-            <VerticalStackLayout Padding="25" IsVisible="{Binding IsSaving, Converter={StaticResource InvertedBoolConverter}}">
-                <Border
-                    Padding="10"
-                    StrokeShape="RoundRectangle 5,5,5,5"
-                    StrokeThickness="3">
-                    <VerticalStackLayout Spacing="10">
-                        <Label FontSize="Title" Text="Header information" />
-                        <Label FontSize="Subtitle" Text="Title" />
-                        <Border StrokeShape="RoundRectangle 5,5,5,5" StrokeThickness="3">
-                            <Entry Text="{Binding Recipe.Title}" />
-                        </Border>
-
-                        <Label FontSize="Subtitle" Text="Source" />
-                        <Border StrokeShape="RoundRectangle 5,5,5,5" StrokeThickness="3">
-                            <Entry Text="{Binding Recipe.Source}" />
-                        </Border>
-
-                        <Label FontSize="Subtitle" Text="Image" />
-                        <Image
-                            HeightRequest="250"
-                            IsVisible="{Binding HasImage}"
-                            Source="{Binding ImagePath}" />
-                        <Button
-                            BackgroundColor="{AppThemeBinding Light={StaticResource White},
-                                                              Dark={StaticResource Black}}"
-                            BorderColor="{AppThemeBinding Light={StaticResource Black},
-                                                          Dark={StaticResource White}}"
-                            BorderWidth="2"
-                            Command="{Binding GetImageCommand}"
-                            CornerRadius="8"
-                            HorizontalOptions="Center"
-                            Text="Add Image"
-                            TextColor="{AppThemeBinding Light={StaticResource Black},
-                                                        Dark={StaticResource White}}" />
-
+    <Grid x:Name="EditorGrid" ColumnDefinitions="0,*,0" RowDefinitions="Auto,*">
+        <Grid x:Name="NavigationRail" Grid.RowSpan="2" IsVisible="False" Padding="16,28" BackgroundColor="#213E39" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="28">
+            <HorizontalStackLayout Spacing="8">
+                <Image Source="nibbles_chef.png" WidthRequest="40" HeightRequest="48" />
+                <Label Text="Nibbles" FontSize="23" FontFamily="OpenSansSemibold" TextColor="#F0F3EB" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <VerticalStackLayout Grid.Row="1" Spacing="14">
+                <Button Text="← Recipe box" Clicked="Cancel_Clicked" BackgroundColor="#36584B" />
+                <Label Text="EDITING" FontSize="11" TextColor="#B1C0B7" Margin="8,10,0,0" />
+                <Label Text="{Binding Recipe.Title}" TextColor="#F0F3EB" Margin="8,0" MaxLines="3" />
+            </VerticalStackLayout>
+            <VerticalStackLayout Grid.Row="2" Spacing="10" IsEnabled="{Binding IsEditingEnabled}">
+                <Button Text="Details" Command="{Binding SelectSectionCommand}" CommandParameter="0" BackgroundColor="#36584B" />
+                <Button Text="Ingredients" Command="{Binding SelectSectionCommand}" CommandParameter="1" BackgroundColor="#36584B" />
+                <Button Text="Method" Command="{Binding SelectSectionCommand}" CommandParameter="2" BackgroundColor="#36584B" />
+            </VerticalStackLayout>
+            <Label Grid.Row="3" Text="Your recipes, ready to cook." TextColor="#B1C0B7" FontSize="12" />
+        </Grid>
+        <Grid Grid.Column="1" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Padding="16,8,24,8" ColumnSpacing="8">
+            <Button Text="←" Style="{StaticResource QuietButton}" Clicked="Cancel_Clicked" SemanticProperties.Description="Cancel and return" IsEnabled="{Binding CanLeave}" />
+            <Label Grid.Column="1" Text="{Binding EditorTitle}" VerticalOptions="Center" FontSize="18" />
+            <HorizontalStackLayout Grid.Column="2" Spacing="8">
+                <ActivityIndicator IsRunning="{Binding IsSaving}" IsVisible="{Binding IsSaving}" />
+                <Button Text="Save" Command="{Binding SaveCommand}" />
+            </HorizontalStackLayout>
+        </Grid>
+        <Grid Grid.Column="1" Grid.Row="1" RowDefinitions="Auto,*" Padding="24,8,24,16" RowSpacing="16">
+            <VerticalStackLayout Spacing="12">
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4" IsEnabled="{Binding IsEditingEnabled}">
+                    <Button Text="Details" Style="{StaticResource DetailsTab}" />
+                    <Button Grid.Column="1" Text="Ingredients" Style="{StaticResource IngredientsTab}" />
+                    <Button Grid.Column="2" Text="Method" Style="{StaticResource MethodTab}" />
+                </Grid>
+                <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}" IsVisible="{Binding HasError}" />
+            </VerticalStackLayout>
+            <ScrollView Grid.Row="1" x:Name="FormScroll">
+                <VerticalStackLayout Spacing="20" IsEnabled="{Binding IsEditingEnabled}" Padding="0,0,0,20">
+                    <VerticalStackLayout IsVisible="{Binding IsDetails}" Spacing="16">
+                        <Label Text="The recipe details" Style="{StaticResource PageHeading}" />
+                        <Label Text="Recipe title *" FontFamily="OpenSansSemibold" />
+                        <Border Style="{StaticResource Field}"><Entry Text="{Binding Recipe.Title}" Placeholder="What are we cooking?" SemanticProperties.Description="Recipe title, required" /></Border>
+                        <Label Text="Original source" FontFamily="OpenSansSemibold" />
+                        <Border Style="{StaticResource Field}"><Entry Text="{Binding Recipe.Source}" Placeholder="Website, Instagram, TikTok, or your own recipe" Keyboard="Url" /></Border>
+                        <Label Text="Keep a link so you can always find the original." Style="{StaticResource MutedLabel}" />
+                        <Label Text="Cover photo" FontFamily="OpenSansSemibold" />
+                        <Border StrokeThickness="0"><Image Source="{Binding Recipe.ImagePath}" HeightRequest="200" Aspect="AspectFill" /></Border>
+                        <Button Text="Choose photo" Style="{StaticResource SecondaryButton}" Command="{Binding GetImageCommand}" HorizontalOptions="Start" />
+                        <Label Text="Time to cook" FontFamily="OpenSansSemibold" />
+                        <Border Style="{StaticResource Field}"><Entry Text="{Binding Recipe.TimeToComplete}" Placeholder="e.g. 30 min" /></Border>
+                        <Label Text="Your notes" FontFamily="OpenSansSemibold" />
+                        <Border Style="{StaticResource Field}"><Editor Text="{Binding Recipe.Notes}" Placeholder="Family favourites, substitutions, or a tip for next time…" MinimumHeightRequest="100" /></Border>
+                        <Button Text="Next: Ingredients →" Command="{Binding SelectSectionCommand}" CommandParameter="1" />
                     </VerticalStackLayout>
-                </Border>
-
-                <Border
-                    Padding="10"
-                    StrokeShape="RoundRectangle 5,5,5,5"
-                    StrokeThickness="3">
-                    <VerticalStackLayout Spacing="10">
-                        <Label FontSize="Title" Text="Ingredients" />
-                        <Label Text="Lazy/Smart add ingredients" />
-                        <Border
-                            Grid.Column="1"
-                            StrokeShape="RoundRectangle 5,5,5,5"
-                            StrokeThickness="3">
-                            <Editor
-                                AutoSize="TextChanges"
-                                Text="{Binding LazyIngredientString}"
-                                VerticalOptions="Center" />
-                        </Border>
-
-                        <Label Padding="0,20,0,0" Text="Actual ingredients:" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Recipe.Ingredients}">
+                    <VerticalStackLayout IsVisible="{Binding IsIngredients}" Spacing="18">
+                        <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Ingredient groups" Style="{StaticResource SectionHeading}" />
+                                <Label Text="{Binding RecipeSummary}" Style="{StaticResource MutedLabel}" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="+ Group" Style="{StaticResource QuietButton}" Command="{Binding AddGroupCommand}" />
+                        </Grid>
+                        <Label Text="Keep one list, or use groups such as Marinade, Sauce, and To serve. Use ⋯ to rename, move, or remove a heading." Style="{StaticResource MutedLabel}" />
+                        <VerticalStackLayout Spacing="16" BindableLayout.ItemsSource="{Binding IngredientSections}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="apiModels:Ingredient">
-                                    <components:IngredientItemView />
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
-                    </VerticalStackLayout>
-                </Border>
-
-                <Border
-                    Padding="10"
-                    StrokeShape="RoundRectangle 5,5,5,5"
-                    StrokeThickness="3">
-                    <VerticalStackLayout Spacing="10">
-                        <Label
-                            Margin="0,10,0,0"
-                            FontSize="Subtitle"
-                            Text="Steps" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Recipe.Steps}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="apiModels:Step">
-
-                                    <VerticalStackLayout Padding="5" Spacing="2">
-                                        <Grid ColumnDefinitions="Auto,*">
-                                            <Label
-                                                Grid.Column="0"
-                                                FontSize="Subtitle"
-                                                Text="{Binding StepNumberDisplay}"
-                                                VerticalOptions="Center" />
-                                            <Button
-                                                Grid.Column="1"
-                                                BackgroundColor="Transparent"
-                                                BorderWidth="0"
-                                                Command="{Binding Source={x:Reference ThaPage}, Path=BindingContext.RemoveStepCommand}"
-                                                CommandParameter="{Binding Num}"
-                                                FontFamily="IconFonts"
-                                                HorizontalOptions="End"
-                                                Text="{x:Static local:IconFont.Trash}"
-                                                TextColor="{AppThemeBinding Light={StaticResource Black},
-                                                                            Dark={StaticResource White}}"
-                                                VerticalOptions="Center" />
-                                        </Grid>
-                                        <Border StrokeShape="RoundRectangle 5,5,5,5">
-                                            <VerticalStackLayout>
-                                                <Editor
-                                                    AutoSize="TextChanges"
-                                                    Text="{Binding Instructions}"
-                                                    VerticalOptions="Center" />
+                                <DataTemplate x:DataType="models:IngredientSection">
+                                    <Border Padding="16">
+                                        <VerticalStackLayout Spacing="12">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
+                                                <Button Grid.Column="1" Text="⋯" FontSize="24" Style="{StaticResource QuietButton}" IsVisible="{Binding IsNamed}"
+                                                        SemanticProperties.Description="Manage ingredient group"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=GroupOptionsCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                            </Grid>
+                                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLine}}" />
+                                            <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Ingredients}">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:Ingredient">
+                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                                                            <Editor Text="{Binding FQIngrediantDescription}" Placeholder="e.g. 2 cloves garlic, crushed" SemanticProperties.Description="Ingredient description" />
+                                                            <Button Grid.Column="1" Text="⋯" FontSize="22" Style="{StaticResource QuietButton}" VerticalOptions="Start"
+                                                                    SemanticProperties.Description="Move or remove ingredient"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IngredientOptionsCommand}" CommandParameter="{Binding .}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
                                             </VerticalStackLayout>
-                                        </Border>
-                                    </VerticalStackLayout>
-
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Button Text="+ Ingredient" Style="{StaticResource QuietButton}" HorizontalOptions="Start"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=AddIngredientCommand}" CommandParameter="{Binding .}" />
+                                                <Button Grid.Column="1" Text="Paste list" Style="{StaticResource QuietButton}"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=PasteListCommand}" CommandParameter="{Binding .}" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </Border>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                        <Button
-                            BackgroundColor="{AppThemeBinding Light={StaticResource White},
-                                                              Dark={StaticResource Black}}"
-                            BorderColor="{AppThemeBinding Light={StaticResource Black},
-                                                          Dark={StaticResource White}}"
-                            BorderWidth="2"
-                            Command="{Binding AddNewStepCommand}"
-                            CornerRadius="24"
-                            FontFamily="IconFonts"
-                            FontSize="25"
-                            HeightRequest="48"
-                            HorizontalOptions="Center"
-                            Text="{x:Static local:IconFont.Plus}"
-                            TextColor="{AppThemeBinding Light={StaticResource Black},
-                                                        Dark={StaticResource White}}"
-                            WidthRequest="48" />
+                        <Button Text="+ Add ingredient group" Style="{StaticResource SecondaryButton}" Command="{Binding AddGroupCommand}" />
+                        <Button Text="Next: Method →" Command="{Binding SelectSectionCommand}" CommandParameter="2" />
                     </VerticalStackLayout>
-                </Border>
-            </VerticalStackLayout>
-            <VerticalStackLayout IsVisible="{Binding IsSaving}">
-                <ActivityIndicator IsRunning="{Binding IsSaving}" Color="Orange" />
-                <Label HorizontalTextAlignment="Center" Text="Saving!" />
-            </VerticalStackLayout>
-        </VerticalStackLayout>
-    </ScrollView>
+                    <VerticalStackLayout IsVisible="{Binding IsMethod}" Spacing="16">
+                        <Label Text="Make it yours" Style="{StaticResource PageHeading}" />
+                        <Label Text="One clear instruction per step. Use ⋯ to reorder or remove a step." Style="{StaticResource MutedLabel}" />
+                        <VerticalStackLayout Spacing="16" BindableLayout.ItemsSource="{Binding Recipe.Steps}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:Step">
+                                    <Border Padding="16">
+                                        <VerticalStackLayout Spacing="10">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label Text="{Binding StepNumberDisplay}" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
+                                                <Button Grid.Column="1" Text="⋯" Style="{StaticResource QuietButton}" FontSize="24" SemanticProperties.Description="Move or remove step"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=StepOptionsCommand}" CommandParameter="{Binding .}" />
+                                            </Grid>
+                                            <Editor Text="{Binding Instructions}" Placeholder="What happens in this step?" MinimumHeightRequest="100" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                        <Button Text="+ Add step" Style="{StaticResource SecondaryButton}" Command="{Binding AddStepCommand}" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+        <Border x:Name="PreviewRail" Grid.Column="2" Grid.Row="1" IsVisible="False" Margin="0,8,24,24" Padding="24" StrokeThickness="0">
+            <ScrollView>
+                <VerticalStackLayout Spacing="20">
+                    <Label Text="COOKING PREVIEW" Style="{StaticResource MutedLabel}" FontFamily="OpenSansSemibold" CharacterSpacing="2" FontSize="11" />
+                    <Border StrokeThickness="0"><Image Source="{Binding Recipe.ImagePath}" Aspect="AspectFill" HeightRequest="180" /></Border>
+                    <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
+                    <Label Text="{Binding Recipe.Notes}" Style="{StaticResource MutedLabel}" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding IngredientSections}" Spacing="20">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:IngredientSection">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" FontSize="14" />
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ingredients}" Spacing="8">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:Ingredient"><Label Text="{Binding FQIngrediantDescription}" Style="{StaticResource MutedLabel}" /></DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Recipe.Steps}" Spacing="16">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:Step">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Text="{Binding StepNumberDisplay}" FontFamily="OpenSansSemibold" FontSize="14" />
+                                    <Label Text="{Binding Instructions}" Style="{StaticResource MutedLabel}" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Border>
+    </Grid>
 </ContentPage>

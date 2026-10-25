@@ -1,6 +1,9 @@
 # ReceipeProj
 Vehicle to practice API creation and Agular/Typescript sites!
 
+The approved Nibbles redesign, assets, ingredient-group schema, and deployment
+notes are in [Design](Design/README.md).
+
 
 Steps to set up
 

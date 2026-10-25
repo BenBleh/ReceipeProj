@@ -33,9 +33,9 @@ namespace Nibbles
         void ApplyShellTheme(AppTheme theme)
         {
             var resources = Application.Current?.Resources;
-            var white = resources?["White"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.White;
-            var black = resources?["Black"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.Black;
-            var offBlack = resources?["OffBlack"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.Black;
+            var white = resources?["DarkInk"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.White;
+            var black = resources?["Ink"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.Black;
+            var offBlack = resources?["DarkCanvas"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.Black;
 
             if (theme == AppTheme.Dark)
             {
@@ -45,10 +45,13 @@ namespace Nibbles
             }
             else
             {
-                BackgroundColor = white;
+                BackgroundColor = resources?["Canvas"] as Microsoft.Maui.Graphics.Color ?? Microsoft.Maui.Graphics.Colors.White;
                 SetValue(Shell.ForegroundColorProperty, black);
                 SetValue(Shell.TitleColorProperty, black);
             }
+#if ANDROID
+            MainActivity.Current?.RefreshToolbarColor();
+#endif
         }
     }
 }

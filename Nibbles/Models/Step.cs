@@ -1,21 +1,19 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text.Json.Serialization;
 
-namespace Nibbles.Models
+namespace Nibbles.Models;
+
+public partial class Step : ObservableObject
 {
-    public class Step : ObservableObject
-    {
-        public int Num { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(StepNumberDisplay))]
+    public partial int Num { get; set; }
 
-        public string? Instructions { get; set; }
+    [ObservableProperty]
+    public partial string? Instructions { get; set; }
 
-        public string? ImageData { get; set; }
+    public string? ImageData { get; set; }
 
-        public string StepNumberDisplay
-        {
-            get
-            {
-                return string.Format("Step {0}", (Num + 1).ToString());
-            }
-        }
-    }
+    [JsonIgnore]
+    public string StepNumberDisplay => $"Step {Num + 1}";
 }

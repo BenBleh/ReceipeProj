@@ -1,237 +1,164 @@
-﻿using Nibbles.Models;
+using Nibbles.Models;
+using System.Diagnostics;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 
+namespace Nibbles.Services;
 
-namespace Nibbles.Services
+public class ReceipeAPIService
 {
-    public class ReceipeAPIService
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private readonly HttpClient httpClient = new()
     {
-        private readonly string APIUrl = "http://192.168.1.110:8080/"; // debug URL https://localhost:7087/
-        private readonly string FilesUrl = "http://192.168.1.110:8081/";
+        BaseAddress = new Uri("http://192.168.1.110:8080/"),
+        Timeout = TimeSpan.FromSeconds(10)
+    };
+    private const string FilesUrl = "http://192.168.1.110:8081/";
+    private static string Root => Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles");
+    public event EventHandler? RecipeSaved;
 
-        HttpClient httpClient;
-
-        public ReceipeAPIService()
+    public async Task<MasterRecipeList> GetMasterList()
+    {
+        Directory.CreateDirectory(Root);
+        List<RecipeListItem> items;
+        var online = false;
+        try
         {
-            httpClient = new()
+            using var response = await httpClient.GetAsync("MasterRecipeList");
+            response.EnsureSuccessStatusCode();
+            items = JsonSerializer.Deserialize<List<RecipeListItem>>(await response.Content.ReadAsStringAsync(), JsonOptions)
+                ?? throw new InvalidDataException("The API returned an empty recipe index.");
+
+            foreach (var item in items)
             {
-                BaseAddress = new Uri(APIUrl),
-                Timeout = TimeSpan.FromSeconds(5)
-            };
-        }
-
-
-        public async Task<MasterRecipeList> GetMasterList()
-        {
-            bool loadedFromServer = false;
-            List<RecipeListItem> recipeListItems = [];
-            try
-            {
-
-                using HttpResponseMessage response = await httpClient.GetAsync("MasterRecipeList");
-                response.EnsureSuccessStatusCode();
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"{jsonResponse}\n");
-                if (jsonResponse is not null)
-                {
-                    recipeListItems = JsonSerializer.Deserialize<List<RecipeListItem>>(jsonResponse) ?? [];
-
-                    SetUpFileSystem(recipeListItems ?? []);
-                    await GetReceipeFiles(recipeListItems ?? []);
-                    loadedFromServer = true;
-                }
-                else
-                {
-                    throw new Exception("no response from server");
-                }
+                if (item.Id is null)
+                    throw new InvalidDataException("A recipe in the index has no ID.");
+                await DownloadFile(new Uri(FilesUrl + item.Id + ".json"), Path.Combine(Root, item.Id + ".json"));
+                await DownloadFile(new Uri(FilesUrl + item.Id + "/" + item.Id + ".jpeg"),
+                    ImagePath(item.Id), optionalImage: true);
             }
-            catch
-            {
-                //if connection to server failed use local files
-                using (var reader = new StreamReader(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv")))
-                {
-                    string? line;
-                    while ((line = await reader.ReadLineAsync()) is not null)
+            await WriteCache(Path.Combine(Root, "MasterList.json"), JsonSerializer.Serialize(items));
+            online = true;
+        }
+        catch (Exception exception) when (IsNetworkFailure(exception))
+        {
+            Debug.WriteLine($"API unavailable; reading downloaded recipes: {exception}");
+            var manifest = Path.Combine(Root, "MasterList.json");
+            var legacyManifest = Path.Combine(Root, "MasterList.csv");
+            if (File.Exists(manifest))
+                items = JsonSerializer.Deserialize<List<RecipeListItem>>(await File.ReadAllTextAsync(manifest), JsonOptions)
+                    ?? throw new InvalidDataException("The downloaded recipe index is empty.");
+            else if (File.Exists(legacyManifest))
+                items = (await File.ReadAllLinesAsync(legacyManifest)).Where(line => !string.IsNullOrWhiteSpace(line))
+                    .Select(line =>
                     {
-                        var values = line.Split(',');
-                        if (values is not null && values.Count() > 0)
-                        {
-                            recipeListItems.Add(new RecipeListItem()
-                            {
-                                Id = values[0],
-                                Title = values[1]
-                            });
-                        }
-                    }
-                }
-                loadedFromServer = false;
-            }
-
-            //set up 'main' image
-
-            foreach (var recpie in recipeListItems ?? [])
-            {
-                if (recpie?.Id is null) continue;
-                var path = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recpie.Id, recpie.Id + ".jpeg");
-                if (File.Exists(path))
-                {
-                    recpie.ImageData = path;
-                }
-                else
-                {
-                    recpie.ImageData = "kittys.png";
-                }
-            }
-
-            return new MasterRecipeList { Recipes = recipeListItems, LoadedFromServer = loadedFromServer };
+                        var values = line.Split(',', 2);
+                        if (values.Length != 2)
+                            throw new InvalidDataException("The downloaded recipe index is incomplete.");
+                        return new RecipeListItem { Id = values[0], Title = values[1] };
+                    }).ToList();
+            else
+                throw new HttpRequestException("Connect to your home API once to download your recipes for offline use.", exception);
         }
 
-        private void SetUpFileSystem(List<RecipeListItem> recipeListItems)
-        {
-            var sourcePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles");
-            if (!File.Exists(sourcePath))
-            {
-                Directory.CreateDirectory(sourcePath);
-            }
+        foreach (var item in items)
+            item.ImageData = item.Id is not null && File.Exists(ImagePath(item.Id)) ? ImagePath(item.Id) : "nibbles_chef.png";
+        return new MasterRecipeList { Recipes = items, LoadedFromServer = online };
+    }
 
-            foreach (var recipeListItem in recipeListItems ?? [])
-            {
-                if (recipeListItem?.Id is null) continue;
-                var recipePath = Path.Combine(sourcePath, recipeListItem.Id);
-                if (!File.Exists(recipePath))
-                {
-                    Directory.CreateDirectory(recipePath);
-                }
-            }
+    public async Task<Recipe?> GetRecipe(string recipeId)
+    {
+        var path = Path.Combine(Root, recipeId + ".json");
+        if (!File.Exists(path))
+            throw new FileNotFoundException("This recipe has not been downloaded. Reconnect and refresh your recipe box.", path);
+        var recipe = JsonSerializer.Deserialize<Recipe>(await File.ReadAllTextAsync(path), JsonOptions)
+            ?? throw new InvalidDataException("The downloaded recipe is empty.");
+        recipe.Ingredients ??= [];
+        recipe.Steps ??= [];
+        recipe.IngredientGroups ??= [];
+        recipe.IngredientGroups = new(recipe.IngredientGroups.OrderBy(group => group.Order));
+#pragma warning disable CS0618
+        foreach (var ingredient in recipe.Ingredients)
+            if (string.IsNullOrWhiteSpace(ingredient.FQIngrediantDescription))
+                ingredient.FQIngrediantDescription = string.Join(" ",
+                    new[] { ingredient.Qty, ingredient.Unit, ingredient.Description }.Where(value => !string.IsNullOrWhiteSpace(value)));
+#pragma warning restore CS0618
+        recipe.ImagePath = File.Exists(ImagePath(recipeId)) ? ImagePath(recipeId) : "nibbles_chef.png";
+        return recipe;
+    }
+
+    public async Task SaveRecipe(Recipe recipe, bool isNew)
+    {
+        using var content = new StringContent(JsonSerializer.Serialize(recipe), Encoding.UTF8, "application/json");
+        using var response = isNew
+            ? await httpClient.PostAsync("Recipe", content)
+            : await httpClient.PutAsync("Recipe/" + recipe.Id, content);
+        if (!response.IsSuccessStatusCode)
+        {
+            var details = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"The API did not save this recipe ({(int)response.StatusCode}). {details}", null, response.StatusCode);
         }
+        var saved = JsonSerializer.Deserialize<Recipe>(await response.Content.ReadAsStringAsync(), JsonOptions);
+        if (saved?.Id is not null)
+            recipe.Id = saved.Id;
+        RecipeSaved?.Invoke(this, EventArgs.Empty);
+    }
 
-        private async Task GetThumbnails(List<RecipeListItem> recipeListItems)
+    public async Task CacheSavedRecipe(Recipe recipe, string? selectedPhotoPath)
+    {
+        if (recipe.Id is null)
+            throw new InvalidDataException("The saved recipe has no ID.");
+        Directory.CreateDirectory(Root);
+        recipe.ImageData = null;
+        await WriteCache(Path.Combine(Root, recipe.Id + ".json"), JsonSerializer.Serialize(recipe));
+        if (selectedPhotoPath is not null)
+            await DownloadFile(new Uri(FilesUrl + recipe.Id + "/" + recipe.Id + ".jpeg"), ImagePath(recipe.Id));
+        recipe.ImagePath = File.Exists(ImagePath(recipe.Id)) ? ImagePath(recipe.Id) : "nibbles_chef.png";
+    }
+
+    private async Task DownloadFile(Uri uri, string path, bool optionalImage = false)
+    {
+        using var response = await httpClient.GetAsync(uri);
+        if (optionalImage && response.StatusCode == HttpStatusCode.NotFound)
+            return;
+        response.EnsureSuccessStatusCode();
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var temporaryPath = path + ".download";
+        try
         {
-            try
-            {
-                foreach (var recipe in recipeListItems ?? [])
-                {
-                    if (recipe?.Id is null) continue;
-                    var uri = new Uri(FilesUrl + "/" + recipe.Id + "/thumb.jpeg");
-                    var filePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id);
-                    if (!File.Exists(filePath))
-                    {
-                        Directory.CreateDirectory(filePath);
-                    }
-
-                    filePath = Path.Combine(filePath, recipe.Id + ".jpeg");
-                    recipe.ImageData = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
-
-                    await DownloadAFile(uri, filePath);
-                }
-            }
-            catch
-            { //ignore
-            }
-
+            await File.WriteAllBytesAsync(temporaryPath, bytes);
+            File.Move(temporaryPath, path, overwrite: true);
         }
-
-        private async Task GetReceipeFiles(List<RecipeListItem> recipeListItems)
+        finally
         {
-            var uri = new Uri(FilesUrl + "/" + "MasterList.csv");
-            var fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", "MasterList.csv");
-            await DownloadAFile(uri, fileName);
-
-            foreach (var recipe in recipeListItems ?? [])
-            {
-                if (recipe?.Id is null) continue;
-                //get the recipe file
-                uri = new Uri(FilesUrl + "/" + recipe.Id + ".json");
-                fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id + ".json");
-                await DownloadAFile(uri, fileName);
-
-
-                //get the main image
-                uri = new Uri(FilesUrl + "/" + recipe.Id + "/" + recipe.Id + ".jpeg");
-                fileName = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
-                await DownloadAFile(uri, fileName);
-            }
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
         }
+    }
 
-        private async Task DownloadAFile(Uri uri, string filePath)
+    private static string ImagePath(string id) => Path.Combine(Root, id, id + ".jpeg");
+
+    internal static bool IsNetworkFailure(Exception exception) =>
+        exception is HttpRequestException or TaskCanceledException or System.Net.Sockets.SocketException
+#if ANDROID
+        || exception is Java.IO.IOException
+#endif
+        ;
+
+    private static async Task WriteCache(string path, string contents)
+    {
+        var temporaryPath = path + ".download";
+        try
         {
-            using (HttpClient client = new HttpClient())
-            {
-                using (HttpResponseMessage response = await client.GetAsync(uri))
-
-                    if (response.IsSuccessStatusCode)
-                    {
-
-                        using (Stream stream = await response.Content.ReadAsStreamAsync())
-                        {
-                            using (var fs = new FileStream(filePath, FileMode.Create))
-                            {
-                                await stream.CopyToAsync(fs);
-                            }
-                        }
-                    }
-            }
+            await File.WriteAllTextAsync(temporaryPath, contents);
+            File.Move(temporaryPath, path, overwrite: true);
         }
-
-        public async Task<Recipe?> GetRecipe(string recipeId)
+        finally
         {
-            try
-            {
-                var path = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipeId + ".json");
-                using (var reader = new StreamReader(path))
-                {
-                    var content = await reader.ReadToEndAsync();
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        var recipe = JsonSerializer.Deserialize<Recipe>(content);
-                        if (recipe?.Id is not null)
-                        {
-                            recipe.ImagePath = Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles", recipe.Id, recipe.Id + ".jpeg");
-                            return recipe;
-                        }
-                    }
-                }
-
-            }
-            catch
-            {
-                throw;
-            }
-
-            return null;
-        }
-
-        public async Task<bool> PostNewRecipe(Recipe recipe)
-        {
-            var json = JsonSerializer.Serialize<Recipe>(recipe);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync("Recipe", content);
-            try
-            {
-                response.EnsureSuccessStatusCode();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> UpdateRecipe(Recipe recipe)
-        {
-            var json = JsonSerializer.Serialize<Recipe>(recipe);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClient.PutAsync("Recipe/" + recipe.Id, content);
-            try
-            {
-                response.EnsureSuccessStatusCode();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
         }
     }
 }

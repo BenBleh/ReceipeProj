@@ -2,6 +2,7 @@
 using Android.Content.PM;
 using Android.OS;
 using AndroidX.Core.Content;
+using AndroidX.Core.View;
 
 namespace Nibbles
 {
@@ -33,14 +34,17 @@ namespace Nibbles
 
         public void RefreshToolbarColor()
         {
-            try
+            if (Window?.DecorView is Android.Views.View rootView)
             {
-                if (Window?.DecorView is Android.Views.View rootView)
+                var controller = WindowCompat.GetInsetsController(Window, rootView);
+                var lightTheme = Microsoft.Maui.Controls.Application.Current?.RequestedTheme != AppTheme.Dark;
+                if (controller is not null)
                 {
-                    ApplyToolbarColor(rootView);
+                    controller.AppearanceLightStatusBars = lightTheme;
+                    controller.AppearanceLightNavigationBars = lightTheme;
                 }
+                ApplyToolbarColor(rootView);
             }
-            catch { }
         }
 
         void ApplyToolbarColor(Android.Views.View view)

@@ -1,124 +1,80 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="Nibbles.RecipeDetailsPage"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:apiModels="clr-namespace:Nibbles.Models"
-    xmlns:components="clr-namespace:Nibbles.Components"
-    xmlns:local="clr-namespace:Nibbles"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
-    x:Name="RootPage"
-    x:DataType="viewmodels:RecipeDetailsViewModel">
-    <Shell.TitleView>
-        <Grid ColumnDefinitions="*,Auto">
-            <Label
-                Grid.Column="0"
-                FontAttributes="Bold"
-                HorizontalTextAlignment="Center"
-                LineBreakMode="WordWrap"
-                Text="{Binding Recipe.Title}"
-                VerticalTextAlignment="Center" />
-            <HorizontalStackLayout Grid.Column="1" Padding="0,0,15,0">
-                <Button
-                    Padding="8"
-                    BackgroundColor="Transparent"
-                    BorderWidth="0"
-                    Command="{Binding OpenLinkCommand}"
-                    CommandParameter="{Binding Recipe.Source}"
-                    FontFamily="IconFonts"
-                    FontSize="25"
-                    HeightRequest="40"
-                    HorizontalOptions="End"
-                    IsVisible="{Binding HasSourceLink}"
-                    Text="{x:Static local:IconFont.Link}"
-                    TextColor="{AppThemeBinding Light={StaticResource Black},
-                                                Dark={StaticResource White}}"
-                    VerticalOptions="Center"
-                    WidthRequest="40" />
-                <Button
-                    Padding="8"
-                    BackgroundColor="Transparent"
-                    BorderWidth="0"
-                    Command="{Binding CopyIngredientsCommand}"
-                    FontFamily="IconFonts"
-                    FontSize="25"
-                    HeightRequest="40"
-                    HorizontalOptions="End"
-                    Text="{x:Static local:IconFont.Copy}"
-                    TextColor="{AppThemeBinding Light={StaticResource Black},
-                                                Dark={StaticResource White}}"
-                    VerticalOptions="Center"
-                    WidthRequest="40" />
-                <Button
-                    Padding="8"
-                    BackgroundColor="Transparent"
-                    BorderWidth="0"
-                    Command="{Binding EditRecipeCommand}"
-                    FontFamily="IconFonts"
-                    FontSize="25"
-                    HeightRequest="40"
-                    HorizontalOptions="End"
-                    IsVisible="{Binding CanAdd}"
-                    Text="{x:Static local:IconFont.Pencil}"
-                    TextColor="{AppThemeBinding Light={StaticResource Black},
-                                                Dark={StaticResource White}}"
-                    VerticalOptions="Center"
-                    WidthRequest="40" />
-            </HorizontalStackLayout>
+<ContentPage x:Class="Nibbles.RecipeDetailsPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Nibbles.Models"
+             xmlns:components="clr-namespace:Nibbles.Components"
+             xmlns:vm="clr-namespace:Nibbles.ViewModels"
+             x:DataType="vm:RecipeDetailsViewModel"
+             Shell.NavBarIsVisible="False" Title="Recipe">
+    <Grid Padding="24,8,24,12" RowDefinitions="Auto,*,Auto" RowSpacing="12" MaximumWidthRequest="1000" HorizontalOptions="Fill">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+            <Button Text="←" Style="{StaticResource QuietButton}" Clicked="Back_Clicked" SemanticProperties.Description="Back to recipe box" />
+            <Label Grid.Column="1" Text="Recipe" FontSize="18" VerticalOptions="Center" />
+            <Button Grid.Column="2" Text="Edit" Style="{StaticResource QuietButton}" Command="{Binding EditRecipeCommand}" IsVisible="{Binding CanAdd}" />
         </Grid>
-    </Shell.TitleView>
-    <ScrollView>
-        <Grid
-            Margin="25,0,25,25"
-            ColumnDefinitions="*"
-            HorizontalOptions="Center"
-            RowDefinitions="auto,auto, auto, auto, *">
-            <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2">
-                <Label IsVisible="{Binding HasSourceLink, Converter={toolkit:InvertedBoolConverter}}" Text="{Binding Recipe.Source}" />
-            </VerticalStackLayout>
-            <Image
-                Margin="0,0,0,5"
-                Grid.Row="2"
-                HeightRequest="400"
-                Source="{Binding Recipe.ImagePath}" />
-            <CollectionView
-                Grid.Row="3"
-                HorizontalOptions="Center"
-                ItemsSource="{Binding Recipe.Ingredients}">
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout
-                        HorizontalItemSpacing="12"
-                        Orientation="Vertical"
-                        Span="2" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="apiModels:Ingredient">
-                        <components:IngredientItemView />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-            <CollectionView
-                Grid.Row="4"
-                Margin="25"
-                HorizontalOptions="Center"
-                ItemsSource="{Binding Recipe.Steps}">
-                <CollectionView.ItemTemplate Margin="25">
-                    <DataTemplate x:DataType="apiModels:Step">
-                        <Border Margin="5" Background="Transparent">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="6" />
-                            </Border.StrokeShape>
-                            <VerticalStackLayout Padding="5">
-                                <Label FontSize="Large" Text="{Binding StepNumberDisplay}" />
-                                <Label Text="{Binding Instructions}" VerticalOptions="Center" />
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="20" Padding="0,0,0,16">
+                <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}">
+                    <Label.Triggers><DataTrigger TargetType="Label" Binding="{Binding ErrorMessage}" Value=""><Setter Property="IsVisible" Value="False" /></DataTrigger></Label.Triggers>
+                </Label>
+                <Border StrokeThickness="0">
+                    <Image Source="{Binding Recipe.ImagePath}" HeightRequest="{OnIdiom Phone=220, Tablet=300, Desktop=340}" Aspect="AspectFill" />
+                </Border>
+                <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
+                <HorizontalStackLayout Spacing="12">
+                    <Button Text="↗  Original recipe" Style="{StaticResource SecondaryButton}" Command="{Binding OpenLinkCommand}" IsVisible="{Binding HasSourceLink}" />
+                    <Label Text="{Binding Recipe.TimeToComplete}" IsVisible="{Binding HasTime}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Label Text="{Binding Recipe.Notes}" IsVisible="{Binding HasNotes}" Style="{StaticResource MutedLabel}" FontSize="15" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Text="Ingredients" Style="{StaticResource QuietButton}" Command="{Binding ShowIngredientsCommand}">
+                        <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding IsIngredients}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" /></DataTrigger></Button.Triggers>
+                    </Button>
+                    <Button Grid.Column="1" Text="Method" Style="{StaticResource QuietButton}" Command="{Binding ShowMethodCommand}">
+                        <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding IsMethod}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" /></DataTrigger></Button.Triggers>
+                    </Button>
+                </Grid>
+                <VerticalStackLayout IsVisible="{Binding IsIngredients}" Spacing="16">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Tap a paw as you cook" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Clear checks" Style="{StaticResource QuietButton}" Command="{Binding ClearChecksCommand}" />
+                    </Grid>
+                    <VerticalStackLayout Spacing="24" BindableLayout.ItemsSource="{Binding IngredientSections}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:IngredientSection">
+                                <VerticalStackLayout Spacing="12">
+                                    <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowHeading}">
+                                        <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" />
+                                        <Label Grid.Column="1" Text="{Binding Summary}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
+                                    </Grid>
+                                    <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Ingredients}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:Ingredient">
+                                                <components:IngredientItemView />
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+                <VerticalStackLayout IsVisible="{Binding IsMethod}" Spacing="24" BindableLayout.ItemsSource="{Binding Recipe.Steps}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:Step">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="{Binding StepNumberDisplay}" FontFamily="OpenSansSemibold" TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource DarkInk}}" />
+                                <Label Text="{Binding Instructions}" FontSize="17" LineHeight="1.35" />
                             </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+        <Grid Grid.Row="2" ColumnDefinitions="1.6*,*" ColumnSpacing="10" IsVisible="{Binding IsIngredients}">
+            <Button Text="{Binding CopyLabel}" Style="{StaticResource SecondaryButton}" Command="{Binding CopyIngredientsCommand}" />
+            <Button Grid.Column="1" Text="Method →" Command="{Binding ShowMethodCommand}" />
         </Grid>
-
-    </ScrollView>
+    </Grid>
 </ContentPage>

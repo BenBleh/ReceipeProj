@@ -1,6 +1,4 @@
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Devices;
-using Nibbles.Models;
+using Nibbles.Services;
 using Nibbles.ViewModels;
 
 namespace Nibbles;
@@ -9,47 +7,30 @@ namespace Nibbles;
 [QueryProperty(nameof(CanAdd), "canAdd")]
 public partial class RecipeDetailsPage : ContentPage
 {
-    string recipeId = string.Empty;
-    public string RecipeId
-    {
-        get => recipeId;
-        set
-        {
-            recipeId = value;
-        }
-    }
+    public string RecipeId { get; set; } = string.Empty;
+    public bool CanAdd { get; set; }
 
-    bool canAdd = false;
-    public bool CanAdd
-    {
-        get => canAdd;
-        set
-        {
-            canAdd = value;
-        }
-    }
-
-    public RecipeDetailsPage()
+    public RecipeDetailsPage(ReceipeAPIService service)
     {
         InitializeComponent();
+        BindingContext = new RecipeDetailsViewModel(service);
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
-        DeviceDisplay.KeepScreenOn = true;
-
+        DeviceDisplay.Current.KeepScreenOn = true;
+        var viewModel = (RecipeDetailsViewModel)BindingContext;
+        viewModel.CanAdd = CanAdd;
         if (!string.IsNullOrEmpty(RecipeId))
-        {
-            var vm = new RecipeDetailsViewModel(RecipeId);
-            vm.CanAdd = CanAdd;
-            this.BindingContext = vm;
-        }
+            await viewModel.LoadAsync(RecipeId);
     }
 
     protected override void OnDisappearing()
     {
+        DeviceDisplay.Current.KeepScreenOn = false;
         base.OnDisappearing();
-        DeviceDisplay.KeepScreenOn = false;
     }
+
+    private async void Back_Clicked(object sender, EventArgs args) => await Shell.Current.GoToAsync("..");
 }

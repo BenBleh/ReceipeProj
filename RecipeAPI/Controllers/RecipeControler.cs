@@ -1,42 +1,71 @@
-﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using RecipeAPI.Helpers;
 using RecipeAPI.Interfaces;
 using RecipeAPI.Models;
 
-namespace RecipeAPI.Controllers
+namespace RecipeAPI.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class RecipeController(ILogger<RecipeController> logger, IRecipeAccess recipeAccess) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class RecipeController : ControllerBase
+    [HttpGet("{id}")]
+    public ActionResult<Recipe> GetRecipe(string id)
     {
-        private readonly ILogger<RecipeController> _logger;
-        private IRecipeAccess _recipeAccess;
-
-        public RecipeController(ILogger<RecipeController> logger, IRecipeAccess recipeAccess)
+        if (!Guid.TryParse(id, out _))
+            return BadRequest("The recipe ID must be a UUID.");
+        try
         {
-            _logger = logger;
-            _recipeAccess = recipeAccess;
+            return recipeAccess.GetRecipe(id);
         }
-
-        [HttpGet("{Id}")]
-        public Recipe GetRecipe(string Id)
+        catch (FileNotFoundException)
         {
-            return _recipeAccess.GetRecipe(Id);
+            return NotFound();
         }
+    }
 
-        [HttpPost]
-        public async Task<ActionResult<Recipe>> Post(Recipe recipe)
+    [HttpPost]
+    public ActionResult<Recipe> Post(Recipe recipe)
+    {
+        return Write(recipe, null);
+    }
+
+    [HttpPut("{id}")]
+    public ActionResult<Recipe> UpdateRecipe(string id, Recipe recipe)
+    {
+        if (!Guid.TryParse(id, out _))
+            return BadRequest("The recipe ID must be a UUID.");
+        return Write(recipe, id);
+    }
+
+    private ActionResult<Recipe> Write(Recipe recipe, string? id)
+    {
+        var errors = RecipeValidation.NormalizeAndValidate(recipe);
+        if (errors.Count > 0)
+            return ValidationProblem(new ValidationProblemDetails(errors));
+        try
         {
-            recipe = _recipeAccess.CreateRecipe(recipe);
-
-            return CreatedAtAction(nameof(GetRecipe), new { id = recipe.Id }, recipe);
+            if (id is null)
+            {
+                var saved = recipeAccess.CreateRecipe(recipe);
+                return CreatedAtAction(nameof(GetRecipe), new { id = saved.Id }, saved);
+            }
+            recipeAccess.UpdateRecipe(id, recipe);
+            return Ok(recipe);
         }
-
-        [HttpPut("{Id}")]
-        public async Task<ActionResult<Recipe>> UpdateRecipe(string Id, Recipe recipe)
+        catch (FileNotFoundException)
         {
-            _recipeAccess.UpdateRecipe(Id, recipe);
-            return Ok();
+            return NotFound();
+        }
+        catch (InvalidOperationException exception)
+        {
+            logger.LogWarning(exception, "Recipe write conflict for {RecipeId}", id ?? recipe.Id);
+            return Conflict(new ProblemDetails { Title = exception.Message, Status = StatusCodes.Status409Conflict });
+        }
+        catch (ArgumentException exception)
+        {
+            logger.LogWarning(exception, "Invalid recipe or photo for {RecipeId}", id ?? recipe.Id);
+            return BadRequest(new ProblemDetails { Title = exception.Message, Status = StatusCodes.Status400BadRequest });
         }
     }
 }

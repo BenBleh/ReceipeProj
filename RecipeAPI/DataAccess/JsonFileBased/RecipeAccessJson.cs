@@ -1,216 +1,165 @@
-﻿using RecipeAPI.Helpers;
+using RecipeAPI.Helpers;
 using RecipeAPI.Interfaces;
 using RecipeAPI.Models;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text.Json;
 
-namespace RecipeAPI.DataAccess.JsonFileBased
+namespace RecipeAPI.DataAccess.JsonFileBased;
+
+public class RecipeAccessJson : IRecipeAccess
 {
-    public class RecipeAccessJson : IRecipeAccess
+    private static readonly object WriteLock = new();
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static string Root => ConfigurationHelper.Instance.RecipeFilePathValue;
+    private static string MasterPath => Path.Combine(Root, "MasterList.csv");
+
+    public MasterRecipeList GetRecipes()
     {
-        MasterRecipeList IRecipeAccess.GetRecipes()
+        lock (WriteLock)
         {
-            MasterRecipeList masterList = new MasterRecipeList { Recipes = new List<RecipeListItem>() };
-            try
+            return new MasterRecipeList
             {
-                using (var reader = new StreamReader(ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv"))
-                {
-                    while (!reader.EndOfStream)
+                Recipes = File.ReadLines(MasterPath).Where(line => !string.IsNullOrWhiteSpace(line))
+                    .Select(line =>
                     {
-                        var line = reader.ReadLine();
-                        var values = line?.Split(',');
-
-                        masterList.Recipes.Add(new RecipeListItem()
-                        {
-                            Id = values[0],
-                            Title = values[1]
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-
-            return masterList;
+                        var values = line.Split(',', 2);
+                        if (values.Length != 2)
+                            throw new InvalidDataException("A recipe index entry is incomplete.");
+                        return new RecipeListItem { Id = values[0], Title = values[1] };
+                    }).ToList()
+            };
         }
+    }
 
-        Recipe IRecipeAccess.GetRecipe(string id)
+    public Recipe GetRecipe(string id)
+    {
+        ValidateId(id);
+        lock (WriteLock)
         {
-            Recipe? recipe;
-            CheckFileExists(ConfigurationHelper.Instance.RecipeFilePathValue + id + ".json");
-            string jsonString = File.ReadAllText(ConfigurationHelper.Instance.RecipeFilePathValue + id + ".json");
-            if (!string.IsNullOrEmpty(jsonString))
-            {
-                recipe =
-                    JsonSerializer.Deserialize<Recipe>(jsonString);
-            }
-            else
-            {
-                throw new FileNotFoundException("File with following name not found: " + id);
-            }
+            return JsonSerializer.Deserialize<Recipe>(File.ReadAllText(RecipePath(id)), JsonOptions)
+                ?? throw new InvalidDataException("The recipe file is empty.");
+        }
+    }
+
+    public void UpdateRecipe(string id, Recipe recipe)
+    {
+        ValidateId(id);
+        lock (WriteLock)
+        {
+            var existing = GetRecipe(id);
+            // Older clients cannot round-trip group metadata. Refuse to silently erase it.
+            if (existing.IngredientGroups is { Count: > 0 } && recipe.IngredientGroups is null)
+                throw new InvalidOperationException("This recipe has ingredient groups. Update it using the current Nibbles app.");
+            recipe.Id = id;
+            Save(recipe);
+        }
+    }
+
+    public Recipe CreateRecipe(Recipe recipe)
+    {
+        lock (WriteLock)
+        {
+            // A supplied UUID makes retrying a timed-out create safe.
+            recipe.Id ??= Guid.NewGuid().ToString();
+            ValidateId(recipe.Id);
+            if (File.Exists(RecipePath(recipe.Id)))
+                throw new InvalidOperationException("This recipe already exists. Refresh it before saving changes.");
+            Save(recipe);
             return recipe;
         }
+    }
 
-        void IRecipeAccess.UpdateRecipe(string Id, Recipe recipe)
+    private static void Save(Recipe recipe)
+    {
+        var errors = RecipeValidation.NormalizeAndValidate(recipe);
+        if (errors.Count > 0)
+            throw new ArgumentException(string.Join(" ", errors.Values.SelectMany(messages => messages)));
+
+        Directory.CreateDirectory(Root);
+        for (var index = 0; index < recipe.Steps!.Count; index++)
+            recipe.Steps[index].Num = index;
+        ManageRecipeImages(recipe);
+
+        var lines = File.Exists(MasterPath) ? File.ReadAllLines(MasterPath).ToList() : [];
+        var entry = $"{recipe.Id},{recipe.Title}";
+        var existingIndex = lines.FindIndex(line => line.Split(',', 2)[0] == recipe.Id);
+        if (existingIndex >= 0)
+            lines[existingIndex] = entry;
+        else
+            lines.Add(entry);
+
+        AtomicWrite(RecipePath(recipe.Id!), JsonSerializer.Serialize(recipe));
+        AtomicWrite(MasterPath, string.Join(Environment.NewLine, lines) + Environment.NewLine);
+    }
+
+    private static void AtomicWrite(string path, string contents)
+    {
+        var temporaryPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
         {
-            try
+            File.WriteAllText(temporaryPath, contents);
+            File.Move(temporaryPath, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
+        }
+    }
+
+    private static string RecipePath(string id) => Path.Combine(Root, id + ".json");
+
+    private static void ValidateId(string id)
+    {
+        if (!Guid.TryParse(id, out _))
+            throw new ArgumentException("The recipe ID must be a UUID.");
+    }
+
+    private static void ManageRecipeImages(Recipe recipe)
+    {
+        var directory = Path.Combine(Root, recipe.Id!);
+        if (!string.IsNullOrWhiteSpace(recipe.ImageData) && recipe.ImageData.Contains("base64,", StringComparison.Ordinal))
+        {
+            if (!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("Photo processing requires the Windows API host.");
+            WriteImage(directory, recipe.Id!, recipe.ImageData, createThumbnail: true);
+            recipe.ImageData = null;
+        }
+        foreach (var step in recipe.Steps!)
+        {
+            if (!string.IsNullOrWhiteSpace(step.ImageData) && step.ImageData.Contains("base64,", StringComparison.Ordinal))
             {
-                recipe.Id = Id;
-
-                CheckFileExists(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json");
-
-                manageRecipeImages(recipe);
-                OrderSteps(recipe);
-                UpdateLegacyIngredients(recipe);
-
-                //write to file
-                string jsonString = JsonSerializer.Serialize(recipe);
-
-                File.WriteAllText(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json", jsonString);
-
-                //update master list
-                UpdateMasterList(recipe.Id, recipe.Title);
-
+                if (!OperatingSystem.IsWindows())
+                    throw new PlatformNotSupportedException("Photo processing requires the Windows API host.");
+                WriteImage(directory, step.Num.ToString(), step.ImageData, createThumbnail: false);
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            step.ImageData = null;
+        }
+    }
+
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private static void WriteImage(string directory, string fileName, string imageData, bool createThumbnail)
+    {
+        var marker = imageData.IndexOf("base64,", StringComparison.Ordinal);
+        byte[] bytes;
+        try
+        {
+            bytes = Convert.FromBase64String(imageData[(marker + "base64,".Length)..]);
+        }
+        catch (FormatException exception)
+        {
+            throw new ArgumentException("The photo is not valid base64 image data.", exception);
         }
 
-        Recipe IRecipeAccess.CreateRecipe(Recipe recipe)
+        using var stream = new MemoryStream(bytes);
+        using var image = Image.FromStream(stream);
+        Directory.CreateDirectory(directory);
+        image.Save(Path.Combine(directory, fileName + ".jpeg"), ImageFormat.Jpeg);
+        if (createThumbnail)
         {
-            //generate new id
-            recipe.Id = Guid.NewGuid().ToString();
-
-            manageRecipeImages(recipe);
-            OrderSteps(recipe);
-            UpdateLegacyIngredients(recipe);
-
-            //write to file
-            string jsonString = JsonSerializer.Serialize(recipe);
-
-            File.WriteAllText(ConfigurationHelper.Instance.RecipeFilePathValue + recipe.Id + ".json", jsonString);
-
-            //update master list
-            UpdateMasterListWithNewRecipe(recipe.Id, recipe.Title);
-
-            return recipe;
-        }
-
-        //this should handle cases where steps between steps might have been deleted.
-        private void OrderSteps(Recipe recipe)
-        {
-            if (recipe.Steps != null)
-            {
-                for (int i = 0; i < recipe.Steps.Count; i++)
-                {
-                    recipe.Steps[i].Num = i;
-                }
-            }
-        }
-
-        private void UpdateLegacyIngredients(Recipe recipe)
-        {
-            if (recipe.Ingredients is not null)
-            {
-                foreach (var ingredient in recipe.Ingredients)
-                {
-                    if (ingredient.Unit is not null
-                        || ingredient.Qty is not null
-                        || ingredient.Description is not null)
-                    {
-                        ingredient.FQIngrediantDescription = string.Format("{0} {1} {2}", ingredient.Qty, ingredient.Unit, ingredient.Description);
-
-                    }
-                }
-            }
-        }
-
-        private async Task UpdateMasterList(string id, string title)
-        {
-            var fileName = ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv";
-            string[] arrLine = File.ReadAllLines(fileName);
-            for (int i = 0; i < arrLine.Length; i++)
-            {
-                if (arrLine[i].Contains(id))
-                {
-                    arrLine[i] = id + "," + title;
-                    break;
-                }
-
-            }
-            File.WriteAllLines(fileName, arrLine);
-        }
-
-        private async Task UpdateMasterListWithNewRecipe(string id, string title)
-        {
-            using (StreamWriter sw = File.AppendText(ConfigurationHelper.Instance.RecipeFilePathValue + "MasterList.csv"))
-            {
-                sw.WriteLine(id + "," + title);
-            }
-        }
-
-        private void CheckFileExists(string filepath)
-        {
-            if (!File.Exists(filepath))
-            {
-                throw new Exception("File could not be found");
-            }
-        }
-
-        private void manageRecipeImages(Recipe recipe)
-        {
-            if (!string.IsNullOrEmpty(recipe.ImageData) && recipe.ImageData.Contains("base64"))
-            {
-                WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/'
-                    , recipe.Id
-                    , recipe.ImageData
-                    , true
-                    );
-                recipe.ImageData = null;
-            }
-            foreach (var step in recipe.Steps)
-            {
-                if (!string.IsNullOrEmpty(step.ImageData) && step.ImageData.Contains("base64"))
-                {
-                    WriteImage(ConfigurationHelper.Instance.RecipeFilePathValue + '/' + recipe.Id + '/'
-                        , step.Num.ToString()
-                        , step.ImageData
-                        , false
-                        );
-                }
-                step.ImageData = null;
-            }
-        }
-
-        private void WriteImage(string filepath, string fileName, string imageData, bool createThumbNail)
-        {
-            //process input data
-            var values = imageData.Split(';');
-            string filetype = values[0].Substring(values[0].LastIndexOf('/') + 1); //text after / gives us file type
-            string base64 = values[1].Substring(values[0].LastIndexOf("base64,") + 8); //text after base64, is the base64 string
-            var base64EncodedBytes = System.Convert.FromBase64String(base64);
-            //var decodedImg = Convert.FromBase64String()
-
-            var file = new FileInfo(filepath);
-            file.Directory.Create(); // If the directory already exists, this method does nothing.            
-
-            Image image;
-            using (MemoryStream ms = new MemoryStream(base64EncodedBytes))
-            {
-                image = Image.FromStream(ms);
-                image.Save(filepath + fileName + ".jpeg", ImageFormat.Jpeg);
-            }
-
-            if (createThumbNail)
-            {
-                var thumbnail = image.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
-                thumbnail.Save(filepath + "thumb" + ".jpeg", ImageFormat.Jpeg);
-            }
+            using var thumbnail = image.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
+            thumbnail.Save(Path.Combine(directory, "thumb.jpeg"), ImageFormat.Jpeg);
         }
     }
 }

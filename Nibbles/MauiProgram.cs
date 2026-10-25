@@ -27,8 +27,8 @@ namespace Nibbles
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<MainPageViewModel>();
 
-            builder.Services.AddSingleton<RecipeDetailsPage>();
-            builder.Services.AddSingleton<RecipeDetailsViewModel>();
+            builder.Services.AddTransient<RecipeDetailsPage>();
+            builder.Services.AddTransient<AddEditPage>();
 
             builder.Services.AddSingleton<ReceipeAPIService>();
 

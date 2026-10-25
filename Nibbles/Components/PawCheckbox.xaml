@@ -1,29 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView
-    x:Class="Nibbles.PawCheckbox"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Name="This">
-    <Grid>
-        <Image
-            x:Name="PawImageUnchecked"
-            HeightRequest="32"
-            Opacity="1"
-            Source="paw_unchecked.svg"
-            WidthRequest="32">
-            <Image.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnPawTapped" />
-            </Image.GestureRecognizers>
-        </Image>
-        <Image
-            x:Name="PawImageChecked"
-            HeightRequest="32"
-            Opacity="0"
-            Source="paw_checked.svg"
-            WidthRequest="32">
-            <Image.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnPawTapped" />
-            </Image.GestureRecognizers>
-        </Image>
-    </Grid>
+<ContentView x:Class="Nibbles.PawCheckbox"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <ImageButton x:Name="PawButton" Clicked="OnPawTapped" HeightRequest="48" WidthRequest="44"
+                 Padding="8" BackgroundColor="Transparent" Aspect="AspectFit"
+                 SemanticProperties.Hint="Activate to toggle this ingredient." />
 </ContentView>

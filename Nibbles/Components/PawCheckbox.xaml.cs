@@ -2,18 +2,24 @@ namespace Nibbles;
 
 public partial class PawCheckbox : ContentView
 {
-    public static readonly BindableProperty IsCheckedProperty =
-        BindableProperty.Create(
-            nameof(IsChecked),
-            typeof(bool),
-            typeof(PawCheckbox),
-            false,
-            propertyChanged: OnIsCheckedChanged);
+    public static readonly BindableProperty IsCheckedProperty = BindableProperty.Create(
+        nameof(IsChecked), typeof(bool), typeof(PawCheckbox), false, BindingMode.TwoWay,
+        propertyChanged: (bindable, _, _) => ((PawCheckbox)bindable).UpdateImage());
+
+    public static readonly BindableProperty LabelProperty = BindableProperty.Create(
+        nameof(Label), typeof(string), typeof(PawCheckbox), string.Empty,
+        propertyChanged: (bindable, _, _) => ((PawCheckbox)bindable).UpdateImage());
 
     public bool IsChecked
     {
         get => (bool)GetValue(IsCheckedProperty);
         set => SetValue(IsCheckedProperty, value);
+    }
+
+    public string Label
+    {
+        get => (string)GetValue(LabelProperty);
+        set => SetValue(LabelProperty, value);
     }
 
     public PawCheckbox()
@@ -22,29 +28,13 @@ public partial class PawCheckbox : ContentView
         UpdateImage();
     }
 
-    private static void OnIsCheckedChanged(BindableObject bindable, object oldValue, object newValue)
+    private void UpdateImage()
     {
-        var ctrl = (PawCheckbox)bindable;
-        ctrl.UpdateImage();
+        var state = IsChecked ? "checked" : "unchecked";
+        PawButton.SetAppTheme(ImageButton.SourceProperty,
+            ImageSource.FromFile($"paw_{state}_light.png"), ImageSource.FromFile($"paw_{state}.png"));
+        SemanticProperties.SetDescription(PawButton, $"{Label}, {(IsChecked ? "checked" : "not checked")}");
     }
 
-    private async void UpdateImage()
-    {
-        Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(async () =>
-        {
-            var visibleImage = IsChecked ? PawImageChecked : PawImageUnchecked;
-            var hiddenImage = IsChecked ? PawImageUnchecked : PawImageChecked;
-
-            await visibleImage.ScaleToAsync(1.2, 100, Easing.CubicOut);
-            await visibleImage.ScaleToAsync(1, 150, Easing.BounceOut);
-
-            await hiddenImage.FadeToAsync(0, 150);
-            await visibleImage.FadeToAsync(1, 150);
-        });
-    }
-
-    private void OnPawTapped(object sender, TappedEventArgs e)
-    {
-        IsChecked = !IsChecked;
-    }
+    private void OnPawTapped(object sender, EventArgs args) => IsChecked = !IsChecked;
 }

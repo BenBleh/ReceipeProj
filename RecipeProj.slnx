@@ -3,5 +3,5 @@
       <Deploy Solution="Debug|*" />
    </Project>
    <Project Path="RecipeAPI/RecipeAPI.csproj" />
+   <Project Path="RecipeAPI.Tests/RecipeAPI.Tests.csproj" />
 </Solution>
-

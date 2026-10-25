@@ -1,44 +1,32 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.Maui.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
-namespace Nibbles.Models
+namespace Nibbles.Models;
+
+public partial class Recipe : ObservableObject
 {
-    public class Recipe : ObservableObject
-    {
-        public string? Id { get; set; }
-        public string? Title { get; set; }
+    public string? Id { get; set; }
 
-        public string? TimeToComplete { get; set; }
+    [ObservableProperty]
+    public partial string? Title { get; set; }
 
-        public string? Notes { get; set; }
+    [ObservableProperty]
+    public partial string? TimeToComplete { get; set; }
 
-        public string? Source { get; set; }
+    [ObservableProperty]
+    public partial string? Notes { get; set; }
 
-        public string? ImageData { get; set; }
+    [ObservableProperty]
+    public partial string? Source { get; set; }
 
-        [JsonIgnore]
-        public string? ImagePath { get; set; }
+    public string? ImageData { get; set; }
 
-        [JsonIgnore]
-        public ImageSource? ImageStream
-        {
-            get
-            {
-                if (!String.IsNullOrWhiteSpace(ImagePath))
-                {
-                    return ImageSource.FromStream(() =>
-                    {
-                        return File.OpenRead(ImagePath);
-                    });
-                }
-                return null;
-            }
-        }
+    [JsonIgnore]
+    [ObservableProperty]
+    public partial string? ImagePath { get; set; }
 
-        public ObservableCollection<Step>? Steps { get; set; } = [];
-
-        public ObservableCollection<Ingredient>? Ingredients { get; set; } = [];
-    }
+    public ObservableCollection<Step> Steps { get; set; } = [];
+    public ObservableCollection<Ingredient> Ingredients { get; set; } = [];
+    public ObservableCollection<IngredientGroup> IngredientGroups { get; set; } = [];
 }

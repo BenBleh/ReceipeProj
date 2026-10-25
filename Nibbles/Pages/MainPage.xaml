@@ -1,147 +1,71 @@
-﻿<ContentPage
-    x:Class="Nibbles.MainPage"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:apiModels="clr-namespace:Nibbles.Models"
-    xmlns:local="clr-namespace:Nibbles"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:viewmodels="clr-namespace:Nibbles.ViewModels"
-    x:Name="RootPage"
-    x:DataType="viewmodels:MainPageViewModel">
-    <ContentPage.Resources>
-        <Style TargetType="Grid">
-            <Setter Property="VisualStateManager.VisualStateGroups">
-                <VisualStateGroupList>
-                    <VisualStateGroup x:Name="CommonStates">
-                        <VisualState x:Name="Normal" />
-                        <VisualState x:Name="Selected">
-                            <VisualState.Setters>
-                                <Setter Property="BackgroundColor" Value="Transparent" />
-                            </VisualState.Setters>
-                        </VisualState>
-                    </VisualStateGroup>
-                </VisualStateGroupList>
-            </Setter>
-        </Style>
-        <ResourceDictionary>
-            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
-    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}">
-        <Grid Padding="5" RowDefinitions="Auto,*">
-            <Grid
-                Padding="10"
-                ColumnDefinitions="*, Auto"
-                RowDefinitions="Auto">
-                <Border
-                    Padding="10"
-                    StrokeShape="RoundRectangle 15"
-                    StrokeThickness="0"
-                    Style="{StaticResource MainPageSearchBorderStyle}">
-                    <Entry
-                        x:Name="searchBar"
-                        Margin="0"
-                        BackgroundColor="Transparent"
-                        HeightRequest="48"
-                        IsVisible="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
-                        Placeholder="Search recipes..."
-                        Style="{StaticResource MainPageSearchEntryStyle}"
-                        Text="{Binding SearchQuery}"
-                        VerticalOptions="Center" />
-                </Border>
-
-                <Border
-                    Grid.Column="1"
-                    BackgroundColor="Transparent"
-                    HeightRequest="48"
-                    HorizontalOptions="End"
-                    IsVisible="{Binding CanAdd}"
-                    Stroke="Transparent"
-                    StrokeShape="RoundRectangle 15"
-                    StrokeThickness="0"
-                    VerticalOptions="Center"
-                    WidthRequest="48">
-                    <Label
-                        FontFamily="IconFonts"
-                        FontSize="24"
-                        HorizontalOptions="Center"
-                        Text="{x:Static local:IconFont.FilePlusCorner}"
-                        TextColor="{AppThemeBinding Light={StaticResource Black},
-                                                    Dark={StaticResource White}}"
-                        VerticalOptions="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="AddButton_Clicked" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                </Border>
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Nibbles.MainPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Nibbles.Models"
+             xmlns:vm="clr-namespace:Nibbles.ViewModels"
+             x:DataType="vm:MainPageViewModel"
+             Shell.NavBarIsVisible="False" Title="Nibbles"
+             SizeChanged="Page_SizeChanged">
+    <Grid Padding="24,12,24,12" RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="16"
+          MaximumWidthRequest="1440" HorizontalOptions="Fill">
+        <VerticalStackLayout Spacing="12">
+            <HorizontalStackLayout Spacing="10">
+                <Image Source="nibbles_chef.png" HeightRequest="48" WidthRequest="40" SemanticProperties.Description="Nibbles chef cat" />
+                <Label Text="Nibbles" FontSize="28" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <Label Text="Your recipes, ready to cook." Style="{StaticResource MutedLabel}" FontSize="15" />
+        </VerticalStackLayout>
+        <Border Grid.Row="1" Style="{StaticResource Field}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <Label Text="⌕" FontSize="28" VerticalOptions="Center" />
+                <Entry Grid.Column="1" Text="{Binding SearchQuery}" Placeholder="Find a recipe…"
+                       ClearButtonVisibility="WhileEditing" ReturnType="Search" SemanticProperties.Description="Search recipes by title" />
             </Grid>
-
-            <CollectionView
-                x:Name="recipeListCollectionView"
-                Grid.Row="1"
-                Margin="0,12,0,0"
-                BackgroundColor="Transparent"
-                ItemsSource="{Binding RecipeListItems}"
-                SelectionChanged="OnCollectionViewSelectionChanged"
-                SelectionMode="Single">
-                <CollectionView.EmptyView>
-                    <StackLayout
-                        Padding="20"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center">
-                        <Label
-                            FontSize="16"
-                            HorizontalTextAlignment="Center"
-                            Text="No recipes found"
-                            TextColor="{StaticResource Gray500}" />
-                    </StackLayout>
-                </CollectionView.EmptyView>
+        </Border>
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+            <Label Text="Your recipe box" FontSize="19" VerticalOptions="Center" />
+            <Label Grid.Column="1" Text="{Binding RecipeCount}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
+            <Button Grid.Column="2" Text="Refresh" Style="{StaticResource QuietButton}" Command="{Binding RefreshCommand}"
+                    SemanticProperties.Description="Refresh recipes and reconnect to your home server" />
+        </Grid>
+        <RefreshView Grid.Row="3" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <CollectionView x:Name="recipeListCollectionView" ItemsSource="{Binding RecipeListItems}"
+                            SelectionMode="Single" SelectionChanged="OnCollectionViewSelectionChanged">
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout
-                        HorizontalItemSpacing="12"
-                        Orientation="Vertical"
-                        Span="2"
-                        VerticalItemSpacing="12" />
+                    <GridItemsLayout x:Name="RecipeGrid" Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="16" />
                 </CollectionView.ItemsLayout>
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="16,36" Spacing="12">
+                        <Image Source="nibbles_chef.png" HeightRequest="88" />
+                        <Label Text="No recipes here yet" HorizontalTextAlignment="Center" Style="{StaticResource SectionHeading}" />
+                        <Label Text="Try another search, or connect to your home server and add a recipe."
+                               Style="{StaticResource MutedLabel}" HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="apiModels:RecipeListItem">
-                        <Grid BackgroundColor="Transparent">
-                            <Border
-                                Margin="0"
-                                Padding="0"
-                                StrokeShape="RoundRectangle 20"
-                                StrokeThickness="1"
-                                Style="{StaticResource RecipeCardBorderStyle}">
-                                <VerticalStackLayout Spacing="8">
-                                    <Image
-                                        Aspect="AspectFill"
-                                        HeightRequest="225"
-                                        HorizontalOptions="Fill"
-                                        Source="{Binding ImageData}"
-                                        VerticalOptions="Fill" />
-                                    <Label
-                                        Margin="12,0,12,12"
-                                        FontAttributes="Bold"
-                                        FontSize="16"
-                                        HorizontalTextAlignment="Center"
-                                        LineBreakMode="WordWrap"
-                                        MaxLines="3"
-                                        Style="{StaticResource RecipeCardTitleStyle}"
-                                        Text="{Binding Title}" />
-                                </VerticalStackLayout>
-                            </Border>
-                        </Grid>
+                    <DataTemplate x:DataType="models:RecipeListItem">
+                        <Border StrokeThickness="0">
+                            <Grid RowDefinitions="Auto,Auto">
+                                <Image Source="{Binding ImageData}" Aspect="AspectFill" HeightRequest="{OnIdiom Phone=152, Tablet=180, Desktop=210}" />
+                                <Label Grid.Row="1" Text="{Binding Title}" Margin="12,12,12,14"
+                                       FontSize="14" MaxLines="2" MinimumHeightRequest="40" LineBreakMode="TailTruncation" />
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-            <Image
-                Grid.RowSpan="2"
-                HorizontalOptions="Center"
-                IsVisible="{Binding IsBusy}"
-                Rotation="{Binding LoadingRoatation}"
-                Source="kittys.png"
-                VerticalOptions="Center"
-                WidthRequest="400" />
-        </Grid>
-    </RefreshView>
+        </RefreshView>
+        <VerticalStackLayout Grid.Row="4" Spacing="8">
+            <Button Text="+  Add recipe" HorizontalOptions="End" Clicked="AddButton_Clicked" IsEnabled="{Binding CanAdd}" />
+            <Label Text="{Binding StatusMessage}" Style="{StaticResource MutedLabel}" FontSize="11" HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+        <Border Grid.RowSpan="5" IsVisible="{Binding IsBusy}" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light=#E6F7F5F0, Dark=#E6172320}">
+            <VerticalStackLayout VerticalOptions="Center" Spacing="12">
+                <Image Source="nibbles_chef.png" HeightRequest="76" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" />
+                <Label Text="Opening your recipe box…" HorizontalTextAlignment="Center" Style="{StaticResource MutedLabel}" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>

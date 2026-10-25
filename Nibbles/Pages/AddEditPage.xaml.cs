@@ -1,5 +1,4 @@
-using Microsoft.Maui.Controls;
-using Nibbles.Models;
+using Nibbles.Services;
 using Nibbles.ViewModels;
 
 namespace Nibbles;
@@ -7,33 +6,63 @@ namespace Nibbles;
 [QueryProperty(nameof(RecipeId), "recipeId")]
 public partial class AddEditPage : ContentPage
 {
-    string recipeId = string.Empty;
-    public string RecipeId
-    {
-        get => recipeId;
-        set
-        {
-            recipeId = value;
-        }
-    }
+    private bool loaded;
+    private bool leaving;
+    public string RecipeId { get; set; } = string.Empty;
 
-    public AddEditPage()
+    public AddEditPage(ReceipeAPIService service)
     {
         InitializeComponent();
-        this.BindingContext = new AddEditViewModel();
+        BindingContext = new AddEditViewModel(service);
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        if (!string.IsNullOrEmpty(RecipeId))
+        Shell.Current.Navigating += OnNavigating;
+        if (loaded) return;
+        loaded = true;
+        if (!string.IsNullOrWhiteSpace(RecipeId))
+            await ((AddEditViewModel)BindingContext).LoadAsync(RecipeId);
+    }
+
+    protected override void OnDisappearing()
+    {
+        Shell.Current.Navigating -= OnNavigating;
+        base.OnDisappearing();
+    }
+
+    private async void OnNavigating(object? sender, ShellNavigatingEventArgs args)
+    {
+        if (!args.CanCancel || leaving || args.Source == ShellNavigationSource.Push) return;
+        var deferral = args.GetDeferral();
+        try
         {
-            var service = new Services.ReceipeAPIService();
-            var recipe = await service.GetRecipe(RecipeId);
-            if (recipe is not null)
+            var viewModel = (AddEditViewModel)BindingContext;
+            if (!await viewModel.ConfirmDiscardAsync())
             {
-                this.BindingContext = new ViewModels.AddEditViewModel(recipe);
+                args.Cancel();
+                return;
             }
+            viewModel.CleanupPhoto();
+            leaving = true;
         }
+        finally
+        {
+            deferral.Complete();
+        }
+    }
+
+    private async void Cancel_Clicked(object sender, EventArgs args) => await Shell.Current.GoToAsync("..");
+
+    private void Page_SizeChanged(object sender, EventArgs args)
+    {
+        if (EditorGrid is null) return;
+        var wide = Width >= 1180;
+        var preview = Width >= 900;
+        EditorGrid.ColumnDefinitions[0].Width = wide ? 216 : 0;
+        EditorGrid.ColumnDefinitions[2].Width = preview ? (wide ? 380 : 310) : 0;
+        NavigationRail.IsVisible = wide;
+        PreviewRail.IsVisible = preview;
     }
 }

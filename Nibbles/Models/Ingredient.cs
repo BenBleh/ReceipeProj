@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Text.Json.Serialization;
 
 namespace Nibbles.Models
 {
@@ -23,8 +24,13 @@ namespace Nibbles.Models
             }
         }
 
-        public string? FQIngrediantDescription { get; set; }
+        [ObservableProperty]
+        public partial string? FQIngrediantDescription { get; set; }
 
+        [ObservableProperty]
+        public partial string? GroupId { get; set; }
+
+        [JsonIgnore]
         [ObservableProperty]
         public partial bool IsChecked { get; set; } = false;
 

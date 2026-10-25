@@ -13,5 +13,7 @@
 
         public string? FQIngrediantDescription { get; set; }
 
+        public string? GroupId { get; set; }
+
     }
 }

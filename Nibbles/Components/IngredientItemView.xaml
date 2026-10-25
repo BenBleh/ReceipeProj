@@ -6,17 +6,26 @@
     xmlns:apiModels="clr-namespace:Nibbles.Models"
     xmlns:local="clr-namespace:Nibbles"
     x:DataType="apiModels:Ingredient">
-    <Grid ColumnDefinitions="auto, *">
+    <Grid ColumnDefinitions="auto, *" MinimumHeightRequest="48" ColumnSpacing="4">
         <local:PawCheckbox
             Grid.Column="0"
             Margin="0,0,8,0"
+            Label="{Binding FQIngrediantDescription}"
             IsChecked="{Binding IsChecked, Mode=TwoWay}"
             VerticalOptions="Center" />
         <Label
             Grid.Column="1"
             LineBreakMode="WordWrap"
+            FontSize="16"
+            LineHeight="1.25"
             Text="{Binding FQIngrediantDescription}"
             VerticalOptions="Center">
+            <Label.Triggers>
+                <DataTrigger TargetType="Label" Binding="{Binding IsChecked}" Value="True">
+                    <Setter Property="TextDecorations" Value="Strikethrough" />
+                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMuted}}" />
+                </DataTrigger>
+            </Label.Triggers>
             <Label.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding ToggleCheckedCommand}" />
             </Label.GestureRecognizers>

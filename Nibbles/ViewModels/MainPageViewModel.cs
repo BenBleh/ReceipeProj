@@ -1,148 +1,89 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Nibbles.Models;
 using Nibbles.Services;
 using System.Collections.ObjectModel;
 
-using System.Timers;
+namespace Nibbles.ViewModels;
 
-namespace Nibbles.ViewModels
+public partial class MainPageViewModel : ObservableObject
 {
-    public partial class MainPageViewModel : ObservableObject
+    private readonly ReceipeAPIService service;
+    private List<RecipeListItem> recipes = [];
+    private bool needsReload = true;
+    public ObservableCollection<RecipeListItem> RecipeListItems { get; } = [];
+
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsRefreshing { get; set; }
+
+    [ObservableProperty]
+    public partial bool CanAdd { get; set; }
+
+    [ObservableProperty]
+    public partial string StatusMessage { get; set; } = "Connecting to your recipe box…";
+
+    [ObservableProperty]
+    public partial string SearchQuery { get; set; } = string.Empty;
+
+    public string RecipeCount => $"{RecipeListItems.Count} {(RecipeListItems.Count == 1 ? "recipe" : "recipes")}";
+
+    public MainPageViewModel(ReceipeAPIService service)
     {
-        private List<RecipeListItem>? _recipeList;
-        public ObservableCollection<RecipeListItem> RecipeListItems { get; } = [];
+        this.service = service;
+        service.RecipeSaved += (_, _) => needsReload = true;
+    }
 
-        ReceipeAPIService ReceipeAPIService;
+    partial void OnSearchQueryChanged(string value) => PerformSearch();
 
-        [ObservableProperty]
-        public partial int LoadingRoatation { get; set; }
-
-        [ObservableProperty]
-        public partial bool IsBusy { get; set; }
-
-        [ObservableProperty]
-        public partial bool IsRefreshing { get; set; }
-
-        [ObservableProperty]
-        public partial bool CanAdd { get; set; }
-
-        public string SearchQuery
+    public async Task LoadAsync()
+    {
+        if (IsBusy || !needsReload)
+            return;
+        IsBusy = true;
+        try
         {
-            get
-            {
-                return searchQuery;
-            }
-            set
-            {
-                searchQuery = value;
-                PerformSearch();
-                OnPropertyChanged(nameof(SearchQuery));
-            }
+            var master = await service.GetMasterList();
+            recipes = master.Recipes ?? [];
+            CanAdd = master.LoadedFromServer;
+            StatusMessage = CanAdd ? "Home server connected" : "Offline · Downloaded recipes are read-only. Pull down to reconnect.";
+            needsReload = false;
+            PerformSearch();
         }
-        private string searchQuery = string.Empty;
-
-        System.Timers.Timer? _timer;
-
-
-
-        public MainPageViewModel()
+        catch (Exception exception)
         {
-            this.ReceipeAPIService = new ReceipeAPIService();
-            _ = LoadRecipeList();
+            CanAdd = false;
+            StatusMessage = exception.Message;
+            System.Diagnostics.Debug.WriteLine(exception);
         }
-
-        [RelayCommand]
-        private async Task LoadRecipeList()
+        finally
         {
-            if (!IsBusy)
-            {
-                IsBusy = true;
-                if (RecipeListItems.Count > 0)
-                {
-                    RecipeListItems.Clear();
-                }
-                try
-                {
-                    SetUpTimer();
-
-                    var masterList = await ReceipeAPIService.GetMasterList();
-                    CanAdd = masterList.LoadedFromServer;
-
-                    _recipeList = masterList.Recipes;
-                    foreach (var itm in _recipeList ?? [])
-                    {
-                        RecipeListItems.Add(itm);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await Shell.Current.CurrentPage.DisplayAlertAsync("Loading issue", $"Something went wrong loading recipe list ex messsage: {ex.Message}", "OK");
-                }
-                finally
-                {
-
-                    IsBusy = false;
-                    _timer?.Dispose();
-                }
-            }
+            IsBusy = false;
         }
+    }
 
-        [RelayCommand]
-        private async Task Refresh()
+    [RelayCommand]
+    private async Task Refresh()
+    {
+        needsReload = true;
+        try
         {
-            try
-            {
-                RecipeListItems.Clear();
-                await LoadRecipeList();
-            }
-            finally
-            {
-                IsRefreshing = false;
-            }
+            await LoadAsync();
         }
-
-        private void SetUpTimer(int interval = 50)
+        finally
         {
-            _timer = new System.Timers.Timer(50);
-            _timer.Elapsed += UpdateLoadingRotation;
-            _timer.Start();
+            IsRefreshing = false;
         }
+    }
 
-
-        private void UpdateLoadingRotation(object? sender, ElapsedEventArgs e)
-        {
-            LoadingRoatation += 5;
-        }
-
-        public void PerformSearch()
-        {
-            if (!IsBusy)
-            {
-                // this flashes each time the entry is updated
-                try
-                {
-                    RecipeListItems.Clear();
-
-                    IEnumerable<RecipeListItem> filteredRecipeListItems = [];
-                    if (string.IsNullOrEmpty(SearchQuery))
-                    {
-                        filteredRecipeListItems = _recipeList ?? [];
-                    }
-                    else
-                    {
-                        filteredRecipeListItems = _recipeList?.Where(w => w?.Title?.Contains(SearchQuery, StringComparison.CurrentCultureIgnoreCase) == true) ?? [];
-                    }
-                    foreach (var itm in filteredRecipeListItems)
-                    {
-                        RecipeListItems.Add(itm);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
-                }
-            }
-        }
+    private void PerformSearch()
+    {
+        RecipeListItems.Clear();
+        foreach (var recipe in recipes.Where(recipe => string.IsNullOrWhiteSpace(SearchQuery) ||
+            recipe.Title?.Contains(SearchQuery.Trim(), StringComparison.CurrentCultureIgnoreCase) == true))
+            RecipeListItems.Add(recipe);
+        OnPropertyChanged(nameof(RecipeCount));
     }
 }

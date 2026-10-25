@@ -19,5 +19,7 @@ namespace RecipeAPI.Models
         public List<Step>? Steps { get; set; }
 
         public List<Ingredient>? Ingredients { get; set; }
+
+        public List<IngredientGroup>? IngredientGroups { get; set; }
     }
 }

@@ -1,103 +1,130 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
-using Microsoft.Maui.ApplicationModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Nibbles.Models;
 using Nibbles.Services;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
-namespace Nibbles.ViewModels
+namespace Nibbles.ViewModels;
+
+public partial class RecipeDetailsViewModel(ReceipeAPIService service) : ObservableObject
 {
-    public partial class RecipeDetailsViewModel : ObservableObject
+    [ObservableProperty]
+    public partial Recipe? Recipe { get; set; }
+
+    [ObservableProperty]
+    public partial bool CanAdd { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMethod))]
+    public partial bool IsIngredients { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string ErrorMessage { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CopyLabel))]
+    [NotifyCanExecuteChangedFor(nameof(CopyIngredientsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClearChecksCommand))]
+    public partial int CheckedCount { get; set; }
+
+    public bool IsMethod => !IsIngredients;
+    public bool HasSourceLink => Uri.TryCreate(Recipe?.Source, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https";
+    public bool HasNotes => !string.IsNullOrWhiteSpace(Recipe?.Notes);
+    public bool HasTime => !string.IsNullOrWhiteSpace(Recipe?.TimeToComplete);
+    public string CopyLabel => $"Copy checked ({CheckedCount})";
+    public ObservableCollection<IngredientSection> IngredientSections { get; } = [];
+    private bool CanCopy => CheckedCount > 0;
+
+    public async Task LoadAsync(string id)
     {
-        [ObservableProperty]
-        public partial Recipe? Recipe { get; set; }
-
-        [ObservableProperty]
-        public partial bool HasSourceLink { get; set; } = false;
-
-        [ObservableProperty]
-        public partial bool CanAdd { get; set; }
-
-        ReceipeAPIService receipeAPIService;
-
-        [RelayCommand]
-        private async Task OpenLink()
+        try
         {
-            if (Recipe?.Source is not null)
-                await Launcher.OpenAsync(Recipe.Source);
-        }
-
-        [RelayCommand]
-        private async Task CopyIngredients()
-        {
-            try
+            if (Recipe is not null)
+                foreach (var ingredient in Recipe.Ingredients)
+                    ingredient.PropertyChanged -= IngredientChanged;
+            Recipe = await service.GetRecipe(id);
+            IngredientSections.Clear();
+            if (Recipe is not null)
             {
-                if (this.Recipe?.Ingredients is null)
-                {
-                    return;
-                }
-
-                var checkedIngredients = this.Recipe.Ingredients.Where(i => i.IsChecked).Select(i => i.FQIngrediantDescription).Where(s => !string.IsNullOrEmpty(s)).ToList();
-
-                if (checkedIngredients.Count == 0)
-                {
-                    return;
-                }
-
-                var text = string.Join(Environment.NewLine, checkedIngredients);
-
-                await Clipboard.SetTextAsync(text);
-
-                var toast = Toast.Make("Checked ingredients copied to clipboard.", ToastDuration.Short);
-                await toast.Show();
+                foreach (var section in RecipeIngredients.Sections(Recipe))
+                    IngredientSections.Add(section);
+                foreach (var ingredient in Recipe.Ingredients)
+                    ingredient.PropertyChanged += IngredientChanged;
             }
-            catch { }
+            CheckedCount = 0;
+            ErrorMessage = string.Empty;
+            OnPropertyChanged(nameof(HasSourceLink));
+            OnPropertyChanged(nameof(HasNotes));
+            OnPropertyChanged(nameof(HasTime));
         }
-
-        [RelayCommand]
-        private async Task EditRecipe()
+        catch (Exception exception)
         {
-            if (Recipe?.Id is not null)
-            {
-                var id = Uri.EscapeDataString(Recipe.Id);
-                await Shell.Current.GoToAsync($"{nameof(AddEditPage)}?recipeId={id}");
-                _ = RefreshRecipeAsync();
-            }
+            ErrorMessage = $"Could not open this recipe. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception);
         }
+    }
 
-        string recipeId;
+    private void IngredientChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName != nameof(Ingredient.IsChecked))
+            return;
+        CheckedCount = Recipe?.Ingredients.Count(ingredient => ingredient.IsChecked &&
+            !string.IsNullOrWhiteSpace(ingredient.FQIngrediantDescription)) ?? 0;
+        foreach (var section in IngredientSections)
+            section.UpdateSummary();
+    }
 
-        public RecipeDetailsViewModel(string recipeId)
+    [RelayCommand]
+    private void ShowIngredients() => IsIngredients = true;
+
+    [RelayCommand]
+    private void ShowMethod() => IsIngredients = false;
+
+    [RelayCommand(CanExecute = nameof(CanCopy))]
+    private void ClearChecks()
+    {
+        foreach (var ingredient in Recipe!.Ingredients)
+            ingredient.IsChecked = false;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCopy))]
+    private async Task CopyIngredients()
+    {
+        try
         {
-            //_popupService = popupService;
-            receipeAPIService = new ReceipeAPIService();
-            this.recipeId = recipeId;
-            _ = RefreshRecipeAsync();
+            await Clipboard.Default.SetTextAsync(RecipeIngredients.CheckedText(Recipe!));
+            await Toast.Make("Checked ingredients copied.").Show();
         }
-
-
-        public async Task RefreshRecipeAsync()
+        catch (Exception exception)
         {
-            try
-            {
-                this.Recipe = await receipeAPIService.GetRecipe(this.recipeId);
-                if (this.Recipe is null)
-                {
-
-                }
-                if (this.Recipe?.Source is not null)
-                {
-                    HasSourceLink = this.Recipe.Source.Contains("http");
-                }
-            }
-            catch (Exception ex)
-            {
-                //var vm = new BasePopupViewModel("Loading issue", $"Something went wrong loading{this.Recipe}, ex messsage: " + ex.Message);
-                //await _popupService.ShowPopupAsync<BasePopupViewModel>();
-
-                await Shell.Current.CurrentPage.DisplayAlertAsync("Loading issue", $"Something went wrong loading{this.Recipe}, ex messsage: " + ex.Message, "OK");
-            }
+            ErrorMessage = $"Could not copy ingredients. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception);
         }
+    }
+
+    [RelayCommand]
+    private async Task OpenLink()
+    {
+        if (!HasSourceLink)
+            return;
+        try
+        {
+            if (!await Launcher.Default.OpenAsync(new Uri(Recipe!.Source!)))
+                ErrorMessage = "No app could open this source link.";
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = $"Could not open the source. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+    }
+
+    [RelayCommand]
+    private async Task EditRecipe()
+    {
+        if (CanAdd && Recipe?.Id is not null)
+            await Shell.Current.GoToAsync($"{nameof(AddEditPage)}?recipeId={Uri.EscapeDataString(Recipe.Id)}");
     }
 }
