@@ -33,7 +33,7 @@ public sealed class PasteIngredientsPage : ContentPage
         var grid = new Grid { Padding = 24, RowDefinitions = [new(GridLength.Star), new(GridLength.Auto)] };
         var content = new VerticalStackLayout { Spacing = 16, MaximumWidthRequest = 700, HorizontalOptions = LayoutOptions.Fill };
         content.Add(new Label { Text = $"Paste into {groupName}", Style = (Style)Application.Current.Resources["SectionHeading"] });
-        content.Add(new Label { Text = "One ingredient per line. Blank lines are ignored. Preview before adding; existing ingredients will not be replaced." });
+        content.Add(new Label { Text = "One ingredient per line. Blank lines and leading dashes, asterisks, or bullets are removed. Preview before adding; filled ingredients are kept and empty rows in this group are removed." });
         content.Add(input);
         content.Add(review);
         content.Add(preview);

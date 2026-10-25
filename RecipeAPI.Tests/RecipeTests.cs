@@ -201,6 +201,71 @@ public sealed class RecipeTests : IDisposable
             RecipeIngredients.ParsePastedList(" \r\n2 cloves garlic, crushed\r\n\nFor the sauce:\r½ cup stock\n "));
     }
 
+    [Theory]
+    [InlineData(" - 1 egg")]
+    [InlineData("- 1 egg")]
+    [InlineData("-1 egg")]
+    [InlineData("* 1 egg")]
+    [InlineData("\t*1 egg  ")]
+    [InlineData("\u2022 1 egg")]
+    [InlineData("\u2013 1 egg")]
+    [InlineData("\u2014 1 egg")]
+    public void PasteRemovesLeadingListMarkersInPreviewAndAddedIngredients(string text)
+    {
+        var lines = RecipeIngredients.ParsePastedList(text);
+        Assert.Equal(["1 egg"], lines);
+        var recipe = new AppRecipe();
+        RecipeIngredients.AppendPastedList(recipe, "broth", lines);
+        var ingredient = Assert.Single(recipe.Ingredients);
+        Assert.Equal("1 egg", ingredient.FQIngrediantDescription);
+        Assert.Equal("broth", ingredient.GroupId);
+    }
+
+    [Fact]
+    public void PasteIgnoresMarkerOnlyLinesAndPreservesAmountsAndInternalPunctuation()
+    {
+        Assert.Equal(["1 egg", "1.5 cups stock", "1/2 tsp salt", "2-3 cloves garlic", "salt *to taste*"],
+            RecipeIngredients.ParsePastedList("-\r\n * \r\u2022\n\u2013\n\u2014\n1 egg\n1.5 cups stock\n1/2 tsp salt\n- 2-3 cloves garlic\n* salt *to taste*"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("broth")]
+    public void PasteRemovesOnlyEmptyIngredientsInTheTargetGroup(string? groupId)
+    {
+        var recipe = new AppRecipe
+        {
+            TimeToComplete = "35 minutes",
+            Ingredients =
+            [
+                new() { GroupId = groupId },
+                new() { GroupId = groupId, FQIngrediantDescription = " \t " },
+                new() { GroupId = groupId, FQIngrediantDescription = "" },
+                new() { GroupId = groupId, FQIngrediantDescription = "stock" },
+                new() { GroupId = "other" },
+                new() { GroupId = "other", FQIngrediantDescription = "rice" }
+            ]
+        };
+        var existing = recipe.Ingredients[3];
+        var otherEmpty = recipe.Ingredients[4];
+        RecipeIngredients.AppendPastedList(recipe, groupId, RecipeIngredients.ParsePastedList("- 1 egg\n* salt"));
+        Assert.Equal(["stock", null, "rice", "1 egg", "salt"],
+            recipe.Ingredients.Select(ingredient => ingredient.FQIngrediantDescription));
+        Assert.Same(existing, recipe.Ingredients[0]);
+        Assert.Same(otherEmpty, recipe.Ingredients[1]);
+        Assert.All(recipe.Ingredients.TakeLast(2), ingredient => Assert.Equal(groupId, ingredient.GroupId));
+        Assert.Equal("35 minutes", recipe.TimeToComplete);
+    }
+
+    [Fact]
+    public void EmptyPasteDoesNotRemoveAnExistingPlaceholder()
+    {
+        var recipe = new AppRecipe { Ingredients = [new()] };
+        var placeholder = recipe.Ingredients[0];
+        RecipeIngredients.AppendPastedList(recipe, null, RecipeIngredients.ParsePastedList(" \n -\n* "));
+        Assert.Same(placeholder, Assert.Single(recipe.Ingredients));
+    }
+
     [Fact]
     public void RealImageUploadCreatesJpegAndThumbnail()
     {

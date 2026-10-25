@@ -249,8 +249,7 @@ public partial class AddEditViewModel : ObservableObject
         var lines = await PasteIngredientsPage.ShowAsync(section.Name);
         if (lines is null)
             return;
-        foreach (var line in lines)
-            Recipe.Ingredients.Add(new Ingredient { FQIngrediantDescription = line, GroupId = section.Id });
+        RecipeIngredients.AppendPastedList(Recipe, section.Id, lines);
         RefreshSections();
     }
 

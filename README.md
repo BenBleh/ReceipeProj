@@ -53,3 +53,44 @@ Open the `Nibbles` folder in VS Code, select `.NET MAUI Windows` in Run and Debu
 and press F5. This builds and debugs the unpackaged Windows app in Debug mode.
 If prompted, select `Nibbles` as the startup project and the Windows target.
 The existing Android launch configuration is unchanged.
+
+## Nibbles installable builds
+
+Run these commands from the repository root. The current release is 1.1, Android
+version code 2; increment those values in `Nibbles.csproj` for future releases.
+
+### Android APK
+
+```powershell
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.1\android
+Copy-Item .\artifacts\Nibbles\1.1\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.1\Nibbles-1.1-Android.apk
+```
+
+This produces a standalone APK for ARM64 phones and x64 emulators, signed with
+the existing .NET Android development key in
+`%LOCALAPPDATA%\Xamarin\Mono for Android\debug.keystore`. Keep this key backed up:
+Android updates must use the same signing certificate. This signing setup is for
+personal sideloading, not Play Store distribution. Open the APK on the phone and
+allow installation from that source if Android prompts.
+
+### Windows setup EXE
+
+Install the Inno Setup 6 compiler, then run (adjust the compiler path for a
+per-user or portable installation):
+
+```powershell
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.1 .\Nibbles\Packaging\Nibbles.iss
+```
+
+The installer is `artifacts\Nibbles\1.1\Nibbles-1.1-Windows-x64-Setup.exe`.
+It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
+App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
+It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;
+uninstalling does not delete cached recipes or settings. The installer is not
+code-signed, so Windows may show an unknown-publisher warning.
+The Windows publish command scopes restore to the Windows framework to avoid
+applying its `win-x64` runtime identifier to the Android/iOS targets.
+
+Both apps still connect to the recipe API at `192.168.1.110:8080` and images on
+port `8081`; use the home network or a VPN with access to that server.

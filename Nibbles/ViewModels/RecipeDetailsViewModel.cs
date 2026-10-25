@@ -32,7 +32,6 @@ public partial class RecipeDetailsViewModel(ReceipeAPIService service) : Observa
     public bool IsMethod => !IsIngredients;
     public bool HasSourceLink => Uri.TryCreate(Recipe?.Source, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https";
     public bool HasNotes => !string.IsNullOrWhiteSpace(Recipe?.Notes);
-    public bool HasTime => !string.IsNullOrWhiteSpace(Recipe?.TimeToComplete);
     public string CopyLabel => $"Copy checked ({CheckedCount})";
     public ObservableCollection<IngredientSection> IngredientSections { get; } = [];
     private bool CanCopy => CheckedCount > 0;
@@ -57,7 +56,6 @@ public partial class RecipeDetailsViewModel(ReceipeAPIService service) : Observa
             ErrorMessage = string.Empty;
             OnPropertyChanged(nameof(HasSourceLink));
             OnPropertyChanged(nameof(HasNotes));
-            OnPropertyChanged(nameof(HasTime));
         }
         catch (Exception exception)
         {

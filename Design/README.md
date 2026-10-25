@@ -15,6 +15,8 @@ use the platform's serif font (Georgia on Windows and Apple platforms).
 There are **no source filters or source labels on recipe tiles**. Original-source
 links are available on recipe details. The original pink paws are retained in
 dark mode, with berry-coloured versions in light mode.
+Cooking time is no longer displayed or editable. Existing `TimeToComplete`
+metadata is retained only for lossless compatibility with stored recipes.
 
 ## Ingredient groups and existing data
 
@@ -32,9 +34,13 @@ the redesign.
 The editor supports adding and renaming groups, moving headings and ingredients
 up/down, moving ingredients between groups, and removing headings while moving
 all their ingredients to an explicitly selected destination. Per-group paste
-accepts one ingredient per line, ignores blanks, and requires a preview and
-confirmation before appending. It never replaces the existing list or guesses
-headings. Paw checks are local to the current recipe view and are not saved.
+accepts one ingredient per line, trims whitespace and leading list markers
+(`-`, `*`, bullets, and en/em dashes), and ignores lines left empty. The same
+cleaned wording appears in the required preview and is added on confirmation.
+Appending keeps filled ingredients and removes empty rows only in the target
+group (including the flat list); cancelling leaves everything unchanged.
+It never replaces the existing list or guesses headings. Paw checks are local
+to the current recipe view and are not saved.
 Copy includes only checked ingredients, in visible group order, with headings
 only for groups containing checked items.
 

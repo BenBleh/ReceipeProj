@@ -24,7 +24,6 @@
                 <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
                 <HorizontalStackLayout Spacing="12">
                     <Button Text="↗  Original recipe" Style="{StaticResource SecondaryButton}" Command="{Binding OpenLinkCommand}" IsVisible="{Binding HasSourceLink}" />
-                    <Label Text="{Binding Recipe.TimeToComplete}" IsVisible="{Binding HasTime}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
                 </HorizontalStackLayout>
                 <Label Text="{Binding Recipe.Notes}" IsVisible="{Binding HasNotes}" Style="{StaticResource MutedLabel}" FontSize="15" />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">

@@ -35,7 +35,19 @@ public static class RecipeIngredients
 
     public static List<string> ParsePastedList(string text) =>
         text.Split(["\r\n", "\r", "\n"], StringSplitOptions.None)
-            .Select(line => line.Trim()).Where(line => line.Length > 0).ToList();
+            .Select(line => line.Trim().TrimStart('-', '*', '\u2022', '\u2013', '\u2014').TrimStart())
+            .Where(line => line.Length > 0).ToList();
+
+    public static void AppendPastedList(Recipe recipe, string? groupId, IReadOnlyCollection<string> lines)
+    {
+        if (lines.Count == 0)
+            return;
+        foreach (var ingredient in recipe.Ingredients.Where(ingredient => ingredient.GroupId == groupId &&
+            string.IsNullOrWhiteSpace(ingredient.FQIngrediantDescription)).ToList())
+            recipe.Ingredients.Remove(ingredient);
+        foreach (var line in lines)
+            recipe.Ingredients.Add(new Ingredient { FQIngrediantDescription = line, GroupId = groupId });
+    }
 
     public static void RemoveGroup(Recipe recipe, string groupId, string? destinationId)
     {

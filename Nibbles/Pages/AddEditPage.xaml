@@ -70,8 +70,6 @@
                         <Label Text="Cover photo" FontFamily="OpenSansSemibold" />
                         <Border StrokeThickness="0"><Image Source="{Binding Recipe.ImagePath}" HeightRequest="200" Aspect="AspectFill" /></Border>
                         <Button Text="Choose photo" Style="{StaticResource SecondaryButton}" Command="{Binding GetImageCommand}" HorizontalOptions="Start" />
-                        <Label Text="Time to cook" FontFamily="OpenSansSemibold" />
-                        <Border Style="{StaticResource Field}"><Entry Text="{Binding Recipe.TimeToComplete}" Placeholder="e.g. 30 min" /></Border>
                         <Label Text="Your notes" FontFamily="OpenSansSemibold" />
                         <Border Style="{StaticResource Field}"><Editor Text="{Binding Recipe.Notes}" Placeholder="Family favourites, substitutions, or a tip for next time…" MinimumHeightRequest="100" /></Border>
                         <Button Text="Next: Ingredients →" Command="{Binding SelectSectionCommand}" CommandParameter="1" />
