@@ -46,3 +46,10 @@ and regenerate the intermediate resources:
 ```powershell
 dotnet build Nibbles.csproj -f net10.0-android -c Debug -t:Rebuild
 ```
+
+## Nibbles Windows debugging
+
+Open the `Nibbles` folder in VS Code, select `.NET MAUI Windows` in Run and Debug,
+and press F5. This builds and debugs the unpackaged Windows app in Debug mode.
+If prompted, select `Nibbles` as the startup project and the Windows target.
+The existing Android launch configuration is unchanged.
