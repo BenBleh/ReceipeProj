@@ -56,14 +56,14 @@ The existing Android launch configuration is unchanged.
 
 ## Nibbles installable builds
 
-Run these commands from the repository root. The current release is 1.2.0, Android
-version code 4; increment those values in `Nibbles.csproj` for future releases.
+Run these commands from the repository root. The current release is 1.2.1, Android
+version code 5; increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.2.0\android
-Copy-Item .\artifacts\Nibbles\1.2.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.2.0\Nibbles-1.2.0-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.2.1\android
+Copy-Item .\artifacts\Nibbles\1.2.1\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.2.1\Nibbles-1.2.1-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -80,10 +80,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.2.0 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.2.1 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The installer is `artifacts\Nibbles\1.2.0\Nibbles-1.2.0-Windows-x64-Setup.exe`.
+The installer is `artifacts\Nibbles\1.2.1\Nibbles-1.2.1-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;
@@ -110,6 +110,8 @@ Search indexes the available recipe JSON after refresh, across titles,
 ingredients/group names, notes and method. Every query term must occur in the
 same recipe, ignoring case and accents. Results show excerpts and open the
 matching section; an empty query keeps the normal library.
+Search-result tiles retain the recipe image above the title and matching excerpt;
+Windows uses a responsive grid and phones use full-width result cards.
 
 Half, original, double and custom positive scaling are temporary display
 changes. Review the original and scaled amounts before applying. Ambiguous,
@@ -159,3 +161,15 @@ the repository. Transient push failures use bounded exponential retry delays.
 `last-success.json` is written only after a confirmed push; a local commit alone
 is not a remote backup. Recovery remains manual through GitHub/Git, including
 images and `MasterList.csv`, followed by an app refresh.
+
+An edit that was already uncommitted before an API save is not silently adopted
+as API-owned work. Review and commit/push that file before removing its pause
+marker. If queued API edits were deliberately reverted instead, an administrator
+must reconcile those jobs with the current files; retain reviewed obsolete jobs
+and the pause record in a private recovery archive rather than deleting jobs to
+force a retry. Never blanket-approve unrelated files or disable ownership checks.
+
+Verify backups with a real update through the deployed API: check the worker's
+new `last-success.json`, the matching commit on GitHub, the changed recipe
+contents, and the absence of pending jobs. A successful startup/dry-run access
+check does not exercise save-to-queue, commit, or completed backup.

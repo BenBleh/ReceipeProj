@@ -1,7 +1,8 @@
 # Nibbles redesign
 
-`Nibbles-redesign.fig` is the approved editable OpenPencil design. Open it in
-OpenPencil to continue designing. `Nibbles-overview.png`, the screen overviews,
+`Nibbles-redesign.fig` is the editable OpenPencil design, containing the approved
+1.2.0 screens and the approved 1.2.1 revisions below. Open it in OpenPencil to
+continue designing. `Nibbles-overview.png`, the screen overviews,
 and `previews` provide quick references; `assets` contains the approved mascot,
 recipe-photo references, app icon, and launch artwork.
 
@@ -20,13 +21,13 @@ metadata is retained only for lossless compatibility with stored recipes.
 
 ## Next features: cooking, search, scaling and GitHub backup
 
-The editable document now includes **12 additional boards** on these pages:
+The editable document now includes **13 feature boards** on these pages:
 
 | OpenPencil page | Contents |
 | --- | --- |
 | 06 - Cooking mode and full-recipe search | Entry from recipe details, paw checklist, current scrolling numbered method in dark mode, resume session, matched search excerpts, no-match state, empty search with placeholder |
 | 07 - Temporary recipe scaling | Multiplier and preview, uncertain-amount review, scaled checklist |
-| 08 - Windows cooking and feature handoff | Side-by-side Windows cooking workspace and interaction/API design specification |
+| 08 - Windows cooking and feature handoff | Side-by-side Windows cooking workspace, photo search results, and interaction/API design specification |
 
 These pages are the approved reference for the **1.2.0 app/API features**. They
 supersede the older browse/cooking interaction examples for these additions;
@@ -34,6 +35,25 @@ the existing editor, paste behavior, branding and no-cooking-time rule remain.
 All new boards have matching PNGs in `previews`. The `feature-behaviour.png`
 board contains the full interaction handoff. `cooking-search-overview.png` and
 `scaling-overview.png` show the new Android flows at a glance.
+
+### Approved revision: feedback from Windows 1.2.0
+
+- Keep recipe photos visible in search-result tiles, with the title, matching
+  section and excerpt below each photo. Updated **06 / 05** covers phones;
+  new **08 / 03 - Windows - search results with photos** shows the desktop
+  layout. Preview: `previews/windows-search-photos.png`.
+- The user reports that an edited recipe reaches disk but is not committed or
+  pushed to GitHub. This is an API/operations defect, not a request for backup
+  UI. Investigation found a manual-edit safeguard had paused backups before
+  the test recipe's pending edits were reverted. Reviewed obsolete jobs are
+  preserved in a private recovery archive, not silently adopted or discarded.
+  Acceptance uses a real update through the deployed API and confirms the
+  resulting commit and updated recipe on the remote branch; startup or dry-run
+  access checks alone are insufficient.
+
+These revisions are approved for implementation. The earlier design pass changed
+design artifacts only; backup recovery and a real API-to-GitHub verification are
+separate implementation work.
 
 ### Dedicated cooking mode
 
@@ -75,6 +95,9 @@ board contains the full interaction handoff. `cooking-search-overview.png` and
   `previews/search-empty.png` shows the full placeholder in the input.
 - Rank title matches first, then ingredients, notes and method. Show matching
   excerpts and the relevant section; opening a result reveals that section.
+  Keep the available recipe photo visible on each result tile, using the
+  normal library's image treatment, with title and match details below it.
+  Windows retains a responsive tile grid; photos are not replaced by excerpts.
   Do not show explanatory panels about excerpts/tapping or connecting to the
   home server to refresh. No source-filter chips or source labels are reintroduced.
 - Search the recipe JSON available on the device through a local index,
@@ -124,6 +147,11 @@ the server owner, not messages to the app user.
 - Internally distinguish queued, committing, pushing, successfully pushed and
   action-needed states. Only a confirmed remote push counts as backed up.
   A local commit or queued write alone is not a remote backup.
+- Verify the deployed save-to-backup path end to end: an actual API recipe
+  update must reach disk, produce a scoped commit and appear on the configured
+  GitHub branch under the IIS identity. Check durable jobs and server logs when
+  a saved update does not commit or push. Do not treat a successful startup
+  credential check or dry-run push as proof that recipe updates are backed up.
 - Retry transient network failures with bounded backoff. Auth/permission
   problems, conflicting manual work and non-fast-forward rejections pause for
   server-side resolution. Retry uses existing commits and never resubmits the

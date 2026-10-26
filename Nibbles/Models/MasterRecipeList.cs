@@ -33,9 +33,6 @@ namespace Nibbles.Models
         [JsonIgnore]
         public bool HasMatch => MatchSection is not null;
         [JsonIgnore]
-        public bool ShowImage => !HasMatch;
-
-        [JsonIgnore]
         public ImageSource? ImageStream
         {
             get

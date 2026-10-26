@@ -49,7 +49,8 @@
                     <DataTemplate x:DataType="models:RecipeListItem">
                         <Border StrokeThickness="0">
                             <Grid RowDefinitions="Auto,Auto,Auto,Auto">
-                                <Image Source="{Binding ImageData}" IsVisible="{Binding ShowImage}" Aspect="AspectFill" HeightRequest="{OnIdiom Phone=152, Tablet=180, Desktop=210}" />
+                                <Image Source="{Binding ImageData}" Aspect="AspectFill" HeightRequest="{OnIdiom Phone=152, Tablet=180, Desktop=210}"
+                                       SemanticProperties.Description="{Binding Title, StringFormat='Recipe image for {0}'}" />
                                 <Label Grid.Row="1" Text="{Binding Title}" Margin="12,12,12,14"
                                        FontSize="14" MaxLines="2" MinimumHeightRequest="40" LineBreakMode="TailTruncation" />
                                 <Label Grid.Row="2" Text="{Binding MatchLabel}" IsVisible="{Binding HasMatch}" Margin="12,0,12,8"

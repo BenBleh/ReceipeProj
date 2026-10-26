@@ -45,6 +45,6 @@ public partial class MainPage : ContentPage
     {
         if (RecipeGrid is not null && BindingContext is MainPageViewModel model)
             RecipeGrid.Span = model.IsSearching
-                ? (Width >= 1000 ? 2 : 1) : Width >= 1200 ? 4 : Width >= 800 ? 3 : 2;
+                ? (Width >= 1200 ? 3 : Width >= 800 ? 2 : 1) : Width >= 1200 ? 4 : Width >= 800 ? 3 : 2;
     }
 }

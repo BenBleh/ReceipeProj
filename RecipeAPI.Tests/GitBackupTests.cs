@@ -6,6 +6,14 @@ using RecipeAPI.Helpers;
 using RecipeAPI.Models;
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using RecipeAPI.Controllers;
+using RecipeAPI.Interfaces;
+using System.Net;
+using System.Net.Http.Json;
 
 namespace RecipeAPI.Tests;
 
@@ -90,6 +98,74 @@ public sealed class GitBackupTests : IDisposable
         Assert.Contains(recipe.Id!, Git(remote, "show", "refs/heads/main:MasterList.csv"));
         Assert.Equal("?? manual-notes.txt", Git(repository, "status", "--short"));
         Assert.DoesNotContain("manual-notes", Git(remote, "ls-tree", "-r", "--name-only", "main"));
+    }
+
+    [Fact]
+    public async Task HttpUpdateIsAutomaticallyCommittedAndPushedByHostedWorker()
+    {
+        var recipe = new RecipeAccessJson(Queue()).CreateRecipe(Recipe());
+        Queue().ProcessPending(CancellationToken.None);
+        var previousCommit = Git(remote, "rev-parse", "main");
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Logging.ClearProviders();
+        builder.Services.AddSingleton(Options.Create(options));
+        builder.Services.AddSingleton<GitBackupQueue>();
+        builder.Services.AddTransient<IRecipeAccess, RecipeAccessJson>();
+        builder.Services.AddHostedService<GitBackupWorker>();
+        builder.Services.AddControllers().AddApplicationPart(typeof(RecipeController).Assembly);
+        await using var app = builder.Build();
+        app.MapControllers();
+        await app.StartAsync();
+        try
+        {
+            using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
+            recipe.Notes = "Updated through HTTP; the hosted worker must push this.";
+            using var updated = await client.PutAsJsonAsync("/Recipe/" + recipe.Id, recipe);
+            Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+            var deadline = DateTime.UtcNow.AddSeconds(25);
+            while (DateTime.UtcNow < deadline &&
+                (Git(remote, "rev-parse", "main") == previousCommit || Directory.GetFiles(options.QueuePath, "job-*.json").Length > 0))
+                await Task.Delay(100);
+            Assert.NotEqual(previousCommit, Git(remote, "rev-parse", "main"));
+            Assert.Empty(Directory.GetFiles(options.QueuePath, "job-*.json"));
+            var backedUp = JsonSerializer.Deserialize<Recipe>(Git(remote, "show", $"main:{recipe.Id}.json"))!;
+            Assert.Equal(recipe.Notes, backedUp.Notes);
+            Assert.Equal(recipe.Id + ".json", Git(remote, "diff-tree", "--no-commit-id", "--name-only", "-r", "main"));
+            using var success = JsonDocument.Parse(File.ReadAllText(Path.Combine(options.QueuePath, "last-success.json")));
+            Assert.Equal(Git(remote, "rev-parse", "main"), success.RootElement.GetProperty("Commit").GetString());
+        }
+        finally { await app.StopAsync(); }
+    }
+
+    [Fact]
+    public void ReviewedManualChangesCanBeCommittedAndPushedBeforeResumingAutomaticUpdates()
+    {
+        var storage = new RecipeAccessJson(Queue());
+        var recipe = storage.CreateRecipe(Recipe());
+        Queue().ProcessPending(CancellationToken.None);
+        recipe.Notes = "Pre-existing manual edit";
+        File.WriteAllText(Path.Combine(repository, recipe.Id + ".json"), JsonSerializer.Serialize(recipe));
+        recipe.Notes = "API update after the manual edit";
+        storage.UpdateRecipe(recipe.Id!, recipe);
+        Queue().ProcessPending(CancellationToken.None);
+        var pause = Path.Combine(options.QueuePath, "paused.json");
+        Assert.True(File.Exists(pause));
+        Assert.Null(JsonSerializer.Deserialize<Recipe>(Git(remote, "show", $"main:{recipe.Id}.json"))!.Notes);
+
+        Git(repository, "add", "--", recipe.Id + ".json");
+        Git(repository, "commit", "-m", "Review and preserve manual test-recipe changes",
+            "-m", "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>");
+        Git(repository, "push", "origin", "main");
+        File.Delete(pause);
+        Queue().ProcessPending(CancellationToken.None);
+        Assert.Empty(Directory.GetFiles(options.QueuePath, "job-*.json"));
+
+        recipe.Notes = "Fresh API update after reviewed recovery";
+        storage.UpdateRecipe(recipe.Id!, recipe);
+        Queue().ProcessPending(CancellationToken.None);
+        Assert.Equal(recipe.Notes, JsonSerializer.Deserialize<Recipe>(Git(remote, "show", $"main:{recipe.Id}.json"))!.Notes);
+        Assert.False(File.Exists(pause));
     }
 
     [Fact]
