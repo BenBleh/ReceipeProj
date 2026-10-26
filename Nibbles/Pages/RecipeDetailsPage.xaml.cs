@@ -13,6 +13,7 @@ namespace Nibbles;
 public partial class RecipeDetailsPage : ContentPage
 {
     private readonly CookingSessionStore sessions;
+    private readonly ReceipeAPIService service;
     private bool returningFromScale;
     public string RecipeId { get; set; } = string.Empty;
     public bool CanAdd { get; set; }
@@ -24,12 +25,15 @@ public partial class RecipeDetailsPage : ContentPage
     {
         InitializeComponent();
         this.sessions = sessions;
+        this.service = service;
         BindingContext = new RecipeDetailsViewModel(service);
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        service.AccessChanged += AccessChanged;
+        ((RecipeDetailsViewModel)BindingContext).CanAdd = service.CanWrite;
         if (AppDialogs.IsOpen)
             return;
         if (returningFromScale)
@@ -38,7 +42,7 @@ public partial class RecipeDetailsPage : ContentPage
             return;
         }
         var viewModel = (RecipeDetailsViewModel)BindingContext;
-        viewModel.CanAdd = CanAdd;
+        viewModel.CanAdd = service.CanWrite;
         if (!string.IsNullOrEmpty(RecipeId))
             await viewModel.LoadAsync(RecipeId);
         try
@@ -74,6 +78,15 @@ public partial class RecipeDetailsPage : ContentPage
             System.Diagnostics.Debug.WriteLine(exception);
         }
     }
+
+    protected override void OnDisappearing()
+    {
+        service.AccessChanged -= AccessChanged;
+        base.OnDisappearing();
+    }
+
+    private void AccessChanged(object? sender, EventArgs args) =>
+        ((RecipeDetailsViewModel)BindingContext).CanAdd = service.CanWrite;
 
     private async Task StartCooking(bool resume)
     {

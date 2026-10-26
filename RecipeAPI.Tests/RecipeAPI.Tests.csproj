@@ -26,6 +26,8 @@
     <Compile Include="..\Nibbles\Services\RecipeScaling.cs" Link="App\RecipeScaling.cs" />
     <Compile Include="..\Nibbles\Services\RecipeSearch.cs" Link="App\RecipeSearch.cs" />
     <Compile Include="..\Nibbles\Models\CookingSession.cs" Link="App\CookingSession.cs" />
+    <Compile Include="..\Nibbles\Services\GitHubRecipeRepository.cs" Link="App\GitHubRecipeRepository.cs" />
+    <Compile Include="..\Nibbles\Services\RecipeWritePreparation.cs" Link="App\RecipeWritePreparation.cs" />
   </ItemGroup>
 
 </Project>

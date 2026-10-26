@@ -19,6 +19,119 @@ dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
 
+## Direct GitHub storage
+
+**Approved and implemented in 1.3.0.** Page **10 - Direct GitHub storage** has
+12 boards: eight phone states, two Windows examples, and two implementation
+handoffs explicitly marked **design notes, not app UI**.
+`github-storage-overview.png` and `previews/github-*.png` provide previews.
+The design artifacts contain no credentials.
+
+The app reads and writes **BenBleh/rfiles**, branch **main**, through
+GitHub's HTTPS API instead of the home recipe API and file server. The user
+chose a **personal build with no setup UI**: fix the endpoint, repository and
+branch in the app, and inject a repository-scoped, fine-grained personal access
+token **during packaging from a private build input**, never committed source.
+The token needs **Contents: Read and write**, with access only to `rfiles`;
+do not reuse the server deploy key or grant admin/workflow permissions.
+Set its expiration to **No expiration**, as requested. If a GitHub policy blocks
+that choice, report it rather than silently substituting an expiring token.
+Non-expiring access can still be revoked or removed by GitHub, including after
+a year of inactivity, so screen 06 remains an exceptional access-failure fallback.
+There are no connection settings, account menu, token-entry or disconnect
+screens. Launch opens the recipe box automatically.
+
+**Accepted tradeoff:** a packaged token can be extracted from an APK or EXE,
+even if the source repository is private or the app also uses secure storage.
+The user explicitly selected this approach after that warning. Treat installers
+as private, sensitive artifacts. Never put tokens in Git, recipe files, logs,
+command output, URLs or design exports; no real token is used in this design.
+Missing build credentials must fail packaging rather than produce a broken
+installer or silently restore the home-API connection.
+
+### UI and offline behaviour
+
+- No setup steps or new header controls. On first launch, show the normal
+  recipe-box loading state while downloading automatically. Existing cached
+  recipes remain browsable whenever GitHub cannot be reached. If there is no
+  usable cache, show the actual error and Retry, not a connection wizard.
+- Offline remains **read only**: disable Add, hide Edit and prevent saves.
+  Local search, cooking, same-day progress, checks, temporary scaling and
+  copying displayed scaled ingredients continue to work. If connectivity is
+  lost inside the editor, retain its current in-memory input, lock editing and
+  saving, and allow reconnect or explicit discard. No offline write queue or
+  automatic background upload is added.
+- Rejected/expired/revoked credentials show **GitHub access needs updating**,
+  keep cached recipes read only, and advise installing an updated Nibbles
+  build. Rotating the token requires a new build/install, not an in-app form.
+  Revoke a compromised token on GitHub, then privately rebuild with its
+  replacement. Missing write permission, protected branches, rate limits and
+  connectivity failures need accurate, distinct messages; not every denied
+  request is an expired token. Never use a write probe during automatic launch.
+- A conflict keeps edits in place. **Keep editing** is the safe default;
+  **Discard edits & reload** explicitly abandons the draft and reloads the
+  latest recipe. If the recipe was deleted, return to the refreshed library
+  rather than silently recreate it. There is no force-overwrite action.
+- An interrupted save with an unknown outcome uses **Check save** instead of
+  blindly resending. A confirmed remote save followed by local-cache failure
+  says **Saved to GitHub**, with refresh guidance, not "Could not save".
+- Existing app-themed dialogs, native photo/permission pickers and the
+  no-backup-status-UI rule remain. No repository-switching, cache-mixing or
+  account-management workflow is introduced.
+
+### Conflict and publication contract
+
+Keep the recipe's edit baseline: commit ID, recipe blob ID, current master-list
+entry and relevant image blob IDs. Before **each** publication attempt, read
+the latest branch and check both the recipe and **MasterList.csv**, plus any
+photo being replaced. Additions must still have an unused UUID and no existing
+index entry; do not overwrite an unrelated file on a create retry.
+
+If the recipe or relevant image changed, block publication. If the index blob
+changed only because another recipe was added/edited, rebuild from that latest
+valid index and update only this recipe's entry, preserving everything else.
+A changed/deleted/conflicting entry for this recipe is a visible conflict.
+Malformed or duplicate index entries fail explicitly, not by dropping data.
+
+Create the recipe JSON, index and changed photos in **one commit** based on the
+latest tree. Publish with a **non-force, fast-forward-only branch update**.
+This final check is essential: another device can commit after the precheck.
+On a rejected race, re-read and revalidate with bounded retries; never force
+push, erase unrelated changes or keep retrying indefinitely.
+
+Keep the assigned UUID and minimal save-outcome metadata so a timed-out branch
+update can be checked, including whether the intended commit appears in later
+branch ancestry. This is outcome verification, not an offline upload queue.
+Do not resend until the prior outcome is resolved; a previously accepted save
+must not become a duplicate create or overwrite newer edits.
+
+### API behaviour that must move into the app
+
+The review covered the API controllers, file storage and validation, together
+with app refresh/cache/search, editor saves and online-only editing.
+
+| Existing behaviour | Direct-GitHub requirement |
+| --- | --- |
+| UUID JSON, `MasterList.csv`, photos and thumbnails | Preserve paths and schema; no recipe migration. Split index lines at the first comma so titles can contain commas. |
+| Required title, ingredients and steps | Move normalization/validation into reusable client-side code before publication. Preserve title cleanup, legacy amount/unit fallback and zero-based step numbering. |
+| Group IDs, order and references | Keep stable IDs, trimmed names, valid references and protection against erasing existing group metadata. |
+| JPEG conversion and 120 x 120 thumbnail | Process on Windows, Android and iOS without Windows-only `System.Drawing`; retain cover/thumbnail paths and supported legacy step-image handling. |
+| Original source, notes and legacy fields | Retain them, including hidden `TimeToComplete`; no new cooking-time UI. |
+| Device-only checks/scaling/paths | Never serialize temporary amounts, paw checks or device paths into recipe JSON; do not leave image-upload base64 in persisted recipes. |
+| Local cache, optional photos and search | Fetch at one pinned commit; stage/validate before promoting a complete snapshot, retain the prior usable cache on failure and rebuild search. Missing photos use the chef-cat fallback. |
+| Retry-safe saves and cache warnings | Preserve edits on failure, confirm remote publication before success, prevent duplicate UUID creates and distinguish remote success from cache failure. |
+
+Before cutover, drain/reconcile the existing backup queue and verify GitHub
+contains the latest local JSON, index and photos. Stop legacy API writes and
+the backup worker during cutover to avoid competing writers. Do not remove
+IIS sites, API source or support for other clients without separate approval.
+Acceptance must verify real GitHub additions, edits and photo changes,
+multi-device conflicts/races, uncertain-save recovery, read-only offline
+behaviour and existing cooking/search/scaling/grouping/paste regressions.
+
+This page supersedes home-server connection/save wording in 1.3.0.
+The earlier approved/released pages below remain as historical handoffs.
+
 ## Approved app-styled dialogs and menus
 
 **Approved and implemented in 1.2.2.** Page **09 - App-styled dialogs and menus**

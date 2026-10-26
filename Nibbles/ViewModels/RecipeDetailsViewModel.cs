@@ -149,7 +149,8 @@ public partial class RecipeDetailsViewModel(ReceipeAPIService service) : Observa
     [RelayCommand]
     private async Task EditRecipe()
     {
-        if (CanAdd && Recipe?.Id is not null)
+        if (CanAdd && service.CanWrite && Connectivity.Current.NetworkAccess == NetworkAccess.Internet && Recipe?.Id is not null)
             await Shell.Current.GoToAsync($"{nameof(AddEditPage)}?recipeId={Uri.EscapeDataString(Recipe.Id)}");
+        else { CanAdd = false; ErrorMessage = "Offline recipes are read only. Reconnect and refresh before editing."; }
     }
 }

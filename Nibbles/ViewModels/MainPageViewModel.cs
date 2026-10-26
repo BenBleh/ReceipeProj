@@ -41,6 +41,11 @@ public partial class MainPageViewModel : ObservableObject
     {
         this.service = service;
         service.RecipeSaved += (_, _) => needsReload = true;
+        service.AccessChanged += (_, _) =>
+        {
+            CanAdd = service.CanWrite;
+            if (!CanAdd) StatusMessage = "Offline or GitHub unavailable · Read only";
+        };
     }
 
     partial void OnSearchQueryChanged(string value)
@@ -79,7 +84,7 @@ public partial class MainPageViewModel : ObservableObject
             var master = await service.GetMasterList();
             recipes = master.Recipes ?? [];
             CanAdd = master.LoadedFromServer;
-            StatusMessage = CanAdd ? "Home server connected" : "Home server unavailable. Editing is disabled.";
+            StatusMessage = service.StatusMessage;
             IsIndexing = true;
             try { searchIndex = await service.BuildSearchIndex(recipes); }
             catch (Exception exception)

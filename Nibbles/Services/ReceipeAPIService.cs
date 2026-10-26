@@ -1,179 +1,269 @@
 using Nibbles.Models;
 using System.Diagnostics;
-using System.Net;
+using System.IO.Compression;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
 namespace Nibbles.Services;
 
-public class ReceipeAPIService
+public sealed class ReceipeAPIService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
-    private readonly HttpClient httpClient = new()
+    private sealed record CachePointer(string Directory, GitHubHead Head);
+    private readonly GitHubRecipeRepository repository;
+    private readonly ConditionalWeakTable<Recipe, GitHubEditBaseline> baselines = new();
+    private readonly SemaphoreSlim refreshGate = new(1, 1);
+    private static string Data => FileSystem.Current.AppDataDirectory;
+    private static string Cache => Path.Combine(Data, "GitHubRecipes");
+    private static string Pointer => Path.Combine(Cache, "current.json");
+    private CachePointer? current;
+    private bool canWrite;
+    public bool CanWrite
     {
-        BaseAddress = new Uri("http://192.168.1.110:8080/"),
-        Timeout = TimeSpan.FromSeconds(10)
-    };
-    private const string FilesUrl = "http://192.168.1.110:8081/";
-    private static string Root => Path.Combine(FileSystem.Current.AppDataDirectory, "rFiles");
+        get => canWrite;
+        private set
+        {
+            if (canWrite == value) return;
+            canWrite = value;
+            MainThread.BeginInvokeOnMainThread(() => AccessChanged?.Invoke(this, EventArgs.Empty));
+        }
+    }
+    public bool HasPendingSave => repository.HasPendingSave;
+    public string StatusMessage { get; private set; } = "Connecting to your recipe box…";
     public event EventHandler? RecipeSaved;
+    public event EventHandler? AccessChanged;
+
+    public ReceipeAPIService()
+    {
+        using var stream = typeof(ReceipeAPIService).Assembly.GetManifestResourceStream("Nibbles.GitHubToken")
+            ?? throw new InvalidOperationException("Rebuild Nibbles with its private GitHub token file.");
+        using var reader = new StreamReader(stream);
+        repository = new(new HttpClient { Timeout = TimeSpan.FromSeconds(90) }, reader.ReadToEnd().Trim(),
+            Path.Combine(Data, "github-save-outcome.json"));
+        Connectivity.Current.ConnectivityChanged += (_, args) =>
+        {
+            if (args.NetworkAccess != NetworkAccess.Internet)
+                CanWrite = false;
+        };
+    }
 
     public async Task<MasterRecipeList> GetMasterList()
     {
-        Directory.CreateDirectory(Root);
-        List<RecipeListItem> items;
-        var online = false;
+        await refreshGate.WaitAsync();
         try
         {
-            using var response = await httpClient.GetAsync("MasterRecipeList");
-            response.EnsureSuccessStatusCode();
-            items = JsonSerializer.Deserialize<List<RecipeListItem>>(await response.Content.ReadAsStringAsync(), JsonOptions)
-                ?? throw new InvalidDataException("The API returned an empty recipe index.");
-
-            foreach (var item in items)
+            CanWrite = false;
+            if (current is null && File.Exists(Pointer))
+                current = JsonSerializer.Deserialize<CachePointer>(await File.ReadAllTextAsync(Pointer))
+                    ?? throw new InvalidDataException("The downloaded recipe snapshot record is empty.");
+            try
             {
-                if (item.Id is null)
-                    throw new InvalidDataException("A recipe in the index has no ID.");
-                await DownloadFile(new Uri(FilesUrl + item.Id + ".json"), Path.Combine(Root, item.Id + ".json"));
-                await DownloadFile(new Uri(FilesUrl + item.Id + "/" + item.Id + ".jpeg"),
-                    ImagePath(item.Id), optionalImage: true);
+                if (HasPendingSave)
+                {
+                    var outcome = await repository.CheckSaveAsync();
+                    if (outcome.Outcome == GitHubSaveOutcome.Unknown)
+                        throw new GitHubSaveUncertainException();
+                }
+                var head = await repository.ReadHeadAsync();
+                if (current?.Head.Commit != head.Commit)
+                    await DownloadSnapshot(head);
+                CanWrite = !HasPendingSave;
+                StatusMessage = CanWrite ? "GitHub connected" : "Save confirmed, but its local record could not be cleared. Refresh to retry. Editing is disabled.";
             }
-            await WriteCache(Path.Combine(Root, "MasterList.json"), JsonSerializer.Serialize(items));
-            online = true;
-        }
-        catch (Exception exception) when (IsNetworkFailure(exception))
-        {
-            Debug.WriteLine($"API unavailable; reading downloaded recipes: {exception}");
-            var manifest = Path.Combine(Root, "MasterList.json");
-            var legacyManifest = Path.Combine(Root, "MasterList.csv");
-            if (File.Exists(manifest))
-                items = JsonSerializer.Deserialize<List<RecipeListItem>>(await File.ReadAllTextAsync(manifest), JsonOptions)
-                    ?? throw new InvalidDataException("The downloaded recipe index is empty.");
-            else if (File.Exists(legacyManifest))
-                items = (await File.ReadAllLinesAsync(legacyManifest)).Where(line => !string.IsNullOrWhiteSpace(line))
-                    .Select(line =>
-                    {
-                        var values = line.Split(',', 2);
-                        if (values.Length != 2)
-                            throw new InvalidDataException("The downloaded recipe index is incomplete.");
-                        return new RecipeListItem { Id = values[0], Title = values[1] };
-                    }).ToList();
+            catch (Exception exception) when (IsNetworkFailure(exception) ||
+                exception is GitHubAccessException or GitHubSaveUncertainException or InvalidDataException or JsonException or IOException or UnauthorizedAccessException)
+            {
+                StatusMessage = exception is GitHubSaveUncertainException
+                    ? "Last save not confirmed. Refresh to check again. Editing is disabled."
+                    : IsNetworkFailure(exception) ? "Offline · Read only" : exception.Message + " Downloaded recipes are read only.";
+                Debug.WriteLine($"GitHub refresh unavailable: {exception.GetType().Name}");
+                if (current is null && !File.Exists(Path.Combine(Data, "rFiles", "MasterList.json")) &&
+                    !File.Exists(Path.Combine(Data, "rFiles", "MasterList.csv")))
+                    throw new InvalidOperationException(StatusMessage + " Use Refresh to try again.", exception);
+            }
+            var root = CurrentRoot;
+            List<RecipeIndexEntry> entries;
+            if (current is not null || File.Exists(Path.Combine(root, "MasterList.csv")))
+                entries = GitHubRecipeRepository.ParseIndex(await File.ReadAllBytesAsync(Path.Combine(root, "MasterList.csv")));
             else
-                throw new HttpRequestException("Connect to your home API once to download your recipes for offline use.", exception);
+            {
+                var legacy = JsonSerializer.Deserialize<List<RecipeListItem>>(await File.ReadAllTextAsync(Path.Combine(root, "MasterList.json")))
+                    ?? throw new InvalidDataException("The downloaded recipe list is empty.");
+                entries = legacy.Select(item => new RecipeIndexEntry(item.Id!, item.Title!)).ToList();
+            }
+            return new MasterRecipeList
+            {
+                LoadedFromServer = CanWrite,
+                Recipes = entries.Select(item => new RecipeListItem
+                {
+                    Id = item.Id, Title = item.Title,
+                    ImageData = File.Exists(ImagePath(root, item.Id)) ? ImagePath(root, item.Id) : "nibbles_chef.png"
+                }).ToList()
+            };
         }
+        finally { refreshGate.Release(); }
+    }
 
-        foreach (var item in items)
-            item.ImageData = item.Id is not null && File.Exists(ImagePath(item.Id)) ? ImagePath(item.Id) : "nibbles_chef.png";
-        return new MasterRecipeList { Recipes = items, LoadedFromServer = online };
+    private string CurrentRoot => current is null ? Path.Combine(Data, "rFiles") : Path.Combine(Cache, current.Directory);
+    private static string ImagePath(string root, string id) => Path.Combine(root, id, id + ".jpeg");
+
+    private async Task DownloadSnapshot(GitHubHead head)
+    {
+        var indexBytes = await repository.ReadBlobAsync(head.Files["MasterList.csv"]);
+        var entries = GitHubRecipeRepository.ParseIndex(indexBytes);
+        Directory.CreateDirectory(Cache);
+        var name = head.Commit + "-" + Guid.NewGuid().ToString("N");
+        var stage = Path.Combine(Cache, name);
+        var archive = Path.Combine(Cache, name + ".zip");
+        Directory.CreateDirectory(stage);
+        var promoted = false;
+        try
+        {
+            await repository.DownloadArchiveAsync(head.Commit, archive);
+            using var zip = ZipFile.OpenRead(archive);
+            var prefix = zip.Entries.FirstOrDefault()?.FullName.Split('/')[0] + "/";
+            var wanted = new HashSet<string>(StringComparer.Ordinal) { "MasterList.csv" };
+            foreach (var entry in entries)
+            {
+                wanted.Add(entry.Id + ".json");
+                var cover = entry.Id + "/" + entry.Id + ".jpeg";
+                if (head.Files.ContainsKey(cover)) wanted.Add(cover);
+                foreach (var path in head.Files.Keys.Where(path => GitHubRecipeRepository.IsPhotoPath(entry.Id, path)))
+                    wanted.Add(path);
+            }
+            foreach (var file in wanted)
+            {
+                if (!head.Files.TryGetValue(file, out var sha))
+                    throw new InvalidDataException("A listed recipe is missing from the GitHub snapshot.");
+                var entry = zip.GetEntry(prefix + file) ?? throw new InvalidDataException("The GitHub archive is incomplete.");
+                var target = Path.Combine(stage, file.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                await using (var input = entry.Open())
+                await using (var output = File.Create(target))
+                    await input.CopyToAsync(output);
+                var bytes = await File.ReadAllBytesAsync(target);
+                var header = Encoding.ASCII.GetBytes($"blob {bytes.Length}\0");
+                using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
+                hash.AppendData(header);
+                hash.AppendData(bytes);
+                if (!Convert.ToHexString(hash.GetHashAndReset()).Equals(sha, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("A downloaded recipe file does not match its GitHub revision.");
+                if (file.EndsWith(".json", StringComparison.Ordinal))
+                {
+                    var recipe = RecipeWritePreparation.Read(bytes);
+                    if (recipe.Id + ".json" != file)
+                        throw new InvalidDataException("A downloaded recipe has an inconsistent ID.");
+                }
+            }
+            var pointer = new CachePointer(name, head);
+            await File.WriteAllTextAsync(Pointer + ".tmp", JsonSerializer.Serialize(pointer));
+            File.Move(Pointer + ".tmp", Pointer, true);
+            current = pointer;
+            promoted = true;
+        }
+        finally
+        {
+            if (File.Exists(archive)) File.Delete(archive);
+            if (!promoted) Directory.Delete(stage, true);
+        }
     }
 
     public async Task<Recipe?> GetRecipe(string recipeId)
     {
-        var path = Path.Combine(Root, recipeId + ".json");
-        if (!File.Exists(path))
-            throw new FileNotFoundException("This recipe has not been downloaded. Reconnect and refresh your recipe box.", path);
-        var recipe = JsonSerializer.Deserialize<Recipe>(await File.ReadAllTextAsync(path), JsonOptions)
-            ?? throw new InvalidDataException("The downloaded recipe is empty.");
-        recipe.Ingredients ??= [];
-        recipe.Steps ??= [];
-        recipe.IngredientGroups ??= [];
-        recipe.IngredientGroups = new(recipe.IngredientGroups.OrderBy(group => group.Order));
-#pragma warning disable CS0618
-        foreach (var ingredient in recipe.Ingredients)
-            if (string.IsNullOrWhiteSpace(ingredient.FQIngrediantDescription))
-                ingredient.FQIngrediantDescription = string.Join(" ",
-                    new[] { ingredient.Qty, ingredient.Unit, ingredient.Description }.Where(value => !string.IsNullOrWhiteSpace(value)));
-#pragma warning restore CS0618
-        recipe.ImagePath = File.Exists(ImagePath(recipeId)) ? ImagePath(recipeId) : "nibbles_chef.png";
+        if (!Guid.TryParseExact(recipeId, "D", out _)) throw new ArgumentException("The recipe ID must be a UUID.");
+        var snapshot = current;
+        var root = snapshot is null ? Path.Combine(Data, "rFiles") : Path.Combine(Cache, snapshot.Directory);
+        var entries = snapshot is null ? null : GitHubRecipeRepository.ParseIndex(await File.ReadAllBytesAsync(Path.Combine(root, "MasterList.csv")));
+        if (entries is not null && entries.All(entry => entry.Id != recipeId))
+            throw new FileNotFoundException("This recipe was removed from the recipe list.");
+        var recipe = RecipeWritePreparation.Read(await File.ReadAllBytesAsync(Path.Combine(root, recipeId + ".json")));
+        recipe.ImagePath = File.Exists(ImagePath(root, recipeId)) ? ImagePath(root, recipeId) : "nibbles_chef.png";
+        if (snapshot is not null)
+        {
+            baselines.Add(recipe, GitHubRecipeRepository.Baseline(snapshot.Head, entries!, recipeId, false));
+        }
         return recipe;
+    }
+
+    public async Task BeginNewRecipe(Recipe recipe)
+    {
+        var snapshot = current;
+        if (snapshot is null || !CanWrite) throw new InvalidOperationException("Reconnect and refresh before adding a recipe.");
+        var entries = GitHubRecipeRepository.ParseIndex(await File.ReadAllBytesAsync(Path.Combine(Cache, snapshot.Directory, "MasterList.csv")));
+        baselines.Add(recipe, GitHubRecipeRepository.Baseline(snapshot.Head, entries, recipe.Id!, true));
     }
 
     public async Task SaveRecipe(Recipe recipe, bool isNew)
     {
-        using var content = new StringContent(JsonSerializer.Serialize(recipe), Encoding.UTF8, "application/json");
-        using var response = isNew
-            ? await httpClient.PostAsync("Recipe", content)
-            : await httpClient.PutAsync("Recipe/" + recipe.Id, content);
-        if (!response.IsSuccessStatusCode)
+        if (HasPendingSave) throw new GitHubSaveUncertainException();
+        if (!CanWrite || Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            throw new InvalidOperationException("Offline recipes are read only. Reconnect and refresh before saving.");
+        if (!baselines.TryGetValue(recipe, out var baseline) || baseline.IsNew != isNew)
+            throw new InvalidOperationException("Refresh this recipe before editing; its GitHub baseline is unavailable.");
+        var saved = RecipeWritePreparation.ForSave(recipe);
+        var changes = new Dictionary<string, byte[]>();
+        await PreparePhoto(saved.Id!, saved.Id!, saved.ImageData, changes, true);
+        saved.ImageData = null;
+        foreach (var step in saved.Steps)
         {
-            var details = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException($"The API did not save this recipe ({(int)response.StatusCode}). {details}", null, response.StatusCode);
+            await PreparePhoto(saved.Id!, step.Num.ToString(System.Globalization.CultureInfo.InvariantCulture), step.ImageData, changes, false);
+            step.ImageData = null;
         }
-        var saved = JsonSerializer.Deserialize<Recipe>(await response.Content.ReadAsStringAsync(), JsonOptions);
-        if (saved?.Id is not null)
-            recipe.Id = saved.Id;
+        changes.Add(saved.Id! + ".json", JsonSerializer.SerializeToUtf8Bytes(saved));
+        try { await repository.SaveAsync(saved.Id!, saved.Title!, changes, baseline); }
+        catch (Exception exception) when (IsNetworkFailure(exception) || exception is GitHubAccessException)
+        {
+            CanWrite = false;
+            throw;
+        }
+        recipe.Title = saved.Title;
         RecipeSaved?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static async Task PreparePhoto(string id, string name, string? data, Dictionary<string, byte[]> changes, bool thumbnail)
+    {
+        if (string.IsNullOrWhiteSpace(data)) return;
+        var marker = data.IndexOf("base64,", StringComparison.Ordinal);
+        if (marker < 0) throw new ArgumentException("A replacement photo must contain valid base64 image data.");
+        var bytes = Convert.FromBase64String(data[(marker + 7)..]);
+        changes.Add(id + "/" + name + ".jpeg", await RecipePhotoProcessor.JpegAsync(bytes, false));
+        if (thumbnail) changes.Add(id + "/thumb.jpeg", await RecipePhotoProcessor.JpegAsync(bytes, true));
+    }
+
+    public async Task<GitHubSaveOutcome> CheckSave()
+    {
+        var result = await repository.CheckSaveAsync();
+        if (result.Outcome == GitHubSaveOutcome.Saved) RecipeSaved?.Invoke(this, EventArgs.Empty);
+        return result.Outcome;
+    }
+
+    public async Task Reconnect()
+    {
+        await GetMasterList();
+        RecipeSaved?.Invoke(this, EventArgs.Empty);
+    }
+
+    public async Task CacheSavedRecipe(Recipe recipe, string? selectedPhotoPath)
+    {
+        await GetMasterList();
+        if (!CanWrite) throw new IOException("The saved GitHub recipe could not be downloaded. Refresh before going offline.");
+        recipe.ImageData = null;
+        recipe.ImagePath = File.Exists(ImagePath(CurrentRoot, recipe.Id!)) ? ImagePath(CurrentRoot, recipe.Id!) : "nibbles_chef.png";
     }
 
     public async Task<RecipeSearchIndex> BuildSearchIndex(IEnumerable<RecipeListItem> items)
     {
         var recipes = new List<Recipe>();
         foreach (var item in items)
-        {
-            if (item.Id is not null && File.Exists(Path.Combine(Root, item.Id + ".json")))
-            {
-                var recipe = await GetRecipe(item.Id);
-                if (recipe is not null)
-                    recipes.Add(recipe);
-            }
-        }
+            if (item.Id is not null) recipes.Add(await GetRecipe(item.Id) ?? throw new InvalidDataException("A downloaded recipe is missing."));
         return new RecipeSearchIndex(recipes);
     }
 
-    public async Task CacheSavedRecipe(Recipe recipe, string? selectedPhotoPath)
-    {
-        if (recipe.Id is null)
-            throw new InvalidDataException("The saved recipe has no ID.");
-        Directory.CreateDirectory(Root);
-        recipe.ImageData = null;
-        await WriteCache(Path.Combine(Root, recipe.Id + ".json"), JsonSerializer.Serialize(recipe));
-        if (selectedPhotoPath is not null)
-            await DownloadFile(new Uri(FilesUrl + recipe.Id + "/" + recipe.Id + ".jpeg"), ImagePath(recipe.Id));
-        recipe.ImagePath = File.Exists(ImagePath(recipe.Id)) ? ImagePath(recipe.Id) : "nibbles_chef.png";
-    }
-
-    private async Task DownloadFile(Uri uri, string path, bool optionalImage = false)
-    {
-        using var response = await httpClient.GetAsync(uri);
-        if (optionalImage && response.StatusCode == HttpStatusCode.NotFound)
-            return;
-        response.EnsureSuccessStatusCode();
-        var bytes = await response.Content.ReadAsByteArrayAsync();
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        var temporaryPath = path + ".download";
-        try
-        {
-            await File.WriteAllBytesAsync(temporaryPath, bytes);
-            File.Move(temporaryPath, path, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temporaryPath))
-                File.Delete(temporaryPath);
-        }
-    }
-
-    private static string ImagePath(string id) => Path.Combine(Root, id, id + ".jpeg");
-
     internal static bool IsNetworkFailure(Exception exception) =>
-        exception is HttpRequestException or TaskCanceledException or System.Net.Sockets.SocketException
+        GitHubRecipeRepository.IsConnectionFailure(exception)
 #if ANDROID
         || exception is Java.IO.IOException
 #endif
         ;
-
-    private static async Task WriteCache(string path, string contents)
-    {
-        var temporaryPath = path + ".download";
-        try
-        {
-            await File.WriteAllTextAsync(temporaryPath, contents);
-            File.Move(temporaryPath, path, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temporaryPath))
-                File.Delete(temporaryPath);
-        }
-    }
 }

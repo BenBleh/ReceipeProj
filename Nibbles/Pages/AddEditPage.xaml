@@ -46,7 +46,7 @@
             <Label Grid.Column="1" Text="{Binding EditorTitle}" VerticalOptions="Center" FontSize="18" />
             <HorizontalStackLayout Grid.Column="2" Spacing="8">
                 <ActivityIndicator IsRunning="{Binding IsSaving}" IsVisible="{Binding IsSaving}" />
-                <Button Text="Save" Command="{Binding SaveCommand}" />
+                <Button Text="{Binding SaveLabel}" Command="{Binding SaveCommand}" />
             </HorizontalStackLayout>
         </Grid>
         <Grid Grid.Column="1" Grid.Row="1" RowDefinitions="Auto,*" Padding="24,8,24,16" RowSpacing="16">
@@ -57,6 +57,8 @@
                     <Button Grid.Column="2" Text="Method" Style="{StaticResource MethodTab}" />
                 </Grid>
                 <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}" IsVisible="{Binding HasError}" />
+                <Button Text="Reconnect" Command="{Binding ReconnectCommand}" IsVisible="{Binding NeedsReconnect}"
+                        Style="{StaticResource SecondaryButton}" />
             </VerticalStackLayout>
             <ScrollView Grid.Row="1" x:Name="FormScroll">
                 <VerticalStackLayout Spacing="20" IsEnabled="{Binding IsEditingEnabled}" Padding="0,0,0,20">

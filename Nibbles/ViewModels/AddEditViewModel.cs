@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Nibbles.Models;
 using Nibbles.Services;
 using System.Collections.ObjectModel;
-using System.Net;
 using System.Text.Json;
 
 namespace Nibbles.ViewModels;
@@ -32,6 +31,7 @@ public partial class AddEditViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
     [NotifyPropertyChangedFor(nameof(CanLeave))]
+    [NotifyCanExecuteChangedFor(nameof(ReconnectCommand))]
     public partial bool IsSaving { get; set; }
 
     [ObservableProperty]
@@ -39,27 +39,73 @@ public partial class AddEditViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
     public partial bool IsReady { get; set; } = true;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+    [NotifyPropertyChangedFor(nameof(NeedsReconnect))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReconnectCommand))]
+    public partial bool IsOnline { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+    [NotifyPropertyChangedFor(nameof(CanLeave))]
+    [NotifyPropertyChangedFor(nameof(SaveLabel))]
+    [NotifyPropertyChangedFor(nameof(NeedsReconnect))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReconnectCommand))]
+    public partial bool HasUnconfirmedSave { get; set; }
+
     public ObservableCollection<IngredientSection> IngredientSections { get; } = [];
     public bool IsDetails => SelectedSection == 0;
     public bool IsIngredients => SelectedSection == 1;
     public bool IsMethod => SelectedSection == 2;
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-    public bool IsEditingEnabled => IsReady && !IsSaving;
-    public bool CanLeave => !IsSaving;
+    public bool IsEditingEnabled => IsReady && !IsSaving && IsOnline && !HasUnconfirmedSave;
+    public bool CanLeave => !IsSaving && !HasUnconfirmedSave;
+    public bool NeedsReconnect => !IsOnline && !HasUnconfirmedSave;
+    public string SaveLabel => HasUnconfirmedSave ? "Check save" : "Save";
     public string EditorTitle => isNew ? "Add a recipe" : "Edit recipe";
     public string RecipeSummary =>
         $"{Recipe.Ingredients.Count} {(Recipe.Ingredients.Count == 1 ? "ingredient" : "ingredients")} / " +
         $"{Recipe.IngredientGroups.Count} {(Recipe.IngredientGroups.Count == 1 ? "group" : "groups")}";
     public bool HasUnsavedChanges => selectedPhotoPath is not null || JsonSerializer.Serialize(Recipe) != original;
-    private bool CanSave => IsEditingEnabled;
+    private bool CanSave => IsReady && !IsSaving && (HasUnconfirmedSave || IsOnline);
+    private bool CanReconnect => !IsSaving && NeedsReconnect;
 
     public AddEditViewModel(ReceipeAPIService service)
     {
         this.service = service;
+        RefreshAccess();
         Recipe.Ingredients.Add(new Ingredient());
         Recipe.Steps.Add(new Step());
         RefreshSections();
         original = JsonSerializer.Serialize(Recipe);
+    }
+
+    public Task BeginNewRecipe() => service.BeginNewRecipe(Recipe);
+    public void RefreshAccess()
+    {
+        IsOnline = service.CanWrite && Connectivity.Current.NetworkAccess == NetworkAccess.Internet;
+        if (!IsOnline && !HasUnconfirmedSave && !HasError)
+            ErrorMessage = "Offline or GitHub unavailable. Your edits are still here. Reconnect to continue.";
+    }
+
+    [RelayCommand(CanExecute = nameof(CanReconnect))]
+    private async Task Reconnect()
+    {
+        IsSaving = true;
+        try
+        {
+            await service.Reconnect();
+            RefreshAccess();
+            ErrorMessage = IsOnline ? "" : service.StatusMessage;
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+            System.Diagnostics.Debug.WriteLine(exception.GetType().Name);
+        }
+        finally { IsSaving = false; }
     }
 
     public async Task LoadAsync(string id)
@@ -67,12 +113,7 @@ public partial class AddEditViewModel : ObservableObject
         IsReady = false;
         try
         {
-            Recipe = await service.GetRecipe(id) ?? throw new InvalidDataException("Recipe not found.");
-            isNew = false;
-            RefreshSections();
-            original = JsonSerializer.Serialize(Recipe);
-            OnPropertyChanged(nameof(EditorTitle));
-            IsReady = true;
+            ApplyRecipe(await service.GetRecipe(id) ?? throw new InvalidDataException("Recipe not found."));
         }
         catch (Exception exception)
         {
@@ -81,10 +122,51 @@ public partial class AddEditViewModel : ObservableObject
         }
     }
 
+    private void ApplyRecipe(Recipe recipe)
+    {
+        Recipe = recipe;
+        isNew = false;
+        RefreshSections();
+        original = JsonSerializer.Serialize(Recipe);
+        ErrorMessage = "";
+        OnPropertyChanged(nameof(EditorTitle));
+        IsReady = true;
+    }
+
+    private async Task<bool> DiscardAndReload()
+    {
+        try
+        {
+            await service.Reconnect();
+            RefreshAccess();
+            if (!IsOnline) { ErrorMessage = service.StatusMessage; return false; }
+            var recipe = await service.GetRecipe(Recipe.Id!) ?? throw new FileNotFoundException("This recipe was removed.");
+            CleanupPhoto();
+            ApplyRecipe(recipe);
+        }
+        catch (FileNotFoundException)
+        {
+            CleanupPhoto();
+            original = JsonSerializer.Serialize(Recipe);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = $"Could not reload. Your edits are still here. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception.GetType().Name);
+        }
+        return false;
+    }
+
     public async Task<bool> ConfirmDiscardAsync()
     {
         if (IsSaving)
             return false;
+        if (HasUnconfirmedSave)
+        {
+            ErrorMessage = "Check whether your save completed before leaving.";
+            return false;
+        }
         return !HasUnsavedChanges || await AppDialogs.ConfirmAsync(Page, "Discard changes?",
             "Your changes have not been saved.", "Discard", "Keep editing", destructive: true);
     }
@@ -296,47 +378,78 @@ public partial class AddEditViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task Save()
     {
-        if (!Validate()) return;
+        if (!HasUnconfirmedSave && !Validate()) return;
         IsSaving = true;
         var saved = false;
+        var discardedRemovedRecipe = false;
         try
         {
-            Recipe.Title = Recipe.Title!.Replace("\r", "").Replace("\n", "").Replace("\t", " ").Trim();
-            if (selectedPhotoPath is not null)
-                Recipe.ImageData = "data:image/jpeg;base64," + Convert.ToBase64String(await File.ReadAllBytesAsync(selectedPhotoPath));
-            await service.SaveRecipe(Recipe, isNew);
+            if (HasUnconfirmedSave)
+            {
+                var outcome = await service.CheckSave();
+                HasUnconfirmedSave = service.HasPendingSave;
+                if (outcome == GitHubSaveOutcome.Unknown)
+                {
+                    ErrorMessage = "Save not confirmed. Your edits are still here. Reconnect and select Check save again.";
+                    return;
+                }
+                if (outcome == GitHubSaveOutcome.NotPublished)
+                {
+                    ErrorMessage = "The save is not published on GitHub. Your edits are still here; reconnect if needed, then select Save to try again.";
+                    return;
+                }
+            }
+            else
+            {
+                Recipe.Title = Recipe.Title!.Replace("\r", "").Replace("\n", "").Replace("\t", " ").Trim();
+                if (selectedPhotoPath is not null)
+                    Recipe.ImageData = "data:image/jpeg;base64," + Convert.ToBase64String(await File.ReadAllBytesAsync(selectedPhotoPath));
+                await service.SaveRecipe(Recipe, isNew);
+            }
             saved = true;
             isNew = false;
             try
             {
                 await service.CacheSavedRecipe(Recipe, selectedPhotoPath);
             }
-            catch (Exception exception) when (ReceipeAPIService.IsNetworkFailure(exception) || exception is IOException or UnauthorizedAccessException)
+            catch (Exception exception)
             {
-                System.Diagnostics.Debug.WriteLine(exception);
-                await AppDialogs.AlertAsync(Page, "Saved to your server", "The downloaded copy could not be refreshed. Reconnect and refresh your recipe box before going offline.");
+                System.Diagnostics.Debug.WriteLine(exception.GetType().Name);
+                await AppDialogs.AlertAsync(Page, "Saved to GitHub", "Your recipe is saved. This device's copy could not be refreshed. Reconnect and refresh before going offline.");
             }
             CleanupPhoto();
             Recipe.ImageData = null;
+            foreach (var step in Recipe.Steps) step.ImageData = null;
             original = JsonSerializer.Serialize(Recipe);
         }
-        catch (HttpRequestException exception) when (isNew && exception.StatusCode == HttpStatusCode.Conflict)
+        catch (RecipeConflictException exception)
         {
-            isNew = false;
-            OnPropertyChanged(nameof(EditorTitle));
-            ErrorMessage = "This recipe already reached the server. Your edits are still here; select Save again to update the same recipe.";
-            System.Diagnostics.Debug.WriteLine(exception);
+            if (await AppDialogs.ConfirmAsync(Page, exception.IndexChanged ? "Recipe list changed" : "Recipe changed on GitHub",
+                exception.IndexChanged ? "This recipe's list entry changed or was removed on GitHub. Your edits have not been saved." :
+                "Your edits have not been saved. Keep them here, or discard them and reload the latest recipe.",
+                "Discard edits & reload", "Keep editing", destructive: true))
+            {
+                discardedRemovedRecipe = await DiscardAndReload();
+            }
+            else ErrorMessage = exception.Message + " Your edits are still here.";
+        }
+        catch (GitHubSaveUncertainException exception)
+        {
+            HasUnconfirmedSave = service.HasPendingSave;
+            ErrorMessage = "Save not confirmed. " + exception.Message;
         }
         catch (Exception exception)
         {
-            ErrorMessage = $"Could not save. Your edits are still here; reconnect and try Save again. {exception.Message}";
+            ErrorMessage = HasUnconfirmedSave ? $"Save not confirmed. {exception.Message}" :
+                $"Could not save. Your edits are still here; reconnect and try Save again. {exception.Message}";
             System.Diagnostics.Debug.WriteLine(exception);
         }
         finally
         {
             IsSaving = false;
+            RefreshAccess();
         }
-        if (saved)
+        if (saved || discardedRemovedRecipe)
             await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
     }
 

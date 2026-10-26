@@ -20,17 +20,28 @@ public partial class AddEditPage : ContentPage
     {
         base.OnAppearing();
         Shell.Current.Navigating += OnNavigating;
+        Connectivity.Current.ConnectivityChanged += ConnectivityChanged;
+        ((AddEditViewModel)BindingContext).RefreshAccess();
         if (loaded) return;
         loaded = true;
         if (!string.IsNullOrWhiteSpace(RecipeId))
             await ((AddEditViewModel)BindingContext).LoadAsync(RecipeId);
+        else
+        {
+            try { await ((AddEditViewModel)BindingContext).BeginNewRecipe(); }
+            catch (Exception exception) { ((AddEditViewModel)BindingContext).ErrorMessage = exception.Message; }
+        }
     }
 
     protected override void OnDisappearing()
     {
         Shell.Current.Navigating -= OnNavigating;
+        Connectivity.Current.ConnectivityChanged -= ConnectivityChanged;
         base.OnDisappearing();
     }
+
+    private void ConnectivityChanged(object? sender, ConnectivityChangedEventArgs args) =>
+        MainThread.BeginInvokeOnMainThread(() => ((AddEditViewModel)BindingContext).RefreshAccess());
 
     private async void OnNavigating(object? sender, ShellNavigatingEventArgs args)
     {

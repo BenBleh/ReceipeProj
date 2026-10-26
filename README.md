@@ -5,7 +5,56 @@ The approved Nibbles redesign, assets, ingredient-group schema, and deployment
 notes are in [Design](Design/README.md).
 
 
-Steps to set up
+## Nibbles direct GitHub storage (1.3.0)
+
+Nibbles now downloads and saves recipes directly to the private
+`BenBleh/rfiles` repository, branch `main`. It does not contact the home API or
+file server and has no connection/setup screen. Downloaded recipes, photos,
+search, cooking and scaling work offline, but adding, editing and saving do not.
+An interrupted editor retains its in-memory draft until reconnection or discard;
+there is no offline upload queue.
+
+Before saving, the app checks the recipe, its master-list entry and replaced
+photos against the editor's original revision. Unrelated changes are preserved.
+Recipe JSON, the latest merged `MasterList.csv` and changed JPEGs publish in one
+non-force commit. Conflicts keep edits and offer explicit discard/reload.
+An uncertain publication keeps a durable commit record and requires checking
+the save outcome before resubmission. Local-cache failure after a confirmed
+publication is reported as **Saved to GitHub**, not a failed save.
+
+### Private build input
+
+Before any build or publish, set a local environment variable:
+
+```powershell
+$env:NIBBLES_GITHUB_TOKEN_FILE = 'C:\private\NibblesAccessToken.txt'
+```
+
+The file must contain only a fine-grained personal access token: resource owner
+`BenBleh`, selected repository `rfiles`, **Contents: Read and write**, and
+**No expiration**. Never commit this file. The build embeds it directly from
+the external input and rejects missing or malformed credentials without
+printing them; `-p:NibblesGitHubTokenFile=...` is also supported.
+Use private build machines and avoid publishing build outputs/logs.
+
+**The token can be extracted from the app. Keep APKs, Windows installers and
+publish folders private.** Non-expiring tokens can still be revoked or removed
+by GitHub; replacing one requires rebuilding and installing the app.
+Do not upload these installers as public release assets.
+
+The legacy API and its backup worker were reconciled with GitHub and paused
+with the owner's approval during cutover, with automatic startup disabled.
+IIS configuration, old recipe files and API source are retained. The old local
+`C:\rfiles` checkout is no longer the live store: new saves update GitHub, not
+that directory. Do not restart legacy writers against that stale checkout.
+To roll back, first stop GitHub-backed clients, reconcile all JSON/index/photos
+and the old outbox with the current GitHub branch, and only then re-enable the
+API site/application pool. Do not reset or force-push over app changes.
+
+iOS uses the same storage implementation and its native image encoder; building
+and signing iOS still requires a Mac.
+
+## Legacy API setup (not required by Nibbles 1.3.0)
 
 1.Install IIS
 2. set up to host ASP sites
@@ -56,14 +105,15 @@ The existing Android launch configuration is unchanged.
 
 ## Nibbles installable builds
 
-Run these commands from the repository root. The current release is 1.2.3, Android
-version code 7; increment those values in `Nibbles.csproj` for future releases.
+Run these commands from the repository root with the private token-file
+environment variable set. The current release is 1.3.0, Android version code 8;
+increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.2.3\android
-Copy-Item .\artifacts\Nibbles\1.2.3\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.2.3\Nibbles-1.2.3-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.3.0\android
+Copy-Item .\artifacts\Nibbles\1.3.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.3.0\Nibbles-1.3.0-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -80,10 +130,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.2.3 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.3.0 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The installer is `artifacts\Nibbles\1.2.3\Nibbles-1.2.3-Windows-x64-Setup.exe`.
+The private installer is `artifacts\Nibbles\1.3.0\Nibbles-1.3.0-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;
@@ -92,8 +142,7 @@ code-signed, so Windows may show an unknown-publisher warning.
 The Windows publish command scopes restore to the Windows framework to avoid
 applying its `win-x64` runtime identifier to the Android/iOS targets.
 
-Both apps still connect to the recipe API at `192.168.1.110:8080` and images on
-port `8081`; use the home network or a VPN with access to that server.
+Both apps use GitHub over HTTPS; the home network and VPN are no longer required.
 
 ## App-styled dialogs
 

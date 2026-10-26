@@ -28,7 +28,7 @@
             <Label Text="Your recipe box" FontSize="19" VerticalOptions="Center" />
             <Label Grid.Column="1" Text="{Binding RecipeCount}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
             <Button Grid.Column="2" Text="Refresh" Style="{StaticResource QuietButton}" Command="{Binding RefreshCommand}"
-                    SemanticProperties.Description="Refresh recipes and reconnect to your home server" />
+                    SemanticProperties.Description="Refresh recipes from GitHub" />
         </Grid>
         <RefreshView Grid.Row="3" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
             <CollectionView x:Name="recipeListCollectionView" ItemsSource="{Binding RecipeListItems}"
