@@ -24,7 +24,7 @@ public static class RecipeIngredients
             {
                 var lines = section.Ingredients.Where(ingredient => ingredient.IsChecked &&
                     !string.IsNullOrWhiteSpace(ingredient.FQIngrediantDescription))
-                    .Select(ingredient => ingredient.FQIngrediantDescription!).ToList();
+                    .Select(ingredient => ingredient.DisplayDescription!).ToList();
                 if (lines.Count == 0)
                     return null;
                 if (section.ShowHeading)

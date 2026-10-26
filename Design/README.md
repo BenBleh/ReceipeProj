@@ -223,7 +223,11 @@ It never replaces the existing list or guesses headings. Paw checks are local
 to the device. Dedicated cooking mode saves same-day progress locally, never in
 the recipe JSON.
 Copy includes only checked ingredients, in visible group order, with headings
-only for groups containing checked items.
+only for groups containing checked items. When a temporary scale is active, copy
+the displayed scaled amounts, including any approximation marker. Quantities
+flagged for manual review retain their original wording, just as on screen.
+Returning to Original copies the original amounts again. Copying never changes
+the saved recipe. This behaviour needs no new controls or layout changes.
 
 The API validates titles, ingredient descriptions, method steps, group IDs and
 references before writing. An older client can still read grouped recipes, but

@@ -194,6 +194,53 @@ public sealed class RecipeTests : IDisposable
         Assert.False(JsonSerializer.Deserialize<AppRecipe>(json)!.Ingredients[0].IsChecked);
     }
 
+    [Theory]
+    [InlineData("50ml cream", 2, "100ml cream")]
+    [InlineData("50ml cream", 0.5, "25ml cream")]
+    [InlineData("50ml cream", 1, "50ml cream")]
+    [InlineData("1/3 cup stock", 2, "\u2248 0.667 cup stock")]
+    [InlineData("2-3 eggs", 2, "2-3 eggs")]
+    [InlineData("Salt to taste", 2, "Salt to taste")]
+    public void CopyUsesDisplayedScaledAmountAndOriginalAfterReset(string original, double factor, string expected)
+    {
+        var recipe = new AppRecipe { Ingredients = [new() { FQIngrediantDescription = original, IsChecked = true }] };
+        var saved = JsonSerializer.Serialize(recipe);
+        var ingredient = recipe.Ingredients[0];
+        ingredient.ScaledDescription = RecipeScaling.Scale(original, (decimal)factor).Display;
+
+        Assert.Equal(expected, RecipeIngredients.CheckedText(recipe));
+        Assert.Equal(saved, JsonSerializer.Serialize(recipe));
+        Assert.Equal(original, ingredient.FQIngrediantDescription);
+
+        ingredient.ScaledDescription = null;
+        Assert.Equal(original, RecipeIngredients.CheckedText(recipe));
+    }
+
+    [Fact]
+    public void ScaledCopyPreservesCheckedOnlySelectionAndVisibleGroupOrder()
+    {
+        var recipe = new AppRecipe
+        {
+            IngredientGroups = [new() { Id = "b", Name = "Broth", Order = 1 }, new() { Id = "a", Name = "Marinade", Order = 0 }],
+            Ingredients =
+            [
+                new() { GroupId = "b", FQIngrediantDescription = "250ml stock", IsChecked = true },
+                new() { GroupId = "a", FQIngrediantDescription = "1 tbsp soy sauce", IsChecked = true },
+                new() { GroupId = "a", FQIngrediantDescription = "2 cloves garlic" },
+                new() { FQIngrediantDescription = "100g rice", IsChecked = true },
+                new() { FQIngrediantDescription = " ", IsChecked = true }
+            ]
+        };
+        foreach (var ingredient in recipe.Ingredients)
+            ingredient.ScaledDescription = RecipeScaling.Scale(ingredient.FQIngrediantDescription!, 2).Display;
+
+        var nl = Environment.NewLine;
+        Assert.Equal($"Marinade{nl}2 tbsp soy sauce{nl}{nl}Broth{nl}500ml stock{nl}{nl}Other ingredients{nl}200g rice",
+            RecipeIngredients.CheckedText(recipe));
+        foreach (var ingredient in recipe.Ingredients) ingredient.IsChecked = false;
+        Assert.Empty(RecipeIngredients.CheckedText(recipe));
+    }
+
     [Fact]
     public void PasteIgnoresBlankLinesWithoutInterpretingOrRewritingWording()
     {
