@@ -9,6 +9,11 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         BindingContext = viewModel;
+        viewModel.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(MainPageViewModel.IsSearching))
+                UpdateGrid();
+        };
     }
 
     protected override async void OnAppearing()
@@ -23,7 +28,8 @@ public partial class MainPage : ContentPage
             return;
         recipeListCollectionView.SelectedItem = null;
         var viewModel = (MainPageViewModel)BindingContext;
-        await Shell.Current.GoToAsync($"{nameof(RecipeDetailsPage)}?recipeId={Uri.EscapeDataString(recipe.Id!)}&canAdd={viewModel.CanAdd}");
+        await Shell.Current.GoToAsync($"{nameof(RecipeDetailsPage)}?recipeId={Uri.EscapeDataString(recipe.Id!)}&canAdd={viewModel.CanAdd}" +
+            $"&section={Uri.EscapeDataString(recipe.MatchSection ?? "")}&group={Uri.EscapeDataString(recipe.MatchGroup ?? "")}&step={recipe.MatchStep}");
     }
 
     private async void AddButton_Clicked(object sender, EventArgs args)
@@ -33,8 +39,12 @@ public partial class MainPage : ContentPage
     }
 
     private void Page_SizeChanged(object sender, EventArgs args)
+        => UpdateGrid();
+
+    private void UpdateGrid()
     {
-        if (RecipeGrid is not null)
-            RecipeGrid.Span = Width >= 1200 ? 4 : Width >= 800 ? 3 : 2;
+        if (RecipeGrid is not null && BindingContext is MainPageViewModel model)
+            RecipeGrid.Span = model.IsSearching
+                ? (Width >= 1000 ? 2 : 1) : Width >= 1200 ? 4 : Width >= 800 ? 3 : 2;
     }
 }

@@ -212,6 +212,7 @@ Generated_Code/
 # because we have git ;-)
 _UpgradeReport_Files/
 Backup*/
+!RecipeAPI/Backup/
 UpgradeLog*.XML
 UpgradeLog*.htm
 

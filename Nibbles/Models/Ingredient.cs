@@ -25,7 +25,20 @@ namespace Nibbles.Models
         }
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(DisplayDescription))]
         public partial string? FQIngrediantDescription { get; set; }
+
+        [JsonIgnore]
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(DisplayDescription))]
+        public partial string? ScaledDescription { get; set; }
+
+        [JsonIgnore]
+        [ObservableProperty]
+        public partial bool ScalingNeedsReview { get; set; }
+
+        [JsonIgnore]
+        public string? DisplayDescription => ScaledDescription ?? FQIngrediantDescription;
 
         [ObservableProperty]
         public partial string? GroupId { get; set; }

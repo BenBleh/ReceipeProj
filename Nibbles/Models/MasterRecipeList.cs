@@ -21,6 +21,21 @@ namespace Nibbles.Models
         public string? ImageData { get; set; }
 
         [JsonIgnore]
+        public string? MatchLabel { get; set; }
+        [JsonIgnore]
+        public string? MatchExcerpt { get; set; }
+        [JsonIgnore]
+        public string? MatchSection { get; set; }
+        [JsonIgnore]
+        public string? MatchGroup { get; set; }
+        [JsonIgnore]
+        public int MatchStep { get; set; } = -1;
+        [JsonIgnore]
+        public bool HasMatch => MatchSection is not null;
+        [JsonIgnore]
+        public bool ShowImage => !HasMatch;
+
+        [JsonIgnore]
         public ImageSource? ImageStream
         {
             get

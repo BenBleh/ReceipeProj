@@ -4,12 +4,14 @@ using RecipeAPI.Models;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text.Json;
+using System.Text;
+using RecipeAPI.Backup;
 
 namespace RecipeAPI.DataAccess.JsonFileBased;
 
-public class RecipeAccessJson : IRecipeAccess
+public class RecipeAccessJson(GitBackupQueue? backups = null) : IRecipeAccess
 {
-    private static readonly object WriteLock = new();
+    internal static readonly object WriteLock = new();
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private static string Root => ConfigurationHelper.Instance.RecipeFilePathValue;
     private static string MasterPath => Path.Combine(Root, "MasterList.csv");
@@ -70,7 +72,7 @@ public class RecipeAccessJson : IRecipeAccess
         }
     }
 
-    private static void Save(Recipe recipe)
+    private void Save(Recipe recipe)
     {
         var errors = RecipeValidation.NormalizeAndValidate(recipe);
         if (errors.Count > 0)
@@ -79,7 +81,8 @@ public class RecipeAccessJson : IRecipeAccess
         Directory.CreateDirectory(Root);
         for (var index = 0; index < recipe.Steps!.Count; index++)
             recipe.Steps[index].Num = index;
-        ManageRecipeImages(recipe);
+        var changes = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+        ManageRecipeImages(recipe, changes);
 
         var lines = File.Exists(MasterPath) ? File.ReadAllLines(MasterPath).ToList() : [];
         var entry = $"{recipe.Id},{recipe.Title}";
@@ -89,16 +92,21 @@ public class RecipeAccessJson : IRecipeAccess
         else
             lines.Add(entry);
 
-        AtomicWrite(RecipePath(recipe.Id!), JsonSerializer.Serialize(recipe));
-        AtomicWrite(MasterPath, string.Join(Environment.NewLine, lines) + Environment.NewLine);
+        changes.Add(recipe.Id + ".json", Encoding.UTF8.GetBytes(JsonSerializer.Serialize(recipe)));
+        changes.Add("MasterList.csv", Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, lines) + Environment.NewLine));
+        // The durable intent precedes writes; the worker shares WriteLock and verifies every final fingerprint.
+        backups?.Prepare(changes);
+        foreach (var (relative, bytes) in changes)
+            AtomicWrite(Path.Combine(Root, relative.Replace('/', Path.DirectorySeparatorChar)), bytes);
     }
 
-    private static void AtomicWrite(string path, string contents)
+    private static void AtomicWrite(string path, byte[] contents)
     {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var temporaryPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            File.WriteAllText(temporaryPath, contents);
+            File.WriteAllBytes(temporaryPath, contents);
             File.Move(temporaryPath, path, overwrite: true);
         }
         finally
@@ -116,14 +124,14 @@ public class RecipeAccessJson : IRecipeAccess
             throw new ArgumentException("The recipe ID must be a UUID.");
     }
 
-    private static void ManageRecipeImages(Recipe recipe)
+    private static void ManageRecipeImages(Recipe recipe, Dictionary<string, byte[]> changes)
     {
-        var directory = Path.Combine(Root, recipe.Id!);
+        var directory = recipe.Id!;
         if (!string.IsNullOrWhiteSpace(recipe.ImageData) && recipe.ImageData.Contains("base64,", StringComparison.Ordinal))
         {
             if (!OperatingSystem.IsWindows())
                 throw new PlatformNotSupportedException("Photo processing requires the Windows API host.");
-            WriteImage(directory, recipe.Id!, recipe.ImageData, createThumbnail: true);
+            PrepareImage(changes, directory, recipe.Id!, recipe.ImageData, createThumbnail: true);
             recipe.ImageData = null;
         }
         foreach (var step in recipe.Steps!)
@@ -132,14 +140,14 @@ public class RecipeAccessJson : IRecipeAccess
             {
                 if (!OperatingSystem.IsWindows())
                     throw new PlatformNotSupportedException("Photo processing requires the Windows API host.");
-                WriteImage(directory, step.Num.ToString(), step.ImageData, createThumbnail: false);
+                PrepareImage(changes, directory, step.Num.ToString(), step.ImageData, createThumbnail: false);
             }
             step.ImageData = null;
         }
     }
 
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static void WriteImage(string directory, string fileName, string imageData, bool createThumbnail)
+    private static void PrepareImage(Dictionary<string, byte[]> changes, string directory, string fileName, string imageData, bool createThumbnail)
     {
         var marker = imageData.IndexOf("base64,", StringComparison.Ordinal);
         byte[] bytes;
@@ -154,12 +162,15 @@ public class RecipeAccessJson : IRecipeAccess
 
         using var stream = new MemoryStream(bytes);
         using var image = Image.FromStream(stream);
-        Directory.CreateDirectory(directory);
-        image.Save(Path.Combine(directory, fileName + ".jpeg"), ImageFormat.Jpeg);
+        using var jpeg = new MemoryStream();
+        image.Save(jpeg, ImageFormat.Jpeg);
+        changes.Add(directory + "/" + fileName + ".jpeg", jpeg.ToArray());
         if (createThumbnail)
         {
             using var thumbnail = image.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
-            thumbnail.Save(Path.Combine(directory, "thumb.jpeg"), ImageFormat.Jpeg);
+            using var small = new MemoryStream();
+            thumbnail.Save(small, ImageFormat.Jpeg);
+            changes.Add(directory + "/thumb.jpeg", small.ToArray());
         }
     }
 }

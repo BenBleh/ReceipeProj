@@ -56,14 +56,14 @@ The existing Android launch configuration is unchanged.
 
 ## Nibbles installable builds
 
-Run these commands from the repository root. The current release is 1.1, Android
-version code 2; increment those values in `Nibbles.csproj` for future releases.
+Run these commands from the repository root. The current release is 1.2.0, Android
+version code 4; increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.1\android
-Copy-Item .\artifacts\Nibbles\1.1\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.1\Nibbles-1.1-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.2.0\android
+Copy-Item .\artifacts\Nibbles\1.2.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.2.0\Nibbles-1.2.0-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -80,10 +80,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.1 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.2.0 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The installer is `artifacts\Nibbles\1.1\Nibbles-1.1-Windows-x64-Setup.exe`.
+The installer is `artifacts\Nibbles\1.2.0\Nibbles-1.2.0-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;
@@ -94,3 +94,68 @@ applying its `win-x64` runtime identifier to the Android/iOS targets.
 
 Both apps still connect to the recipe API at `192.168.1.110:8080` and images on
 port `8081`; use the home network or a VPN with access to that server.
+
+## Cooking, search and scaling
+
+Start cooking from recipe details to use the foreground-only keep-awake view.
+Windows shows ingredients and the existing numbered method side by side at wide
+widths; phones retain separate tabs and scroll positions. Clear checked is fixed
+outside the ingredient scroll area and is shown only when something is checked.
+Progress is stored only on the device and can be resumed on the same local
+calendar day. A later-day return starts fresh; actively cooking across midnight
+is not interrupted. Changed recipes require review rather than restoring stale
+ingredient indexes.
+
+Search indexes the available recipe JSON after refresh, across titles,
+ingredients/group names, notes and method. Every query term must occur in the
+same recipe, ignoring case and accents. Results show excerpts and open the
+matching section; an empty query keeps the normal library.
+
+Half, original, double and custom positive scaling are temporary display
+changes. Review the original and scaled amounts before applying. Ambiguous,
+ranged or unquantified quantities remain unchanged and flagged. The saved recipe
+and method text, temperatures and durations are never scaled.
+
+## API-only GitHub backup operations
+
+`GitBackup` is disabled in the checked-in defaults. Enable it in the server's
+private production configuration only after configuring the existing recipe
+repository and a noninteractive GitHub credential for the IIS identity.
+There are no backup endpoints, app indicators or notifications.
+
+```json
+"GitBackup": {
+  "Enabled": true,
+  "QueuePath": "C:\\ProgramData\\Nibbles\\BackupQueue",
+  "GitExecutable": "C:\\Program Files\\Git\\cmd\\git.exe",
+  "Remote": "origin",
+  "Branch": "main"
+}
+```
+
+Keep the queue and any credentials outside both IIS web roots and `C:\rfiles`.
+Grant the API pool identity Modify access to the queue and recipe repository
+(including `.git`), and only the credential access it needs. A repository-scoped
+write deploy key can be used with server-only `SshCommand` and `UseGitHubSsh: true`;
+the latter selects SSH transport for the existing GitHub HTTPS remote without
+changing its saved URL. Provision trusted GitHub host keys separately and keep
+strict host-key checking enabled. Never commit private keys or tokens.
+At startup, a noninteractive dry-run push verifies the IIS identity's transport
+without committing or uploading anything; its server-only result is recorded in
+`access-check.json` in the private queue.
+
+API writes durably record intended file fingerprints in a private outbox before
+atomically persisting the affected JSON, images and CSV index. The worker checks
+the completed write under the same lock, commits only verified API-owned paths,
+then releases the write lock before pushing. GitHub outages do not block recipe
+saves; pending jobs and committed-but-unpushed work survive restarts.
+
+Unrelated unstaged manual files are left alone. Manual staged work, unpushed
+manual commits, conflicting changes to owned paths, authentication failures and
+non-fast-forward rejections pause backups with server logs and `paused.json` in
+the private queue. Review/resolve the underlying condition and delete only that
+pause marker to resume. Do not delete job files to retry, or reset/stash/force-push
+the repository. Transient push failures use bounded exponential retry delays.
+`last-success.json` is written only after a confirmed push; a local commit alone
+is not a remote backup. Recovery remains manual through GitHub/Git, including
+images and `MasterList.csv`, followed by an app refresh.

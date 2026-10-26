@@ -4,6 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:Nibbles.Models"
              xmlns:vm="clr-namespace:Nibbles.ViewModels"
+             xmlns:local="clr-namespace:Nibbles"
              x:DataType="vm:MainPageViewModel"
              Shell.NavBarIsVisible="False" Title="Nibbles"
              SizeChanged="Page_SizeChanged">
@@ -18,9 +19,9 @@
         </VerticalStackLayout>
         <Border Grid.Row="1" Style="{StaticResource Field}">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <Label Text="⌕" FontSize="28" VerticalOptions="Center" />
-                <Entry Grid.Column="1" Text="{Binding SearchQuery}" Placeholder="Find a recipe…"
-                       ClearButtonVisibility="WhileEditing" ReturnType="Search" SemanticProperties.Description="Search recipes by title" />
+                <Label Text="{x:Static local:IconFont.Search}" FontFamily="IconFonts" FontSize="22" VerticalOptions="Center" />
+                <Entry Grid.Column="1" Text="{Binding SearchQuery}" Placeholder="Titles, ingredients, notes and method" FontSize="14"
+                       ClearButtonVisibility="WhileEditing" ReturnType="Search" SemanticProperties.Description="Search titles, ingredients, notes and method" />
             </Grid>
         </Border>
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
@@ -38,18 +39,23 @@
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Padding="16,36" Spacing="12">
                         <Image Source="nibbles_chef.png" HeightRequest="88" />
-                        <Label Text="No recipes here yet" HorizontalTextAlignment="Center" Style="{StaticResource SectionHeading}" />
-                        <Label Text="Try another search, or connect to your home server and add a recipe."
+                        <Label Text="{Binding EmptyTitle}" HorizontalTextAlignment="Center" Style="{StaticResource SectionHeading}" />
+                        <Label Text="Try another ingredient or a shorter phrase." IsVisible="{Binding IsSearching}"
                                Style="{StaticResource MutedLabel}" HorizontalTextAlignment="Center" />
+                        <Button Text="Clear search" IsVisible="{Binding IsSearching}" Command="{Binding ClearSearchCommand}" Style="{StaticResource SecondaryButton}" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:RecipeListItem">
                         <Border StrokeThickness="0">
-                            <Grid RowDefinitions="Auto,Auto">
-                                <Image Source="{Binding ImageData}" Aspect="AspectFill" HeightRequest="{OnIdiom Phone=152, Tablet=180, Desktop=210}" />
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                                <Image Source="{Binding ImageData}" IsVisible="{Binding ShowImage}" Aspect="AspectFill" HeightRequest="{OnIdiom Phone=152, Tablet=180, Desktop=210}" />
                                 <Label Grid.Row="1" Text="{Binding Title}" Margin="12,12,12,14"
                                        FontSize="14" MaxLines="2" MinimumHeightRequest="40" LineBreakMode="TailTruncation" />
+                                <Label Grid.Row="2" Text="{Binding MatchLabel}" IsVisible="{Binding HasMatch}" Margin="12,0,12,8"
+                                       FontFamily="OpenSansSemibold" FontSize="12" />
+                                <Label Grid.Row="3" Text="{Binding MatchExcerpt}" IsVisible="{Binding HasMatch}" Margin="12,0,12,16"
+                                       FontSize="15" LineBreakMode="WordWrap" />
                             </Grid>
                         </Border>
                     </DataTemplate>
@@ -57,6 +63,7 @@
             </CollectionView>
         </RefreshView>
         <VerticalStackLayout Grid.Row="4" Spacing="8">
+            <Label Text="Updating recipe search…" IsVisible="{Binding IsIndexing}" Style="{StaticResource MutedLabel}" FontSize="12" />
             <Button Text="+  Add recipe" HorizontalOptions="End" Clicked="AddButton_Clicked" IsEnabled="{Binding CanAdd}" />
             <Label Text="{Binding StatusMessage}" Style="{StaticResource MutedLabel}" FontSize="11" HorizontalTextAlignment="Center" />
         </VerticalStackLayout>
@@ -64,7 +71,9 @@
             <VerticalStackLayout VerticalOptions="Center" Spacing="12">
                 <Image Source="nibbles_chef.png" HeightRequest="76" />
                 <ActivityIndicator IsRunning="{Binding IsBusy}" />
-                <Label Text="Opening your recipe box…" HorizontalTextAlignment="Center" Style="{StaticResource MutedLabel}" />
+                <Label Text="Opening your recipe box…" HorizontalTextAlignment="Center" Style="{StaticResource MutedLabel}">
+                    <Label.Triggers><DataTrigger TargetType="Label" Binding="{Binding IsIndexing}" Value="True"><Setter Property="Text" Value="Updating recipe search…" /></DataTrigger></Label.Triggers>
+                </Label>
             </VerticalStackLayout>
         </Border>
     </Grid>

@@ -10,15 +10,15 @@
         <local:PawCheckbox
             Grid.Column="0"
             Margin="0,0,8,0"
-            Label="{Binding FQIngrediantDescription}"
+            Label="{Binding DisplayDescription}"
             IsChecked="{Binding IsChecked, Mode=TwoWay}"
             VerticalOptions="Center" />
+        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
         <Label
-            Grid.Column="1"
             LineBreakMode="WordWrap"
             FontSize="16"
             LineHeight="1.25"
-            Text="{Binding FQIngrediantDescription}"
+            Text="{Binding DisplayDescription}"
             VerticalOptions="Center">
             <Label.Triggers>
                 <DataTrigger TargetType="Label" Binding="{Binding IsChecked}" Value="True">
@@ -30,5 +30,7 @@
                 <TapGestureRecognizer Command="{Binding ToggleCheckedCommand}" />
             </Label.GestureRecognizers>
         </Label>
+        <Label Text="Review manually · amount unchanged" IsVisible="{Binding ScalingNeedsReview}" Style="{StaticResource MutedLabel}" FontSize="12" />
+        </VerticalStackLayout>
     </Grid>
 </ContentView>

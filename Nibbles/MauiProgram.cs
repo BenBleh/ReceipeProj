@@ -29,6 +29,8 @@ namespace Nibbles
 
             builder.Services.AddTransient<RecipeDetailsPage>();
             builder.Services.AddTransient<AddEditPage>();
+            builder.Services.AddTransient<CookingPage>();
+            builder.Services.AddSingleton<CookingSessionStore>();
 
             builder.Services.AddSingleton<ReceipeAPIService>();
 

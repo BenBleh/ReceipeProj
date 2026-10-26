@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Nibbles.CookingPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Nibbles.Models"
+             xmlns:components="clr-namespace:Nibbles.Components"
+             xmlns:vm="clr-namespace:Nibbles.ViewModels"
+             x:DataType="vm:RecipeDetailsViewModel"
+             Shell.NavBarIsVisible="False" Title="Cooking mode" SizeChanged="Page_SizeChanged">
+    <Grid Padding="24,8,24,12" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="16"
+          MaximumWidthRequest="1440" HorizontalOptions="Fill">
+        <Grid ColumnDefinitions="*,Auto">
+            <Label Text="Cooking mode" FontSize="18" VerticalOptions="Center" />
+            <Button Grid.Column="1" Text="Exit" Style="{StaticResource QuietButton}" Clicked="Exit_Clicked" />
+        </Grid>
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
+            <Button Grid.Column="1" Text="{Binding ScaleLabel}" Style="{StaticResource QuietButton}" Clicked="Scale_Clicked" />
+        </Grid>
+        <VerticalStackLayout Grid.Row="2" Spacing="8">
+            <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}">
+                <Label.Triggers><DataTrigger TargetType="Label" Binding="{Binding ErrorMessage}" Value=""><Setter Property="IsVisible" Value="False" /></DataTrigger></Label.Triggers>
+            </Label>
+            <Label Text="Method amounts, temperatures and durations remain original." IsVisible="{Binding IsScaled}" Style="{StaticResource MutedLabel}" FontSize="13" />
+        </VerticalStackLayout>
+        <Grid x:Name="TabBar" Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="8">
+            <Button Text="Ingredients" Command="{Binding ShowIngredientsCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Grid.Column="1" Text="Method" Command="{Binding ShowMethodCommand}" Style="{StaticResource SecondaryButton}" />
+        </Grid>
+        <Grid x:Name="CookingLists" Grid.Row="4" ColumnDefinitions="*" ColumnSpacing="28">
+            <ScrollView x:Name="IngredientsScroll" Scrolled="Ingredients_Scrolled">
+                <VerticalStackLayout Spacing="24" Padding="0,0,0,16" BindableLayout.ItemsSource="{Binding IngredientSections}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:IngredientSection">
+                            <VerticalStackLayout Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowHeading}">
+                                    <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" FontSize="20" />
+                                    <Label Grid.Column="1" Text="{Binding Summary}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
+                                </Grid>
+                                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Ingredients}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Ingredient"><components:IngredientItemView /></DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
+            <ScrollView x:Name="MethodScroll" Scrolled="Method_Scrolled">
+                <VerticalStackLayout Spacing="24" Padding="0,0,0,16" BindableLayout.ItemsSource="{Binding Recipe.Steps}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:Step">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="{Binding StepNumberDisplay}" FontFamily="OpenSansSemibold" TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource DarkInk}}" />
+                                <Label Text="{Binding Instructions}" FontSize="17" LineHeight="1.35" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+        <VerticalStackLayout Grid.Row="5" Spacing="10">
+            <Grid HeightRequest="48">
+                <Button Text="Clear checked" Style="{StaticResource SecondaryButton}" Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
+            </Grid>
+            <Button x:Name="MethodButton" Text="Back to method →" Command="{Binding ShowMethodCommand}" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

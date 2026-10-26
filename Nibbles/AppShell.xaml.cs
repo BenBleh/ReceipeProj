@@ -10,6 +10,7 @@ namespace Nibbles
             // Register routes for Shell navigation
             Routing.RegisterRoute(nameof(RecipeDetailsPage), typeof(RecipeDetailsPage));
             Routing.RegisterRoute(nameof(AddEditPage), typeof(AddEditPage));
+            Routing.RegisterRoute(nameof(CookingPage), typeof(CookingPage));
 #if ANDROID
             Navigated += Shell_Navigated;
 #endif

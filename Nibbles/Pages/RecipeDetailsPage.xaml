@@ -13,7 +13,7 @@
             <Label Grid.Column="1" Text="Recipe" FontSize="18" VerticalOptions="Center" />
             <Button Grid.Column="2" Text="Edit" Style="{StaticResource QuietButton}" Command="{Binding EditRecipeCommand}" IsVisible="{Binding CanAdd}" />
         </Grid>
-        <ScrollView Grid.Row="1">
+        <ScrollView x:Name="DetailsScroll" Grid.Row="1">
             <VerticalStackLayout Spacing="20" Padding="0,0,0,16">
                 <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}">
                     <Label.Triggers><DataTrigger TargetType="Label" Binding="{Binding ErrorMessage}" Value=""><Setter Property="IsVisible" Value="False" /></DataTrigger></Label.Triggers>
@@ -25,7 +25,15 @@
                 <HorizontalStackLayout Spacing="12">
                     <Button Text="↗  Original recipe" Style="{StaticResource SecondaryButton}" Command="{Binding OpenLinkCommand}" IsVisible="{Binding HasSourceLink}" />
                 </HorizontalStackLayout>
-                <Label Text="{Binding Recipe.Notes}" IsVisible="{Binding HasNotes}" Style="{StaticResource MutedLabel}" FontSize="15" />
+                <Label x:Name="NotesLabel" Text="{Binding Recipe.Notes}" IsVisible="{Binding HasNotes}" Style="{StaticResource MutedLabel}" FontSize="15" />
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding HasResume}">
+                    <Label Text="Continue from earlier today" Style="{StaticResource SectionHeading}" />
+                    <Button Text="Resume cooking" Clicked="Resume_Clicked" />
+                    <Button Text="Start fresh…" Style="{StaticResource QuietButton}" Clicked="StartFresh_Clicked" />
+                </VerticalStackLayout>
+                <Button Text="Start cooking" IsVisible="{Binding IsFresh}" Clicked="StartCooking_Clicked" />
+                <Button Text="{Binding ScaleLabel}" Style="{StaticResource SecondaryButton}" Clicked="Scale_Clicked" />
+                <Label Text="Method amounts, temperatures and durations remain original." IsVisible="{Binding IsScaled}" Style="{StaticResource MutedLabel}" FontSize="13" />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                     <Button Text="Ingredients" Style="{StaticResource QuietButton}" Command="{Binding ShowIngredientsCommand}">
                         <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding IsIngredients}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" /></DataTrigger></Button.Triggers>
@@ -35,11 +43,7 @@
                     </Button>
                 </Grid>
                 <VerticalStackLayout IsVisible="{Binding IsIngredients}" Spacing="16">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="Tap a paw as you cook" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
-                        <Button Grid.Column="1" Text="Clear checks" Style="{StaticResource QuietButton}" Command="{Binding ClearChecksCommand}" />
-                    </Grid>
-                    <VerticalStackLayout Spacing="24" BindableLayout.ItemsSource="{Binding IngredientSections}">
+                    <VerticalStackLayout x:Name="IngredientGroups" Spacing="24" BindableLayout.ItemsSource="{Binding IngredientSections}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:IngredientSection">
                                 <VerticalStackLayout Spacing="12">
@@ -59,7 +63,7 @@
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
-                <VerticalStackLayout IsVisible="{Binding IsMethod}" Spacing="24" BindableLayout.ItemsSource="{Binding Recipe.Steps}">
+                <VerticalStackLayout x:Name="MethodSteps" IsVisible="{Binding IsMethod}" Spacing="24" BindableLayout.ItemsSource="{Binding Recipe.Steps}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="models:Step">
                             <VerticalStackLayout Spacing="8">
@@ -71,9 +75,12 @@
                 </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
-        <Grid Grid.Row="2" ColumnDefinitions="1.6*,*" ColumnSpacing="10" IsVisible="{Binding IsIngredients}">
+        <VerticalStackLayout Grid.Row="2" Spacing="8" IsVisible="{Binding IsIngredients}">
+        <Button Text="Clear checked" Style="{StaticResource QuietButton}" Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
+        <Grid ColumnDefinitions="1.6*,*" ColumnSpacing="10">
             <Button Text="{Binding CopyLabel}" Style="{StaticResource SecondaryButton}" Command="{Binding CopyIngredientsCommand}" />
             <Button Grid.Column="1" Text="Method →" Command="{Binding ShowMethodCommand}" />
         </Grid>
+        </VerticalStackLayout>
     </Grid>
 </ContentPage>

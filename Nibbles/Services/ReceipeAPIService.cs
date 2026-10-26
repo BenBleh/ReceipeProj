@@ -105,6 +105,21 @@ public class ReceipeAPIService
         RecipeSaved?.Invoke(this, EventArgs.Empty);
     }
 
+    public async Task<RecipeSearchIndex> BuildSearchIndex(IEnumerable<RecipeListItem> items)
+    {
+        var recipes = new List<Recipe>();
+        foreach (var item in items)
+        {
+            if (item.Id is not null && File.Exists(Path.Combine(Root, item.Id + ".json")))
+            {
+                var recipe = await GetRecipe(item.Id);
+                if (recipe is not null)
+                    recipes.Add(recipe);
+            }
+        }
+        return new RecipeSearchIndex(recipes);
+    }
+
     public async Task CacheSavedRecipe(Recipe recipe, string? selectedPhotoPath)
     {
         if (recipe.Id is null)

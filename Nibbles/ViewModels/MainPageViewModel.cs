@@ -11,6 +11,8 @@ public partial class MainPageViewModel : ObservableObject
     private readonly ReceipeAPIService service;
     private List<RecipeListItem> recipes = [];
     private bool needsReload = true;
+    private RecipeSearchIndex? searchIndex;
+    private CancellationTokenSource? searchCancellation;
     public ObservableCollection<RecipeListItem> RecipeListItems { get; } = [];
 
     [ObservableProperty]
@@ -28,6 +30,11 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     public partial string SearchQuery { get; set; } = string.Empty;
 
+    [ObservableProperty]
+    public partial bool IsIndexing { get; set; }
+
+    public bool IsSearching => !string.IsNullOrWhiteSpace(SearchQuery);
+    public string EmptyTitle => IsSearching ? "No saved matches" : "No recipes here yet";
     public string RecipeCount => $"{RecipeListItems.Count} {(RecipeListItems.Count == 1 ? "recipe" : "recipes")}";
 
     public MainPageViewModel(ReceipeAPIService service)
@@ -36,7 +43,31 @@ public partial class MainPageViewModel : ObservableObject
         service.RecipeSaved += (_, _) => needsReload = true;
     }
 
-    partial void OnSearchQueryChanged(string value) => PerformSearch();
+    partial void OnSearchQueryChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsSearching));
+        OnPropertyChanged(nameof(EmptyTitle));
+        SearchAfterTyping();
+    }
+
+    private async void SearchAfterTyping()
+    {
+        searchCancellation?.Cancel();
+        var cancellation = new CancellationTokenSource();
+        searchCancellation = cancellation;
+        try
+        {
+            await Task.Delay(150, cancellation.Token);
+            PerformSearch(cancellation.Token);
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        finally
+        {
+            if (ReferenceEquals(searchCancellation, cancellation))
+                searchCancellation = null;
+            cancellation.Dispose();
+        }
+    }
 
     public async Task LoadAsync()
     {
@@ -48,7 +79,15 @@ public partial class MainPageViewModel : ObservableObject
             var master = await service.GetMasterList();
             recipes = master.Recipes ?? [];
             CanAdd = master.LoadedFromServer;
-            StatusMessage = CanAdd ? "Home server connected" : "Offline · Downloaded recipes are read-only. Pull down to reconnect.";
+            StatusMessage = CanAdd ? "Home server connected" : "Home server unavailable. Editing is disabled.";
+            IsIndexing = true;
+            try { searchIndex = await service.BuildSearchIndex(recipes); }
+            catch (Exception exception)
+            {
+                StatusMessage = $"Could not update recipe search. {exception.Message}";
+                System.Diagnostics.Debug.WriteLine(exception);
+            }
+            finally { IsIndexing = false; }
             needsReload = false;
             PerformSearch();
         }
@@ -78,12 +117,29 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    private void PerformSearch()
+    [RelayCommand]
+    private void ClearSearch() => SearchQuery = "";
+
+    private void PerformSearch(CancellationToken cancellationToken = default)
     {
         RecipeListItems.Clear();
-        foreach (var recipe in recipes.Where(recipe => string.IsNullOrWhiteSpace(SearchQuery) ||
-            recipe.Title?.Contains(SearchQuery.Trim(), StringComparison.CurrentCultureIgnoreCase) == true))
-            RecipeListItems.Add(recipe);
+        if (!IsSearching)
+        {
+            foreach (var recipe in recipes)
+                RecipeListItems.Add(recipe);
+        }
+        else if (searchIndex is not null)
+        {
+            var byId = recipes.Where(recipe => recipe.Id is not null).ToDictionary(recipe => recipe.Id!);
+            foreach (var hit in searchIndex.Search(SearchQuery, cancellationToken))
+                if (byId.TryGetValue(hit.RecipeId, out var recipe))
+                    RecipeListItems.Add(new RecipeListItem
+                    {
+                        Id = recipe.Id, Title = recipe.Title, ImageData = recipe.ImageData,
+                        MatchLabel = hit.Label, MatchExcerpt = hit.Excerpt, MatchSection = hit.Section,
+                        MatchGroup = hit.GroupId, MatchStep = hit.Step
+                    });
+        }
         OnPropertyChanged(nameof(RecipeCount));
     }
 }

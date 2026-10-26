@@ -25,16 +25,43 @@ public partial class RecipeDetailsViewModel(ReceipeAPIService service) : Observa
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CopyLabel))]
+    [NotifyPropertyChangedFor(nameof(HasChecks))]
     [NotifyCanExecuteChangedFor(nameof(CopyIngredientsCommand))]
     [NotifyCanExecuteChangedFor(nameof(ClearChecksCommand))]
     public partial int CheckedCount { get; set; }
 
     public bool IsMethod => !IsIngredients;
+    public bool HasChecks => CheckedCount > 0;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScaleLabel))]
+    [NotifyPropertyChangedFor(nameof(IsScaled))]
+    public partial decimal Multiplier { get; set; } = 1;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFresh))]
+    public partial bool HasResume { get; set; }
+
+    public bool IsFresh => !HasResume;
+    public bool IsScaled => Multiplier != 1;
+    public string ScaleLabel => $"Scale ingredients · {Multiplier:0.###}×";
     public bool HasSourceLink => Uri.TryCreate(Recipe?.Source, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https";
     public bool HasNotes => !string.IsNullOrWhiteSpace(Recipe?.Notes);
     public string CopyLabel => $"Copy checked ({CheckedCount})";
     public ObservableCollection<IngredientSection> IngredientSections { get; } = [];
     private bool CanCopy => CheckedCount > 0;
+
+    partial void OnMultiplierChanged(decimal value)
+    {
+        if (Recipe is null)
+            return;
+        foreach (var ingredient in Recipe.Ingredients)
+        {
+            var scaled = RecipeScaling.Scale(ingredient.FQIngrediantDescription ?? "", value);
+            ingredient.ScaledDescription = value == 1 ? null : scaled.Display;
+            ingredient.ScalingNeedsReview = scaled.NeedsReview;
+        }
+    }
 
     public async Task LoadAsync(string id)
     {

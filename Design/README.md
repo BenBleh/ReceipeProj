@@ -18,6 +18,129 @@ dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
 
+## Next features: cooking, search, scaling and GitHub backup
+
+The editable document now includes **12 additional boards** on these pages:
+
+| OpenPencil page | Contents |
+| --- | --- |
+| 06 - Cooking mode and full-recipe search | Entry from recipe details, paw checklist, current scrolling numbered method in dark mode, resume session, matched search excerpts, no-match state, empty search with placeholder |
+| 07 - Temporary recipe scaling | Multiplier and preview, uncertain-amount review, scaled checklist |
+| 08 - Windows cooking and feature handoff | Side-by-side Windows cooking workspace and interaction/API design specification |
+
+These pages are the approved reference for the **1.2.0 app/API features**. They
+supersede the older browse/cooking interaction examples for these additions;
+the existing editor, paste behavior, branding and no-cooking-time rule remain.
+All new boards have matching PNGs in `previews`. The `feature-behaviour.png`
+board contains the full interaction handoff. `cooking-search-overview.png` and
+`scaling-overview.png` show the new Android flows at a glance.
+
+### Dedicated cooking mode
+
+- Start from recipe details. Keep the screen awake only while cooking is in the
+  foreground; release the wake request on exit, backgrounding or loss of the
+  active Windows cooking window. This happens without a visible
+  "Screen stays awake" status label.
+- Keep the current app's scrolling numbered method display: wrapping 17sp
+  instructions, existing line spacing and step labels. There are no text-size
+  controls, focused-step cards, previous/next-step buttons or new Finish action.
+  Phones switch between Ingredients and Method without losing scroll position;
+  Windows can show the same method list beside ingredients. Keep the original
+  paw checks and accessible hit targets. Do not infer which ingredients belong
+  to a method step.
+- Omit the ingredient/group-count summary from the recipe cooking-entry view.
+  Keep **Clear checked** in a fixed bottom action area outside the ingredient
+  scroll view, with a minimum 48dp hit target. Show it only when at least one
+  ingredient anywhere in the recipe is checked. It clears all recipe checks,
+  then disappears; Back to method remains anchored without a layout jump.
+  Unchecked ingredients use the original outline paw, never a plus/add icon.
+- Save recipe ID/revision, selected tab, scroll positions, checks, multiplier
+  and the device-local calendar date on the device, not in the recipe files.
+  Offer Resume after leaving/restarting **only on that same local calendar day**,
+  not for a rolling 24-hour window. On a return on a later day, discard stale
+  cooking progress and use the normal Start cooking view at 1x with cleared
+  checks and positions. Do not interrupt an active session at midnight.
+  Same-day Start fresh asks before resetting progress. If the recipe changed,
+  require review before resuming. Saved recipes remain usable offline.
+
+### Search inside recipes
+
+- Search titles, ingredient descriptions and group names, personal notes, and
+  method instructions. Match case/accent-insensitively; every search word must
+  occur somewhere in the same recipe.
+- Use "Titles, ingredients, notes and method" as the empty search box's
+  placeholder only. Once a query is entered, show the query without a separate
+  search-scope helper line underneath. Keep a magnifying-glass search icon,
+  never a paw. The empty-query view keeps the normal recipe library visible;
+  `previews/search-empty.png` shows the full placeholder in the input.
+- Rank title matches first, then ingredients, notes and method. Show matching
+  excerpts and the relevant section; opening a result reveals that section.
+  Do not show explanatory panels about excerpts/tapping or connecting to the
+  home server to refresh. No source-filter chips or source labels are reintroduced.
+- Search the recipe JSON available on the device through a local index,
+  updated on refresh.
+  Show indexing progress and cancel obsolete searches as typing continues.
+  Do not infer which recipes are missing, report download-completeness counts,
+  or claim the local collection is complete. Do not show an offline/device-search
+  status banner: searching on the device is the normal behavior. No-match offers
+  Clear search.
+  Index errors retain the previous usable index and explain the actual error.
+
+### Temporary recipe scaling
+
+- Offer half, original, double and a custom positive finite multiplier.
+  Preview changes before using them. The original recipe is never overwritten
+  or saved to the API; selecting 1x restores original amounts.
+- Multiply only confidently understood leading numeric amounts, including
+  recognised decimals and fractions. Preserve units and wording; do not
+  silently convert units. Keep original amounts accessible beside scaled ones.
+- Leave unquantified, ambiguous, ranged or alternative amounts unchanged,
+  visibly flagged for review. Indicate approximate rounding instead of silently
+  reducing tiny amounts to zero.
+- Method text, cooking temperatures and durations remain original. Display an
+  advisory when cooking at a different multiplier, because instructions can
+  contain quantities too. The design includes explicit uncertain-line review.
+
+### API-managed GitHub backups; manual recovery
+
+The user already manages `C:\rfiles` as a Git repository. The API automation
+uses that **existing repository, remote and branch**, not a second backup store.
+Recovery remains manual through GitHub/Git; there is no in-app history, restore,
+repository-reset or undo-delete interface.
+Backups are **API-only**: no app screens, navigation, status labels,
+notifications or retry controls. Backup failures are operational matters for
+the server owner, not messages to the app user.
+
+- After successfully persisting a recipe change, durably queue its backup.
+  Saving succeeds independently of GitHub availability. Internal backup jobs
+  and server logs track progress. The queue survives API restarts without the app remaining
+  open. Track all affected recipe JSON, image and index files; burst edits may
+  be coalesced without dropping pending changes.
+- A single worker serializes Git operations with API writes. Stage only
+  validated API-owned changes. Existing manual edits or staged work must not
+  be silently included or overwritten; pause when ownership cannot be verified.
+  Do not use blanket `git add .`, force-push, reset, stash or automatic conflict
+  resolution. Keep the existing manual Git workflow viable.
+- Internally distinguish queued, committing, pushing, successfully pushed and
+  action-needed states. Only a confirmed remote push counts as backed up.
+  A local commit or queued write alone is not a remote backup.
+- Retry transient network failures with bounded backoff. Auth/permission
+  problems, conflicting manual work and non-fast-forward rejections pause for
+  server-side resolution. Retry uses existing commits and never resubmits the
+  recipe save. Record last successful push, timestamp/timezone, pending jobs and
+  failures in server logs or operational tooling; none is exposed in the app.
+- Credentials belong to the server's IIS/service identity with scoped repository
+  access, outside the app, public web root and recipe repository. Never expose
+  credentials or arbitrary Git execution in the app. No new client-facing
+  backup status/retry endpoints are needed. Resolve operational issues and
+  trigger any manual retry through authorized server-side tooling.
+- Recovery through Git must include any affected index and photos, followed by
+  refresh in Nibbles. Unpushed changes are not guaranteed recoverable on GitHub.
+
+Automation is disabled in checked-in defaults and enabled through private server
+configuration; deployment and credential requirements are in the root README.
+The design itself does not change recipe data or commit existing manual edits.
+
 ## Ingredient groups and existing data
 
 Recipes retain their flat `Ingredients` array for compatibility. Optional
@@ -40,7 +163,8 @@ cleaned wording appears in the required preview and is added on confirmation.
 Appending keeps filled ingredients and removes empty rows only in the target
 group (including the flat list); cancelling leaves everything unchanged.
 It never replaces the existing list or guesses headings. Paw checks are local
-to the current recipe view and are not saved.
+to the device. Dedicated cooking mode saves same-day progress locally, never in
+the recipe JSON.
 Copy includes only checked ingredients, in visible group order, with headings
 only for groups containing checked items.
 

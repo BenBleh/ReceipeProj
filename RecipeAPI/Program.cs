@@ -1,6 +1,7 @@
 ﻿using RecipeAPI.DataAccess.JsonFileBased;
 using RecipeAPI.Helpers;
 using RecipeAPI.Interfaces;
+using RecipeAPI.Backup;
 var builder = WebApplication.CreateBuilder(args);
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -11,6 +12,9 @@ ConfigurationHelper.Instance.RecipeFilePathValue = builder.Configuration.GetSect
 
 //Dependency injection
 builder.Services.AddTransient<IRecipeAccess, RecipeAccessJson>();
+builder.Services.Configure<GitBackupOptions>(builder.Configuration.GetSection("GitBackup"));
+builder.Services.AddSingleton<GitBackupQueue>();
+builder.Services.AddHostedService<GitBackupWorker>();
 
 
 // Add services to the container.
@@ -41,4 +45,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
