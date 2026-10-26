@@ -30,6 +30,8 @@ public partial class RecipeDetailsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (AppDialogs.IsOpen)
+            return;
         if (returningFromScale)
         {
             returningFromScale = false;
@@ -85,7 +87,7 @@ public partial class RecipeDetailsPage : ContentPage
     private async void Resume_Clicked(object sender, EventArgs args) => await StartCooking(true);
     private async void StartFresh_Clicked(object sender, EventArgs args)
     {
-        if (!await DisplayAlertAsync("Start fresh?", "Clear saved paw checks, scroll positions and the temporary multiplier?", "Start fresh", "Cancel"))
+        if (!await AppDialogs.ConfirmAsync(this, "Start fresh?", "Clear saved paw checks, scroll positions and the temporary multiplier?", "Start fresh", destructive: true))
             return;
         try
         {

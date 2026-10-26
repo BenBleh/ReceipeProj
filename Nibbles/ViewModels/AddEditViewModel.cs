@@ -85,8 +85,8 @@ public partial class AddEditViewModel : ObservableObject
     {
         if (IsSaving)
             return false;
-        return !HasUnsavedChanges || await Page.DisplayAlertAsync("Discard changes?",
-            "Your changes have not been saved.", "Discard", "Keep editing");
+        return !HasUnsavedChanges || await AppDialogs.ConfirmAsync(Page, "Discard changes?",
+            "Your changes have not been saved.", "Discard", "Keep editing", destructive: true);
     }
 
     private static Page Page => Shell.Current.CurrentPage;
@@ -137,7 +137,7 @@ public partial class AddEditViewModel : ObservableObject
     [RelayCommand]
     private async Task AddGroup()
     {
-        var name = await Page.DisplayPromptAsync("Add ingredient group", "For example: Marinade, Broth, or To serve",
+        var name = await AppDialogs.PromptAsync(Page, "Add ingredient group", "For example: Marinade, Broth, or To serve",
             accept: "Add group", maxLength: 100);
         if (name is null)
             return;
@@ -161,11 +161,11 @@ public partial class AddEditViewModel : ObservableObject
         if (index > 0) actions.Add("Move up");
         if (index < Recipe.IngredientGroups.Count - 1) actions.Add("Move down");
         actions.Add("Remove heading");
-        var action = await Page.DisplayActionSheetAsync(group.Name, "Cancel", null, actions.ToArray());
+        var action = await AppDialogs.ChooseAsync(Page, group.Name, actions, "Remove heading");
         switch (action)
         {
             case "Rename":
-                var name = await Page.DisplayPromptAsync("Rename group", "Group name", initialValue: group.Name, maxLength: 100);
+                var name = await AppDialogs.PromptAsync(Page, "Rename group", "Choose a name for these ingredients.", accept: "Save name", initialValue: group.Name, maxLength: 100);
                 if (name is null) return;
                 if (string.IsNullOrWhiteSpace(name))
                 {
@@ -185,8 +185,8 @@ public partial class AddEditViewModel : ObservableObject
             case "Remove heading":
                 var destination = await ChooseGroupAsync("Keep these ingredients in…", group.Id);
                 if (!destination.Chosen) return;
-                if (!await Page.DisplayAlertAsync("Remove group heading?",
-                    $"Remove “{group.Name}”? All its ingredients will be kept in {destination.Name}.", "Remove heading", "Cancel"))
+                if (!await AppDialogs.ConfirmAsync(Page, "Remove group heading?",
+                    $"Remove “{group.Name}”? All its ingredients will be kept in {destination.Name}.", "Remove heading", destructive: true))
                     return;
                 RecipeIngredients.RemoveGroup(Recipe, group.Id, destination.Id);
                 break;
@@ -207,7 +207,7 @@ public partial class AddEditViewModel : ObservableObject
         if (index < siblings.Count - 1) actions.Add("Move down");
         if (Recipe.IngredientGroups.Count > 0) actions.Add("Move to group");
         actions.Add("Remove ingredient");
-        var action = await Page.DisplayActionSheetAsync("Ingredient", "Cancel", null, actions.ToArray());
+        var action = await AppDialogs.ChooseAsync(Page, "Ingredient", actions, "Remove ingredient");
         switch (action)
         {
             case "Move up":
@@ -234,7 +234,7 @@ public partial class AddEditViewModel : ObservableObject
         var choices = Recipe.IngredientGroups.Where(group => group.Id != excluded)
             .Select((group, index) => (Label: $"{index + 1}. {group.Name}", group.Id)).ToList();
         var labels = choices.Select(choice => choice.Label).Append("Other ingredients").ToArray();
-        var result = await Page.DisplayActionSheetAsync(title, "Cancel", null, labels);
+        var result = await AppDialogs.ChooseAsync(Page, title, labels);
         if (result is null || result == "Cancel")
             return (false, null, string.Empty);
         if (result == "Other ingredients")
@@ -264,7 +264,7 @@ public partial class AddEditViewModel : ObservableObject
         if (index > 0) actions.Add("Move up");
         if (index < Recipe.Steps.Count - 1) actions.Add("Move down");
         actions.Add("Remove step");
-        var action = await Page.DisplayActionSheetAsync("Method step", "Cancel", null, actions.ToArray());
+        var action = await AppDialogs.ChooseAsync(Page, "Method step", actions, "Remove step");
         if (action == "Move up") Recipe.Steps.Move(index, index - 1);
         else if (action == "Move down") Recipe.Steps.Move(index, index + 1);
         else if (action == "Remove step") Recipe.Steps.Remove(step);
@@ -314,7 +314,7 @@ public partial class AddEditViewModel : ObservableObject
             catch (Exception exception) when (ReceipeAPIService.IsNetworkFailure(exception) || exception is IOException or UnauthorizedAccessException)
             {
                 System.Diagnostics.Debug.WriteLine(exception);
-                await Page.DisplayAlertAsync("Saved to your server", "The downloaded copy could not be refreshed. Reconnect and refresh your recipe box before going offline.", "OK");
+                await AppDialogs.AlertAsync(Page, "Saved to your server", "The downloaded copy could not be refreshed. Reconnect and refresh your recipe box before going offline.");
             }
             CleanupPhoto();
             Recipe.ImageData = null;

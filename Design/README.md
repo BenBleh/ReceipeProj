@@ -1,7 +1,7 @@
 # Nibbles redesign
 
 `Nibbles-redesign.fig` is the editable OpenPencil design, containing the approved
-1.2.0 screens and the approved 1.2.1 revisions below. Open it in OpenPencil to
+1.2.0 screens and the approved 1.2.1/1.2.2 revisions below. Open it in OpenPencil to
 continue designing. `Nibbles-overview.png`, the screen overviews,
 and `previews` provide quick references; `assets` contains the approved mascot,
 recipe-photo references, app icon, and launch artwork.
@@ -18,6 +18,35 @@ links are available on recipe details. The original pink paws are retained in
 dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
+
+## Approved app-styled dialogs and menus
+
+**Approved and implemented in 1.2.2.** Page **09 - App-styled dialogs and menus**
+contains 11 boards: eight phone examples, two Windows examples, and a behaviour
+handoff. `dialogs-overview.png` shows the page; `previews/dialog-*.png` contains
+the individual views.
+
+Replace app-owned platform alerts, name prompts and action sheets with a shared
+visual family: cream/forest palette, white or deep-green surfaces, serif titles,
+Open Sans body text, rounded cards, dimmed app context and 48px action targets.
+Light/dark examples cover discard changes, start fresh, add/rename group with
+inline validation, group actions, destination selection, remove-heading
+confirmation, changed-recipe review, and server-saved/cache-refresh warnings.
+Ingredient and method-step action menus use the same menu treatment.
+
+Phones use centered confirmations/prompts and bottom action sheets; Windows uses
+centered width-limited overlays. Long text and option lists scroll without
+hiding the actions. Retain context-dependent options and the existing outcomes.
+Destructive actions have explicit labels and danger styling; safe actions remain
+easy to find. Escape/Android Back cancels, focus stays inside the overlay and
+returns to its invoking control, and outside taps never discard/reset/remove.
+Name fields retain input and show validation inline; keyboard and large-text
+layouts must keep fields and actions reachable.
+
+Paste ingredients and scaling retain their existing app-themed custom screens,
+previews and workflows. OS photo/file pickers and permission dialogs remain
+native. This update changes only the app, not the API or backup behaviour.
+Board 11 is explicitly labelled as design notes, not content shown in the app.
 
 ## Next features: cooking, search, scaling and GitHub backup
 

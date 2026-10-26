@@ -49,6 +49,8 @@ public partial class CookingPage : ContentPage
             Window.Stopped += Window_Deactivated;
             Window.Resumed += Window_Activated;
         }
+        if (AppDialogs.IsOpen)
+            return;
         try
         {
             if (loaded && activeDate != DateOnly.FromDateTime(DateTime.Now))
@@ -67,7 +69,7 @@ public partial class CookingPage : ContentPage
                 var session = Resume ? await sessions.LoadAsync(RecipeId) : null;
                 if (session is not null && session.Revision != revision)
                 {
-                    var start = await DisplayAlertAsync("Recipe changed", "Review the updated recipe before cooking. Saved progress cannot safely be applied to this revision.", "Start fresh", "Back to recipe");
+                    var start = await AppDialogs.ConfirmAsync(this, "Recipe changed", "Review the updated recipe before cooking. Saved progress cannot safely be applied to this revision.", "Start fresh", "Back to recipe");
                     if (!start)
                     {
                         skipSave = true;
