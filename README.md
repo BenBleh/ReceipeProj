@@ -56,14 +56,14 @@ The existing Android launch configuration is unchanged.
 
 ## Nibbles installable builds
 
-Run these commands from the repository root. The current release is 1.2.2, Android
-version code 6; increment those values in `Nibbles.csproj` for future releases.
+Run these commands from the repository root. The current release is 1.2.3, Android
+version code 7; increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.2.2\android
-Copy-Item .\artifacts\Nibbles\1.2.2\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.2.2\Nibbles-1.2.2-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.2.3\android
+Copy-Item .\artifacts\Nibbles\1.2.3\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.2.3\Nibbles-1.2.3-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -80,10 +80,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.2.2 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.2.3 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The installer is `artifacts\Nibbles\1.2.2\Nibbles-1.2.2-Windows-x64-Setup.exe`.
+The installer is `artifacts\Nibbles\1.2.3\Nibbles-1.2.3-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;
