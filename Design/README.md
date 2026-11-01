@@ -40,11 +40,21 @@ layout, not reordered, rewritten or renumbered recipe data.
   showing the full ingredient line and its group heading when present.
   Keep the method visible behind it; dismissing restores the exact step/scroll.
 - Match on-device using conservative whole-word/phrase rules, favouring longer
-  names. Support clear variants such as cream / thickened cream; do not match
+  names. Support controlled food-name variants such as flour / unbleached
+  all-purpose flour, sugar / granulated sugar, butter / unsalted butter and
+  cream / thickened cream. Broad flour references can offer both plain and
+  self-raising flour. Do not match
   garlic separately inside garlic powder. When more than one line is plausible,
   display all candidates instead of guessing. Leave uncertain/unmatched text
   plain. Typos and aliases such as chicken vegeta require deliberate resolution,
   not unrestricted fuzzy matching or a cloud AI service.
+- Interpret common quantity/unit variants without changing pasted text:
+  tablespoon / tablespoons / tbsp / tbs, c / cup, gm / g and mls / ml.
+  Handle recognised preparation words before or after food names, garlic
+  cloves, and parenthetical weight conversions without losing the food name.
+  Share leading-quantity interpretation with scaling while retaining its
+  existing ambiguity checks and original unit display. Never automatically
+  convert tablespoons into millilitres or silently rewrite recipe JSON.
 - Show the current **displayed scaled amount**, labelled with its multiplier,
   and the original ingredient line. Preserve review/approximation markers and
   unchanged ambiguous ranges. Ingredient-list quantities are not necessarily
@@ -67,8 +77,11 @@ layout, not reordered, rewritten or renumbered recipe data.
   introduced by this design. Preserve cooking progress, checks, scaling,
   foreground keep-awake and existing numbered method layout.
 
-Matching stays conservative, as approved: no alias-editing UI or guessed
-connections. Improve the ingredient or method wording to resolve unmatched names.
+The broader matching rules are approved and implemented in source. Page 11's handoff
+and previews describe this behaviour; the screens and compact sheets are
+unchanged. No alias-editing UI, guessed connections or installer rebuild is
+requested. Ingredient/method corrections remain appropriate for unsupported
+typos, brand substitutions and genuinely unclear references.
 
 ## Direct GitHub storage
 

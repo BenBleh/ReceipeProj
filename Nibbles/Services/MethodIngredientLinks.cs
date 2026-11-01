@@ -7,29 +7,76 @@ public sealed record IngredientReference(int Start, int Length, string Text, IRe
 
 public static partial class MethodIngredientLinks
 {
-    private static readonly HashSet<string> Units = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> QuantityWords = new(StringComparer.Ordinal)
     {
-        "g", "gram", "kg", "kilogram", "mg", "ml", "millilitre", "milliliter", "l", "lr", "ltr",
-        "litre", "liter", "oz", "ounce", "lb", "pound", "tbs", "tbsp", "tablespoon", "tsp", "teaspoon",
-        "cup", "pinch", "dash", "clove", "stick", "can", "tin", "packet", "pack", "bunch",
-        "large", "lrg", "medium", "small", "of"
+        "large", "lrg", "medium", "small", "big", "of", "a", "an", "one", "two",
+        "generous", "heaped", "level", "tiny", "little", "bit"
     };
     private static readonly HashSet<string> Preparation = new(StringComparer.Ordinal)
     {
         "diced", "chopped", "minced", "crushed", "grated", "sliced", "boneless", "skinless",
-        "thickened", "heavy", "whipping", "double"
+        "finely", "freshly", "fresh", "dried", "peeled", "washed", "drained", "seeded",
+        "cored", "melted", "softened", "cooked", "uncooked", "raw", "frozen", "shredded",
+        "whisked", "beaten", "bashed", "whole"
     };
     private static readonly HashSet<string> CompoundSuffixes = new(StringComparer.Ordinal)
     {
         "stock", "powder", "oil", "sauce", "paste", "juice", "extract", "vinegar",
-        "seasoning", "bouillon", "broth", "vegeta"
+        "seasoning", "bouillon", "broth", "vegeta", "cube", "free", "cheese"
     };
+    private static readonly Dictionary<string, HashSet<string>> FamilyModifiers = new()
+    {
+        ["flour"] = Set("unbleached bleached all purpose plain self raising bread chickpea oat wholemeal wheat whole rice corn almond coconut gluten free"),
+        ["sugar"] = Set("granulated caster icing brown white raw powdered coconut palm"),
+        ["butter"] = Set("unsalted salted"),
+        ["cream"] = Set("thickened thick heavy whipping double light cooking"),
+        ["pepper"] = Set("black white cracked ground"),
+        ["salt"] = Set("table sea kosher cooking flaky flake"),
+        ["paprika"] = Set("sweet smoked hungarian hot"),
+        ["onion"] = Set("brown red white yellow"),
+        ["parsley"] = Set("flat leaf curly italian"),
+        ["rice"] = Set("jasmine basmati white brown long short grain"),
+        ["pasta"] = Set("penne fettuccine spiral dry short wholemeal"),
+        ["tomato"] = Set("cherry plum grape"),
+        ["mushroom"] = Set("swiss brown white button mixed"),
+        ["bacon"] = Set("streaky crispy"),
+        ["oil"] = Set("extra virgin olive avocado canola vegetable neutral sesame chilli chili coconut"),
+        ["honey"] = Set("runny"),
+    };
+    private static readonly HashSet<string> CosmeticModifiers = Set("unbleached bleached cracked ground hungarian cooking extra virgin runny");
+    private static readonly HashSet<string> CheeseNames = Set("parmesan cheddar mozzarella gruyere colby ricotta");
+    private static readonly Dictionary<string, HashSet<string>> ProtectedPrefixes = new()
+    {
+        ["butter"] = Set("peanut almond nut cashew chocolate cocoa"),
+        ["cream"] = Set("sour coconut ice"),
+        ["milk"] = Set("coconut almond oat soy soya rice skim skimmed full fat whole"),
+        ["cheese"] = Set("cream cottage"),
+        ["oil"] = Set("garlic truffle"),
+        ["pepper"] = Set("cayenne bell frying"),
+        ["onion"] = Set("spring"),
+        ["tomato"] = Set("dried"),
+    };
+
+    private sealed record Name(string[] Words, bool Shortened);
+    private static HashSet<string> Set(string words) => new(words.Split(' '), StringComparer.Ordinal);
 
     [GeneratedRegex(@"\p{L}+(?:['’]\p{L}+)?")]
     private static partial Regex Words();
 
     [GeneratedRegex(@"^[\s\-–]+$")]
     private static partial Regex PhraseSeparator();
+
+    [GeneratedRegex(@"\([^()]*\)")]
+    private static partial Regex Parentheses();
+
+    [GeneratedRegex(@"\b(?:to taste|for garnish|for serving|for frying|to serve|to finish|to garnish|to coat|plus extra|mixed with|cut into|cut in)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex Notes();
+
+    [GeneratedRegex(@"\s+(?:or|and)\s+|[/&]", RegexOptions.IgnoreCase)]
+    private static partial Regex Alternatives();
+
+    [GeneratedRegex(@"^(?:low sodium|low fat|low fodmap|reduced salt|sugar free|gluten free)\s+", RegexOptions.IgnoreCase)]
+    private static partial Regex DietaryPrefix();
 
     private static string Normalize(string word)
     {
@@ -44,28 +91,118 @@ public static partial class MethodIngredientLinks
         };
     }
 
-    private static IEnumerable<string[]> Names(Ingredient ingredient)
+    private static string IngredientName(string description)
     {
-        var description = ingredient.FQIngrediantDescription ?? "";
-        var cut = description.IndexOfAny([',', '(']);
-        if (cut >= 0) description = description[..cut];
-        var words = Words().Matches(description).Select(match => Normalize(match.Value)).ToArray();
-        var start = 0;
-        while (start < words.Length && Units.Contains(words[start])) start++;
-        if (start == words.Length) yield break;
-        var name = words[start..];
-        yield return name;
-        while (name.Length > 1 && Preparation.Contains(name[0])) name = name[1..];
-        yield return name;
+        if (IngredientQuantities.TryRead(description, out var quantity)) description = quantity.Remainder;
+        foreach (var parentheses in Parentheses().Matches(description).Cast<Match>().Reverse())
+        {
+            var content = parentheses.Value[1..^1];
+            var words = Words().Matches(content).Select(match => match.Value).ToArray();
+            var conversion = words.Length > 0 && content.Any(char.IsDigit) && words.All(IngredientQuantities.IsUnit);
+            var preparation = words.Length > 0 && words.All(word => Preparation.Contains(Normalize(word)) ||
+                word.ToLowerInvariant() is "heavy" or "double" or "whipping");
+            var preceding = Words().Matches(description[..parentheses.Index]).LastOrDefault()?.Value ?? "";
+            var compound = words.Length > 0 && words.All(word => CompoundSuffixes.Contains(Normalize(word))) &&
+                !CompoundSuffixes.Contains(Normalize(preceding));
+            description = conversion || preparation
+                ? description.Remove(parentheses.Index, parentheses.Length).Insert(parentheses.Index, " ")
+                : compound ? description.Remove(parentheses.Index, parentheses.Length).Insert(parentheses.Index, " " + content)
+                : description[..parentheses.Index];
+        }
+        var pieces = description.Split(',');
+        var name = pieces[0];
+        for (var position = 1; position < pieces.Length && Words().Matches(name).All(word => IsPrefix(Normalize(word.Value))); position++)
+            name += " " + pieces[position];
+        name = Regex.Replace(name, @"^\s*to taste\s+", "", RegexOptions.IgnoreCase);
+        var notes = Notes().Match(name);
+        if (notes.Success) name = name[..notes.Index];
+        return name;
+    }
+
+    private static bool IsPrefix(string word) => IngredientQuantities.IsUnit(word) ||
+        QuantityWords.Contains(word) || Preparation.Contains(word);
+
+    private static IEnumerable<Name> Variants(string description)
+    {
+        var tokens = Words().Matches(description).ToArray();
+        var words = new List<string>();
+        var position = 0;
+        while (position < tokens.Length)
+        {
+            var word = Normalize(tokens[position].Value);
+            if (!IsPrefix(word) || word == "clove" && position == tokens.Length - 1) break;
+            if (Preparation.Contains(word)) words.Add(word);
+            position++;
+        }
+        for (; position < tokens.Length; position++)
+        {
+            // A second quantity starts a packaging/alternative note, not the food name.
+            if (words.Count > 0 && description[(tokens[position - 1].Index + tokens[position - 1].Length)..tokens[position].Index].Any(char.IsDigit))
+                break;
+            words.Add(Normalize(tokens[position].Value));
+        }
+        if (words.Count == 0 || words.All(Preparation.Contains)) yield break;
+        var original = words.ToArray();
+        yield return new(original, false);
+        while (words.Count > 1 && Preparation.Contains(words[0])) words.RemoveAt(0);
+        while (words.Count > 1 && Preparation.Contains(words[^1])) words.RemoveAt(words.Count - 1);
+        var name = words.ToArray();
+        yield return new(name, !name.SequenceEqual(original));
+        var dietary = DietaryPrefix().Replace(string.Join(" ", name), "");
+        if (dietary != string.Join(" ", name))
+        {
+            name = dietary.Split(' ');
+            yield return new(name, true);
+        }
+        if (name.Length > 1 && (name[0] == "garlic" && name[^1] == "clove" ||
+            name[0] is "celery" or "lemongrass" && name[^1] == "stalk" ||
+            name[^2] == "salt" && name[^1] == "flake"))
+        {
+            name = name[..^1];
+            yield return new(name, true);
+        }
         if (name.Length == 2 && name[0] == "chicken" && name[1] is "breast" or "thigh")
-            yield return ["chicken"];
-        // A multiword reference such as chicken stock can refer to liquid or powder.
-        if (name.Length > 2 && name[^1] == "powder") yield return name[..^1];
+            yield return new(["chicken"], true);
+        if (name.Length > 2 && name[^1] is "powder" or "cube")
+            yield return new(name[..^1], true);
+        if (name.Length == 2 && name[1] == "cheese" && CheeseNames.Contains(name[0]))
+            yield return new([name[0]], true);
+        if (name.Length == 1 && CheeseNames.Contains(name[0]))
+            yield return new([name[0], "cheese"], false);
+        if (FamilyModifiers.TryGetValue(name[^1], out var modifiers) && name.Length > 1 &&
+            name[..^1].All(modifiers.Contains))
+        {
+            var specific = name.Where(word => !CosmeticModifiers.Contains(word)).ToArray();
+            if (specific.Length > 1) yield return new(specific, true);
+            yield return new([name[^1]], true);
+        }
+    }
+
+    private static IEnumerable<Name> Names(Ingredient ingredient)
+    {
+        var description = IngredientName(ingredient.FQIngrediantDescription ?? "");
+        foreach (var name in Variants(description)) yield return name;
+        var alternatives = Alternatives().Split(description);
+        if (alternatives.Length < 2) yield break;
+        var last = Words().Matches(alternatives[^1]).Select(match => Normalize(match.Value)).ToArray();
+        var sharedCompound = last.Length > 1 && last[0] is "chicken" or "vegetable" or "beef" or "fish" &&
+            CompoundSuffixes.Contains(last[^1]);
+        foreach (var alternative in alternatives)
+        {
+            var words = Words().Matches(alternative).Select(match => Normalize(match.Value)).SkipWhile(IsPrefix).ToArray();
+            if (sharedCompound && words.Length == 1)
+            {
+                if (words[0] is not ("chicken" or "vegetable" or "beef" or "fish")) continue;
+                foreach (var name in Variants(string.Join(" ", words.Concat(last[1..])))) yield return name;
+            }
+            else
+                foreach (var name in Variants(alternative)) yield return name;
+        }
     }
 
     public static IReadOnlyList<IngredientReference> Find(string method, IEnumerable<Ingredient> ingredients)
     {
-        var aliases = ingredients.SelectMany(ingredient => Names(ingredient).Select(words => (Ingredient: ingredient, Words: words))).ToArray();
+        var aliases = ingredients.SelectMany(ingredient => Names(ingredient).Select(name => (Ingredient: ingredient, Name: name))).ToArray();
         var tokens = Words().Matches(method).ToArray();
         var result = new List<IngredientReference>();
         for (var position = 0; position < tokens.Length; position++)
@@ -74,13 +211,22 @@ public static partial class MethodIngredientLinks
             var candidates = new List<Ingredient>();
             foreach (var alias in aliases)
             {
-                var length = alias.Words.Length;
+                var length = alias.Name.Words.Length;
                 if (length < longest || position + length > tokens.Length) continue;
+                if (position > 0 && PhraseSeparator().IsMatch(method[
+                    (tokens[position - 1].Index + tokens[position - 1].Length)..tokens[position].Index]))
+                {
+                    var previous = Normalize(tokens[position - 1].Value);
+                    var head = alias.Name.Words[^1];
+                    if (ProtectedPrefixes.TryGetValue(head, out var protectedWords) && protectedWords.Contains(previous) ||
+                        alias.Name.Shortened && FamilyModifiers.TryGetValue(head, out var modifiers) && modifiers.Contains(previous))
+                        continue;
+                }
                 var matches = true;
                 for (var offset = 0; offset < length; offset++)
                 {
                     var token = tokens[position + offset];
-                    if (Normalize(token.Value) != alias.Words[offset] ||
+                    if (Normalize(token.Value) != alias.Name.Words[offset] ||
                         offset > 0 && !PhraseSeparator().IsMatch(method[
                             (tokens[position + offset - 1].Index + tokens[position + offset - 1].Length)..token.Index]))
                     {

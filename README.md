@@ -62,9 +62,16 @@ sheet; **Show in ingredients** highlights matching rows in the complete list,
 with **Back to step N** returning to the original method scroll. Wide cooking
 keeps both panes visible and reveals the related ingredient directly.
 
-Matching works on-device and offline, preferring complete phrases and clear
-variants such as cream / thickened cream. Ambiguous references show every
-candidate; unknown aliases, typos and uncertain matches remain plain text.
+Matching works on-device and offline, preferring complete phrases and controlled
+food-name variants such as flour / unbleached all-purpose flour, sugar /
+granulated sugar and cream / thickened cream. Preparation before or after a
+name, common quantity/unit abbreviations and parenthetical weight conversions
+are interpreted without changing pasted text. Leading numeric quantity parsing
+is shared with scaling, which still preserves original units and flags ambiguous
+amounts. Broad references show every plausible candidate, while specific phrases
+retain their distinctions. Chicken never means chicken stock, garlic never
+means garlic powder, and butter never means peanut butter. Unknown brand aliases,
+typos and uncertain matches remain plain text.
 No manual linking, fuzzy AI matching or recipe migration is required. Improve
 the recipe wording when a reference does not match.
 

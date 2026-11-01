@@ -86,4 +86,97 @@ public sealed class MethodIngredientLinksTests
         Assert.True(ingredient.IsChecked);
         Assert.Equal(before, JsonSerializer.Serialize(ingredient));
     }
+
+    [Fact]
+    public void PancakeMethodUsesShortFoodNamesWithoutRewritingEitherText()
+    {
+        const string method = "Whisk flour, sugar, cinnamon.";
+        var ingredients = new[]
+        {
+            Ingredient("125 grams unbleached all-purpose flour"),
+            Ingredient("1 tbsp granulated sugar"), Ingredient("a tiny pinch of cinnamon")
+        };
+        var original = JsonSerializer.Serialize(ingredients);
+        var matches = MethodIngredientLinks.Find(method, ingredients);
+        Assert.Equal(["flour", "sugar", "cinnamon"], matches.Select(item => item.Text));
+        for (var index = 0; index < matches.Count; index++)
+        {
+            Assert.Same(ingredients[index], Assert.Single(matches[index].Ingredients));
+            Assert.Equal(matches[index].Text, method.Substring(matches[index].Start, matches[index].Length));
+        }
+        Assert.Equal(original, JsonSerializer.Serialize(ingredients));
+    }
+
+    [Theory]
+    [InlineData("2 tablespoons unsalted butter", "butter")]
+    [InlineData("2 tbs unsalted butter", "butter")]
+    [InlineData("2 T unsalted butter", "butter")]
+    [InlineData("1/2 c plain flour", "flour")]
+    [InlineData("50 gm butter", "butter")]
+    [InlineData("50mls light cream", "cream")]
+    [InlineData("2 tbsp garlic cloves, minced", "garlic")]
+    [InlineData("3 chopped cloves of garlic", "garlic")]
+    [InlineData("15 g parsley chopped", "parsley")]
+    [InlineData("1 whisked egg", "egg")]
+    [InlineData("1 whole chilli, diced", "chilli")]
+    [InlineData("2 large boneless, skinless chicken breasts, cut in half", "chicken")]
+    [InlineData("200 g (7 oz) streaky bacon, cut into strips", "bacon")]
+    [InlineData("1 cup (100 GRAMS) freshly grated parmesan", "parmesan")]
+    [InlineData("300 ml (10 fl oz) thickened (heavy) cream", "cream")]
+    [InlineData("1 (3-4 lb.) chicken, cut into pieces", "chicken")]
+    [InlineData("5cm piece of ginger, grated", "ginger")]
+    [InlineData("1 tsp cloves", "cloves")]
+    [InlineData("½ tsp chicken stock powder (bouillon)", "chicken stock powder")]
+    [InlineData("45g grated parmesan", "parmesan cheese")]
+    [InlineData("1 chicken stock cube mixed with 300ml hot water", "chicken stock")]
+    public void QuantitiesPreparationAndConversionsDoNotHideFoodNames(string ingredient, string reference)
+    {
+        var target = Ingredient(ingredient);
+        var match = Assert.Single(MethodIngredientLinks.Find($"Add {reference}.", [target]));
+        Assert.Equal(reference, match.Text);
+        Assert.Same(target, Assert.Single(match.Ingredients));
+    }
+
+    [Fact]
+    public void BroadNamesOfferAllCandidatesButSpecificNamesDoNotBroaden()
+    {
+        var plain = Ingredient("1 cup plain flour");
+        var selfRaising = Ingredient("2 cups self-raising flour");
+        var matches = MethodIngredientLinks.Find("Add plain flour, then flour.", [plain, selfRaising]);
+        Assert.Equal(["plain flour", "flour"], matches.Select(item => item.Text));
+        Assert.Same(plain, Assert.Single(matches[0].Ingredients));
+        Assert.Equal([plain, selfRaising], matches[1].Ingredients);
+        Assert.Empty(MethodIngredientLinks.Find("Add plain flour.", [selfRaising]));
+    }
+
+    [Theory]
+    [InlineData("Add chicken stock.", "500g chicken breast")]
+    [InlineData("Add garlic powder.", "2 garlic cloves")]
+    [InlineData("Add garlic oil.", "1 tbsp extra virgin olive oil")]
+    [InlineData("Add coconut cream.", "1 cup thickened cream")]
+    [InlineData("Add coconut milk.", "1 cup whole milk")]
+    [InlineData("Add skimmed milk.", "1 cup whole milk")]
+    [InlineData("Spread peanut butter.", "50g unsalted butter")]
+    [InlineData("Add butter.", "50g peanut butter")]
+    [InlineData("Add spring onion.", "1 red onion")]
+    [InlineData("Add white pepper.", "1 tsp cracked black pepper")]
+    [InlineData("Add cream cheese.", "50 ml heavy cream")]
+    [InlineData("Add chicken.", "1 tsp chicken or vegetable stock powder")]
+    [InlineData("Add chicken.", "1 cup chicken (stock)")]
+    [InlineData("Add garlic.", "1 tsp garlic (powder)")]
+    [InlineData("Add raw chicken.", "600g raw")]
+    public void BroadVariantsNeverCrossMeaningfulCompoundOrSpecificTypeBoundaries(string method, string ingredient) =>
+        Assert.Empty(MethodIngredientLinks.Find(method, [Ingredient(ingredient)]));
+
+    [Theory]
+    [InlineData("salt & pepper", "Add salt and pepper.", "salt", "pepper")]
+    [InlineData("cheddar/mozzarella", "Add cheddar or mozzarella.", "cheddar", "mozzarella")]
+    [InlineData("1 tsp chicken or vegetable stock powder", "Add chicken stock powder or vegetable stock powder.", "chicken stock powder", "vegetable stock powder")]
+    public void ExplicitAlternativesCanMatchWithoutInventingBrandAliases(string ingredient, string method, string first, string second)
+    {
+        var target = Ingredient(ingredient);
+        var matches = MethodIngredientLinks.Find(method, [target]);
+        Assert.Equal([first, second], matches.Select(item => item.Text));
+        Assert.All(matches, match => Assert.Same(target, Assert.Single(match.Ingredients)));
+    }
 }

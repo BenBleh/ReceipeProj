@@ -25,6 +25,10 @@ public sealed class CookingAndSearchTests
     [InlineData("1/0 cups water", 2, "1/0 cups water", true)]
     [InlineData("1,5 l milk", 2, "1,5 l milk", true)]
     [InlineData("1/3 cup", 2, "≈ 0.667 cup", false)]
+    [InlineData("2 tablespoons unsalted butter", 2, "4 tablespoons unsalted butter", false)]
+    [InlineData("2 tbs unsalted butter", 2, "4 tbs unsalted butter", false)]
+    [InlineData("1/2 c flour", 2, "1 c flour", false)]
+    [InlineData("50mls light cream", 2, "100mls light cream", false)]
     public void ScalingPreservesUnitsAndFlagsUncertainty(string original, double factor, string expected, bool review)
     {
         var result = RecipeScaling.Scale(original, (decimal)factor);
