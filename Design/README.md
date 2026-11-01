@@ -22,7 +22,7 @@ metadata is retained only for lossless compatibility with stored recipes.
 ## Method ingredient links
 
 **Approved and implemented in 1.4.0.** Page **11 - Method ingredient links** contains
-nine boards: cooking links, a single-ingredient sheet, ambiguous stock matches,
+nine approved ingredient-link boards: cooking links, a single-ingredient sheet, ambiguous stock matches,
 scaled amounts, single/multiple highlighted jumps, recipe-details links, a
 wide-screen interaction illustration, and an implementation handoff.
 See `ingredient-links-overview.png` and `previews/ingredient-links-*.png`.
@@ -82,6 +82,43 @@ and previews describe this behaviour; the screens and compact sheets are
 unchanged. No alias-editing UI, guessed connections or installer rebuild is
 requested. Ingredient/method corrections remain appropriate for unsupported
 typos, brand substitutions and genuinely unclear references.
+
+## Method ingredient group links - design for review
+
+**Proposed, not implemented.** Page **11 - Method ingredient links** now also
+contains panels **10-13** and the **14 / Group references** behaviour handoff.
+See `previews/ingredient-group-links-review.png` for the four states and
+`previews/ingredient-group-links-handoff.png` for the rules.
+The existing approved ingredient-link designs remain in place.
+
+The example is **Low Calorie KFC Popcorn Chicken**. Its method stays exactly
+`Mix seasonings with flour`. The mockup proposes putting its 11 spice/herb
+ingredient rows into an existing-style group named **Seasonings**, while leaving
+flour, baking powder, chicken, oil spray and egg outside that group.
+This grouping has **not** been applied to the stored recipe.
+
+- Match complete, explicitly named, non-empty groups locally, alongside existing
+  ingredient references. Prefer longer whole-name matches; do not infer groups,
+  invent synonyms or match automatically generated section headings.
+- Tapping **seasonings** opens a sheet titled **Seasonings**, labelled
+  **Ingredient group** with its member count. Its rows are all members of one
+  collection, not alternative ingredient candidates. **flour** retains its
+  normal ingredient lookup.
+- Long member lists scroll with both actions kept visible. Panel 11 shows the
+  first four members; panel 12 shows the last four at double scale, each with
+  its displayed and original quantity. Keep pasted wording/units, review flags,
+  approximation markers and cooking checks unchanged.
+- **Show in ingredients** reveals the group heading and highlights the entire
+  group, without filtering the full list. **Back to step 3** restores the method
+  scroll. Panel 13 compresses rows to illustrate the complete highlighted group;
+  implementation retains existing row spacing, paw controls and touch targets.
+  Wide layouts reveal the group in the existing ingredients pane.
+- If a phrase names both an ingredient and a group, or multiple groups, show
+  clearly labelled choices rather than guessing or merging distinct references.
+  Reuse existing group IDs/membership, accessibility and offline behaviour.
+
+The group-reference proposal is awaiting review and approval. No app code,
+recipe data, paste controls, installers or APKs were changed for this design.
 
 ## Direct GitHub storage
 
