@@ -53,7 +53,9 @@
                         <DataTemplate x:DataType="models:Step">
                             <VerticalStackLayout Spacing="8">
                                 <Label Text="{Binding StepNumberDisplay}" FontFamily="OpenSansSemibold" TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource DarkInk}}" />
-                                <Label Text="{Binding Instructions}" FontSize="17" LineHeight="1.35" />
+                                <components:MethodTextView
+                                    Recipe="{Binding Source={RelativeSource AncestorType={x:Type vm:RecipeDetailsViewModel}}, Path=Recipe}"
+                                    ReferenceTapped="IngredientReference_Tapped" />
                             </VerticalStackLayout>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
@@ -65,6 +67,7 @@
                 <Button Text="Clear checked" Style="{StaticResource SecondaryButton}" Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
             </Grid>
             <Button x:Name="MethodButton" Text="Back to method →" Command="{Binding ShowMethodCommand}" />
+            <Button x:Name="ReferenceReturnButton" IsVisible="False" Clicked="ReferenceReturn_Clicked" />
         </VerticalStackLayout>
     </Grid>
 </ContentPage>

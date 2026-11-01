@@ -68,7 +68,9 @@
                         <DataTemplate x:DataType="models:Step">
                             <VerticalStackLayout Spacing="8">
                                 <Label Text="{Binding StepNumberDisplay}" FontFamily="OpenSansSemibold" TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource DarkInk}}" />
-                                <Label Text="{Binding Instructions}" FontSize="17" LineHeight="1.35" />
+                                <components:MethodTextView
+                                    Recipe="{Binding Source={RelativeSource AncestorType={x:Type vm:RecipeDetailsViewModel}}, Path=Recipe}"
+                                    ReferenceTapped="IngredientReference_Tapped" />
                             </VerticalStackLayout>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
@@ -76,6 +78,7 @@
             </VerticalStackLayout>
         </ScrollView>
         <VerticalStackLayout Grid.Row="2" Spacing="8" IsVisible="{Binding IsIngredients}">
+        <Button x:Name="ReferenceReturnButton" IsVisible="False" Clicked="ReferenceReturn_Clicked" />
         <Button Text="Clear checked" Style="{StaticResource QuietButton}" Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
         <Grid ColumnDefinitions="1.6*,*" ColumnSpacing="10">
             <Button Text="{Binding CopyLabel}" Style="{StaticResource SecondaryButton}" Command="{Binding CopyIngredientsCommand}" />

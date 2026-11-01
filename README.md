@@ -54,6 +54,26 @@ API site/application pool. Do not reset or force-push over app changes.
 iOS uses the same storage implementation and its native image encoder; building
 and signing iOS still requires a Mac.
 
+## Method ingredient links (1.4.0)
+
+In recipe details and cooking mode, underlined ingredient references show the
+full ingredient line without leaving your method. Mobile opens a compact themed
+sheet; **Show in ingredients** highlights matching rows in the complete list,
+with **Back to step N** returning to the original method scroll. Wide cooking
+keeps both panes visible and reveals the related ingredient directly.
+
+Matching works on-device and offline, preferring complete phrases and clear
+variants such as cream / thickened cream. Ambiguous references show every
+candidate; unknown aliases, typos and uncertain matches remain plain text.
+No manual linking, fuzzy AI matching or recipe migration is required. Improve
+the recipe wording when a reference does not match.
+
+The sheet uses current displayed scaled amounts, including review/approximation
+markers, and shows the original line when scaled. These are ingredient-list
+amounts, not inferred portions for a particular step. Method wording, quantities,
+paw checks and saved JSON remain unchanged. Design annotations and the removed
+instructional quantity disclaimers are not app UI.
+
 ## Legacy API setup (not required by Nibbles 1.3.0)
 
 1.Install IIS
@@ -106,14 +126,14 @@ The existing Android launch configuration is unchanged.
 ## Nibbles installable builds
 
 Run these commands from the repository root with the private token-file
-environment variable set. The current release is 1.3.0, Android version code 8;
+environment variable set. The current release is 1.4.0, Android version code 9;
 increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.3.0\android
-Copy-Item .\artifacts\Nibbles\1.3.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.3.0\Nibbles-1.3.0-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.4.0\android
+Copy-Item .\artifacts\Nibbles\1.4.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.4.0\Nibbles-1.4.0-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -130,10 +150,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.3.0 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.4.0 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The private installer is `artifacts\Nibbles\1.3.0\Nibbles-1.3.0-Windows-x64-Setup.exe`.
+The private installer is `artifacts\Nibbles\1.4.0\Nibbles-1.4.0-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;

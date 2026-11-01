@@ -40,7 +40,7 @@ public sealed class GitHubRecipeRepository
         this.pendingPath = pendingPath;
         client.BaseAddress = new Uri("https://api.github.com/");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Nibbles/1.3");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Nibbles/1.4");
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
     }

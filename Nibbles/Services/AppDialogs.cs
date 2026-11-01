@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.Maui.Controls.Shapes;
+using Nibbles.Models;
 using iOSPage = Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page;
 using UIModalPresentationStyle = Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.UIModalPresentationStyle;
 
@@ -23,6 +24,9 @@ public static class AppDialogs
     public static Task<string?> ChooseAsync(Page owner, string title, IEnumerable<string> actions,
         params string[] destructiveActions) =>
         ShowAsync(owner, new DialogPage(title, actions, destructiveActions));
+
+    public static async Task<bool> IngredientAsync(Page owner, IngredientReference reference, Recipe recipe, decimal multiplier) =>
+        await ShowAsync(owner, new DialogPage(reference, recipe, multiplier)) is not null;
 
     private static async Task<string?> ShowAsync(Page owner, DialogPage dialog)
     {
@@ -127,6 +131,44 @@ public static class AppDialogs
                 body.Add(button);
             }
             safe = MakeButton("Cancel", "SecondaryButton");
+            safe.Clicked += async (_, _) => await Close(null);
+            buttons.Add(safe);
+        }
+
+        public DialogPage(IngredientReference reference, Recipe recipe, decimal multiplier)
+            : this(reference.Ingredients.Count == 1 ? "Ingredient" : "Related ingredients", true)
+        {
+            body.Spacing = 12;
+            var context = reference.Ingredients.Count == 1 ? $"From “{reference.Text}”" :
+                $"“{reference.Text}” matches more than one line.";
+            if (multiplier != 1) context += $" · Using {multiplier:0.###}× amounts";
+            body.Add(new Label { Text = context, Style = Resource<Style>("MutedLabel"), FontSize = 14 });
+            foreach (var ingredient in reference.Ingredients)
+            {
+                var rows = new VerticalStackLayout { Spacing = 8, BindingContext = ingredient };
+                var group = RecipeIngredients.Sections(recipe).First(section => section.Ingredients.Contains(ingredient));
+                if (group.ShowHeading)
+                    rows.Add(new Label { Text = group.Name, Style = Resource<Style>("MutedLabel"), FontSize = 13 });
+                var line = new Label { FontSize = 20, LineBreakMode = LineBreakMode.WordWrap };
+                line.SetBinding(Label.TextProperty, nameof(Ingredient.DisplayDescription));
+                rows.Add(line);
+                if (multiplier != 1)
+                    rows.Add(new Label { Text = $"Original: {ingredient.FQIngrediantDescription}", FontSize = 14,
+                        Style = Resource<Style>("MutedLabel") });
+                var review = new Label { Text = "Review manually · amount unchanged", FontSize = 12,
+                    Style = Resource<Style>("MutedLabel") };
+                review.SetBinding(IsVisibleProperty, nameof(Ingredient.ScalingNeedsReview));
+                rows.Add(review);
+                var ingredientCard = new Border { Padding = 16, StrokeThickness = 0,
+                    StrokeShape = new RoundRectangle { CornerRadius = 16 }, Content = rows };
+                ingredientCard.SetAppThemeColor(BackgroundColorProperty, Resource<Color>("Tint"), Resource<Color>("DarkSurface"));
+                body.Add(ingredientCard);
+            }
+            var show = MakeButton(reference.Ingredients.Count == 1 ? "Show in ingredients" : "Show both in ingredients");
+            if (reference.Ingredients.Count > 2) show.Text = "Show all in ingredients";
+            show.Clicked += async (_, _) => await Close("show");
+            buttons.Add(show);
+            safe = MakeButton("Back to method", "SecondaryButton");
             safe.Clicked += async (_, _) => await Close(null);
             buttons.Add(safe);
         }

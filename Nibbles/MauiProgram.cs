@@ -21,6 +21,10 @@ namespace Nibbles
                     fonts.AddFont("lucide.ttf", "IconFonts");
                 });
 
+#if WINDOWS
+            builder.ConfigureMauiHandlers(handlers =>
+                handlers.AddHandler<Components.NativeMethodLabel, Components.NativeMethodLabelHandler>());
+#endif
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

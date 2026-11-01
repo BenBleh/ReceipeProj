@@ -1,6 +1,7 @@
 using Nibbles.Services;
 using Nibbles.ViewModels;
 using Nibbles.Models;
+using Nibbles.Components;
 using System.Globalization;
 
 namespace Nibbles;
@@ -14,6 +15,7 @@ public partial class RecipeDetailsPage : ContentPage
 {
     private readonly CookingSessionStore sessions;
     private readonly ReceipeAPIService service;
+    private readonly IngredientReferenceNavigation references;
     private bool returningFromScale;
     public string RecipeId { get; set; } = string.Empty;
     public bool CanAdd { get; set; }
@@ -26,7 +28,13 @@ public partial class RecipeDetailsPage : ContentPage
         InitializeComponent();
         this.sessions = sessions;
         this.service = service;
-        BindingContext = new RecipeDetailsViewModel(service);
+        var model = new RecipeDetailsViewModel(service);
+        BindingContext = model;
+        references = new(this, model, DetailsScroll, DetailsScroll, () => false, ReferenceReturnButton);
+        model.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(model.IsIngredients)) references.UpdateReturnVisibility();
+        };
     }
 
     protected override async void OnAppearing()
@@ -81,12 +89,17 @@ public partial class RecipeDetailsPage : ContentPage
 
     protected override void OnDisappearing()
     {
+        if (!AppDialogs.IsOpen && !returningFromScale) references.Clear();
         service.AccessChanged -= AccessChanged;
         base.OnDisappearing();
     }
 
     private void AccessChanged(object? sender, EventArgs args) =>
         ((RecipeDetailsViewModel)BindingContext).CanAdd = service.CanWrite;
+
+    private async void IngredientReference_Tapped(object? sender, IngredientReferenceEventArgs args) =>
+        await references.OpenAsync(args);
+    private async void ReferenceReturn_Clicked(object sender, EventArgs args) => await references.ReturnAsync();
 
     private async Task StartCooking(bool resume)
     {

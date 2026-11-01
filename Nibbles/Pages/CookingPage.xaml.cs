@@ -1,6 +1,7 @@
 using Nibbles.Models;
 using Nibbles.Services;
 using Nibbles.ViewModels;
+using Nibbles.Components;
 using System.ComponentModel;
 using System.Globalization;
 
@@ -14,6 +15,7 @@ public partial class CookingPage : ContentPage
     private readonly CookingSessionStore sessions;
     private readonly IDispatcherTimer timer;
     private readonly RecipeDetailsViewModel model;
+    private readonly IngredientReferenceNavigation references;
     private readonly SemaphoreSlim saveGate = new(1, 1);
     private bool loaded, visible, dirty, skipSave, checkingReturn;
     private bool restoring;
@@ -31,6 +33,11 @@ public partial class CookingPage : ContentPage
         this.sessions = sessions;
         model = new(service);
         BindingContext = model;
+        references = new(this, model, IngredientsScroll, MethodScroll, () => Width >= 900, ReferenceReturnButton);
+        ReferenceReturnButton.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(IsVisible)) UpdateLayout();
+        };
         model.PropertyChanged += ModelChanged;
         timer = Dispatcher.CreateTimer();
         timer.Interval = TimeSpan.FromSeconds(1);
@@ -107,6 +114,7 @@ public partial class CookingPage : ContentPage
 
     protected override async void OnDisappearing()
     {
+        if (!AppDialogs.IsOpen && Navigation.ModalStack.Count == 0) references.Clear();
         visible = false;
         foreground = false;
         timer.Stop();
@@ -149,7 +157,8 @@ public partial class CookingPage : ContentPage
         IngredientsScroll.IsVisible = wide || model.IsIngredients;
         MethodScroll.IsVisible = wide || model.IsMethod;
         TabBar.IsVisible = !wide;
-        MethodButton.IsVisible = !wide && model.IsIngredients;
+        references?.UpdateReturnVisibility();
+        MethodButton.IsVisible = !wide && model.IsIngredients && !ReferenceReturnButton.IsVisible;
     }
 
     private async Task RestoreScroll()
@@ -240,6 +249,9 @@ public partial class CookingPage : ContentPage
         model.ErrorMessage = $"Could not keep cooking progress. {exception.Message}";
         System.Diagnostics.Debug.WriteLine(exception);
     }
+    private async void IngredientReference_Tapped(object? sender, IngredientReferenceEventArgs args) =>
+        await references.OpenAsync(args);
+    private async void ReferenceReturn_Clicked(object sender, EventArgs args) => await references.ReturnAsync();
     private void Page_SizeChanged(object sender, EventArgs args) => UpdateLayout();
     private async void Exit_Clicked(object sender, EventArgs args)
     {

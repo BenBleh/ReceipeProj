@@ -19,6 +19,57 @@ dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
 
+## Method ingredient links
+
+**Approved and implemented in 1.4.0.** Page **11 - Method ingredient links** contains
+nine boards: cooking links, a single-ingredient sheet, ambiguous stock matches,
+scaled amounts, single/multiple highlighted jumps, recipe-details links, a
+wide-screen interaction illustration, and an implementation handoff.
+See `ingredient-links-overview.png` and `previews/ingredient-links-*.png`.
+The previews retain the approved design; annotation text is not app UI.
+
+The example is **Creamy Chicken and bacon pasta soup**,
+`a06fb70b-34da-4ed2-88ec-c1f2b592d2ea`. Its method mentions cream while the
+ingredient line says thickened cream; chicken stock and chicken stock powder
+make a useful ambiguity example. Existing ingredient spelling and units remain
+unchanged in the mockups. Method excerpts illustrate the existing scrolling
+layout, not reordered, rewritten or renumbered recipe data.
+
+- Make confidently matched ingredient references underlined and tappable in
+  both recipe details and cooking mode. On mobile, open an app-styled sheet
+  showing the full ingredient line and its group heading when present.
+  Keep the method visible behind it; dismissing restores the exact step/scroll.
+- Match on-device using conservative whole-word/phrase rules, favouring longer
+  names. Support clear variants such as cream / thickened cream; do not match
+  garlic separately inside garlic powder. When more than one line is plausible,
+  display all candidates instead of guessing. Leave uncertain/unmatched text
+  plain. Typos and aliases such as chicken vegeta require deliberate resolution,
+  not unrestricted fuzzy matching or a cloud AI service.
+- Show the current **displayed scaled amount**, labelled with its multiplier,
+  and the original ingredient line. Preserve review/approximation markers and
+  unchanged ambiguous ranges. Ingredient-list quantities are not necessarily
+  the portion used in that step; never infer divided amounts or rewrite
+  quantities already in the method. This is a behaviour rule, not explanatory
+  text shown beneath the ingredients. Keep the sheets compact, with their
+  actions directly below the ingredient card or matching lines.
+- **Show in ingredients** switches the existing tab, reveals the first match
+  and temporarily highlights all related rows. Do not filter, reorder, hide
+  other ingredients or modify paw checks. **Back to step N** restores the
+  originating method position. The multiple-match board compresses intervening
+  rows for illustration only; implementation retains the complete list.
+- Wide PC/tablet views keep both existing panes. A reference can reveal and
+  highlight its matches in the visible ingredient pane without navigating away.
+  Underlines, keyboard focus, accessible action labels and usable touch targets
+  must distinguish links beyond colour; large-text sheets scroll while actions
+  remain reachable.
+- Everything works from the loaded recipe offline. No upload, recipe migration,
+  automatic ingredient tagging, alias-management screen or new service is
+  introduced by this design. Preserve cooking progress, checks, scaling,
+  foreground keep-awake and existing numbered method layout.
+
+Matching stays conservative, as approved: no alias-editing UI or guessed
+connections. Improve the ingredient or method wording to resolve unmatched names.
+
 ## Direct GitHub storage
 
 **Approved and implemented in 1.3.0.** Page **10 - Direct GitHub storage** has

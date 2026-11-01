@@ -6,6 +6,13 @@
     xmlns:apiModels="clr-namespace:Nibbles.Models"
     xmlns:local="clr-namespace:Nibbles"
     x:DataType="apiModels:Ingredient">
+    <Border StrokeThickness="2" Stroke="Transparent" Padding="2" BackgroundColor="Transparent">
+        <Border.Triggers>
+            <DataTrigger TargetType="Border" Binding="{Binding IsHighlighted}" Value="True">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" />
+                <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource DarkInk}}" />
+            </DataTrigger>
+        </Border.Triggers>
     <Grid ColumnDefinitions="auto, *" MinimumHeightRequest="48" ColumnSpacing="4">
         <local:PawCheckbox
             Grid.Column="0"
@@ -33,4 +40,5 @@
         <Label Text="Review manually · amount unchanged" IsVisible="{Binding ScalingNeedsReview}" Style="{StaticResource MutedLabel}" FontSize="12" />
         </VerticalStackLayout>
     </Grid>
+    </Border>
 </ContentView>

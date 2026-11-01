@@ -47,6 +47,10 @@ namespace Nibbles.Models
         [ObservableProperty]
         public partial bool IsChecked { get; set; } = false;
 
+        [JsonIgnore]
+        [ObservableProperty]
+        public partial bool IsHighlighted { get; set; }
+
         [RelayCommand]
         public void ToggleChecked()
         {
