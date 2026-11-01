@@ -34,6 +34,7 @@ public sealed class GitHubRecipeTests : IDisposable
         Assert.Equal([1, 2, 3], git.Content(Id + "/" + Id + ".jpeg"));
         Assert.Equal(untouched, git.Content("unrelated.txt"));
         Assert.Contains($"{Id},Updated, with commas", git.Text("MasterList.csv"));
+        Assert.Equal($"Nibbles: update recipe Updated, with commas ({Id})", Assert.Single(git.CommitMessages));
         Assert.All(git.ForceValues, value => Assert.False(value));
     }
 
@@ -93,6 +94,7 @@ public sealed class GitHubRecipeTests : IDisposable
         var head = await store.ReadHeadAsync();
         var baseline = GitHubRecipeRepository.Baseline(head, GitHubRecipeRepository.ParseIndex(git.Content("MasterList.csv")), Other, true);
         await store.SaveAsync(Other, "New recipe", new Dictionary<string, byte[]> { [Other + ".json"] = Bytes("new") }, baseline);
+        Assert.Equal($"Nibbles: add recipe New recipe ({Other})", Assert.Single(git.CommitMessages));
         Assert.Single(GitHubRecipeRepository.ParseIndex(git.Content("MasterList.csv")), item => item.Id == Other);
         await Assert.ThrowsAsync<RecipeConflictException>(() => store.SaveAsync(Other, "New recipe",
             new Dictionary<string, byte[]> { [Other + ".json"] = Bytes("new") }, baseline));
@@ -281,6 +283,7 @@ public sealed class GitHubRecipeTests : IDisposable
         public int RefUpdates { get; private set; }
         public int BlobWrites { get; private set; }
         public List<bool> ForceValues { get; } = [];
+        public List<string> CommitMessages { get; } = [];
         public Action? BeforePatch { get; set; }
         public bool LoseResponse { get; set; }
         public bool RejectWithServerError { get; set; }
@@ -361,6 +364,7 @@ public sealed class GitHubRecipeTests : IDisposable
                 }
                 if (suffix == "git/commits")
                 {
+                    CommitMessages.Add(body.GetProperty("message").GetString()!);
                     var sha = "c" + commits.Count;
                     commits.Add(sha, new(body.GetProperty("tree").GetString()!, body.GetProperty("parents")[0].GetString()));
                     return Json(new { sha }, HttpStatusCode.Created);

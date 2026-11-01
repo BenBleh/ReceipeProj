@@ -135,7 +135,7 @@ public sealed class GitHubRecipeRepository
                 using var tree = await PostJson(Url("git/trees"), new { base_tree = head.Tree, tree = entries });
                 using var commit = await PostJson(Url("git/commits"), new
                 {
-                    message = $"Nibbles: {(baseline.IsNew ? "add" : "update")} recipe {id}",
+                    message = $"Nibbles: {(baseline.IsNew ? "add" : "update")} recipe {title} ({id})",
                     tree = tree.RootElement.GetProperty("sha").GetString()!,
                     parents = new[] { head.Commit }
                 });
