@@ -15,6 +15,8 @@ public partial class IngredientGroup : ObservableObject
 
 public class IngredientSection(string? id, string name, bool showHeading, IEnumerable<Ingredient> ingredients) : ObservableObject
 {
+    private bool isHighlighted;
+    public bool IsHighlighted { get => isHighlighted; set => SetProperty(ref isHighlighted, value); }
     public string? Id { get; } = id;
     public string Name { get; } = name;
     public bool IsNamed => Id is not null;

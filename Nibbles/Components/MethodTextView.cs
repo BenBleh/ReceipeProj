@@ -48,7 +48,7 @@ public sealed class MethodTextView : ContentView
     {
         if (BindingContext is not Step step) return;
         method = step.Instructions ?? "";
-        references = Recipe is null ? [] : MethodIngredientLinks.Find(method, Recipe.Ingredients);
+        references = Recipe is null ? [] : MethodIngredientLinks.Find(method, Recipe.Ingredients, Recipe.IngredientGroups);
 #if !WINDOWS
         var formatted = new FormattedString();
         var position = 0;
@@ -103,7 +103,10 @@ public sealed class MethodTextView : ContentView
                 Foreground = Brush(LinkColor)
             };
             link.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = reference.Text });
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(link, $"Show ingredients for {reference.Text}");
+            var description = reference.NeedsChoice ? $"Choose ingredient or group for {reference.Text}" :
+                reference.Groups.Count == 1 ? $"Show ingredient group {reference.Groups[0].Group.Name}" :
+                $"Show ingredients for {reference.Text}";
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(link, description);
             link.Click += (_, _) => Activate(reference);
             native.Inlines.Add(link);
             position = reference.Start + reference.Length;

@@ -3,7 +3,16 @@ using System.Text.RegularExpressions;
 
 namespace Nibbles.Services;
 
-public sealed record IngredientReference(int Start, int Length, string Text, IReadOnlyList<Ingredient> Ingredients);
+public sealed record IngredientGroupReference(IngredientGroup Group, IReadOnlyList<Ingredient> Ingredients)
+{
+    public string CountDescription => $"{Ingredients.Count} {(Ingredients.Count == 1 ? "ingredient" : "ingredients")}";
+}
+
+public sealed record IngredientReference(int Start, int Length, string Text, IReadOnlyList<Ingredient> Ingredients)
+{
+    public IReadOnlyList<IngredientGroupReference> Groups { get; init; } = [];
+    public bool NeedsChoice => Groups.Count > 0 && (Groups.Count > 1 || Ingredients.Count > 0);
+}
 
 public static partial class MethodIngredientLinks
 {
@@ -200,9 +209,11 @@ public static partial class MethodIngredientLinks
         }
     }
 
-    public static IReadOnlyList<IngredientReference> Find(string method, IEnumerable<Ingredient> ingredients)
+    public static IReadOnlyList<IngredientReference> Find(string method, IEnumerable<Ingredient> ingredients,
+        IEnumerable<IngredientGroup>? groups = null)
     {
-        var aliases = ingredients.SelectMany(ingredient => Names(ingredient).Select(name => (Ingredient: ingredient, Name: name))).ToArray();
+        var ingredientList = ingredients.ToArray();
+        var aliases = ingredientList.SelectMany(ingredient => Names(ingredient).Select(name => (Ingredient: ingredient, Name: name))).ToArray();
         var tokens = Words().Matches(method).ToArray();
         var result = new List<IngredientReference>();
         for (var position = 0; position < tokens.Length; position++)
@@ -249,6 +260,45 @@ public static partial class MethodIngredientLinks
             result.Add(new(first, count, method.Substring(first, count), candidates));
             position += longest - 1;
         }
-        return result;
+        if (groups is null) return result;
+        foreach (var group in groups.OrderBy(group => group.Order))
+        {
+            if (string.IsNullOrWhiteSpace(group.Name) || string.IsNullOrWhiteSpace(group.Id)) continue;
+            var members = ingredientList.Where(ingredient => ingredient.GroupId == group.Id &&
+                !string.IsNullOrWhiteSpace(ingredient.FQIngrediantDescription)).ToArray();
+            if (members.Length == 0) continue;
+            var pattern = @"(?<![\p{L}\p{N}_])" +
+                string.Join(@"\s+", Regex.Split(group.Name.Trim(), @"\s+").Select(Regex.Escape)) +
+                @"(?![\p{L}\p{N}_])";
+            foreach (Match match in Regex.Matches(method, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+            {
+                var end = match.Index + match.Length;
+                var following = Words().Match(method, end);
+                if (following.Success && CompoundSuffixes.Contains(Normalize(following.Value)) &&
+                    PhraseSeparator().IsMatch(method[end..following.Index]))
+                    continue;
+                var previous = Words().Matches(method[..match.Index]).LastOrDefault();
+                var head = Normalize(Words().Matches(group.Name).LastOrDefault()?.Value ?? "");
+                if (previous is not null && ProtectedPrefixes.TryGetValue(head, out var protectedWords) &&
+                    protectedWords.Contains(Normalize(previous.Value)) &&
+                    PhraseSeparator().IsMatch(method[(previous.Index + previous.Length)..match.Index]))
+                    continue;
+                result.Add(new(match.Index, match.Length, match.Value, []) { Groups = [new(group, members)] });
+            }
+        }
+        var merged = new List<IngredientReference>();
+        var next = 0;
+        foreach (var span in result.GroupBy(reference => (reference.Start, reference.Length))
+            .OrderBy(span => span.Key.Start).ThenByDescending(span => span.Key.Length))
+        {
+            if (span.Key.Start < next) continue;
+            merged.Add(new(span.Key.Start, span.Key.Length, method.Substring(span.Key.Start, span.Key.Length),
+                span.SelectMany(reference => reference.Ingredients).Distinct().ToArray())
+            {
+                Groups = span.SelectMany(reference => reference.Groups).DistinctBy(reference => reference.Group.Id).ToArray()
+            });
+            next = span.Key.Start + span.Key.Length;
+        }
+        return merged;
     }
 }

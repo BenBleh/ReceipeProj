@@ -179,4 +179,80 @@ public sealed class MethodIngredientLinksTests
         Assert.Equal([first, second], matches.Select(item => item.Text));
         Assert.All(matches, match => Assert.Same(target, Assert.Single(match.Ingredients)));
     }
+
+    [Fact]
+    public void NamedGroupLinksAllMembersWithoutChangingTheMethodOrStoredRecipe()
+    {
+        var group = new IngredientGroup { Id = "seasonings", Name = "Seasonings" };
+        var pepper = Ingredient("1 Tsp Black Pepper"); pepper.GroupId = group.Id; pepper.IsChecked = true;
+        var salt = Ingredient("1 Tsp Salt"); salt.GroupId = group.Id;
+        var flour = Ingredient("28g plain all purpose flour");
+        var recipe = new Recipe { Ingredients = [pepper, flour, salt], IngredientGroups = [group] };
+        const string method = "Mix SEASONINGS with flour";
+        var before = JsonSerializer.Serialize(recipe);
+        var matches = MethodIngredientLinks.Find(method, recipe.Ingredients, recipe.IngredientGroups);
+        Assert.Equal(["SEASONINGS", "flour"], matches.Select(reference => reference.Text));
+        Assert.Empty(matches[0].Ingredients);
+        var collection = Assert.Single(matches[0].Groups);
+        Assert.Same(group, collection.Group);
+        Assert.Equal([pepper, salt], collection.Ingredients);
+        Assert.False(matches[0].NeedsChoice);
+        Assert.Same(flour, Assert.Single(matches[1].Ingredients));
+        Assert.Equal(before, JsonSerializer.Serialize(recipe));
+        foreach (var match in matches) Assert.Equal(match.Text, method.Substring(match.Start, match.Length));
+    }
+
+    [Fact]
+    public void GroupNamesAreLiteralWholeNamesRatherThanIngredientAliasesOrGenericHeadings()
+    {
+        var group = new IngredientGroup { Id = "g", Name = "Dry ingredients" };
+        var flour = Ingredient("1 cup flour"); flour.GroupId = group.Id;
+        Assert.Empty(MethodIngredientLinks.Find("Mix ingredients, dry ingredient, and spices.", [flour], [group]));
+        var match = Assert.Single(MethodIngredientLinks.Find("Mix dry\ningredients.", [flour], [group]));
+        Assert.Equal("dry\ningredients", match.Text);
+        Assert.Empty(MethodIngredientLinks.Find("Mix dry ingredients.", [flour],
+            [new() { Id = group.Id, Name = "" }, new() { Id = "empty", Name = "Dry ingredients" }]));
+        var numbered = new IngredientGroup { Id = group.Id, Name = "5 spice (dry)" };
+        Assert.Single(MethodIngredientLinks.Find("Mix 5 spice (dry).", [flour], [numbered]));
+        Assert.Empty(MethodIngredientLinks.Find("Mix 15 spice (dry) and 5 spice.", [flour], [numbered]));
+    }
+
+    [Fact]
+    public void LongerGroupAndIngredientNamesWinWithoutOverlappingLinks()
+    {
+        var shortGroup = new IngredientGroup { Id = "short", Name = "Curry" };
+        var longGroup = new IngredientGroup { Id = "long", Name = "Curry sauce ingredients" };
+        var curry = Ingredient("1 tsp curry"); curry.GroupId = shortGroup.Id;
+        var sauce = Ingredient("2 tbsp soy sauce"); sauce.GroupId = longGroup.Id;
+        var matches = MethodIngredientLinks.Find("Mix curry sauce ingredients, then soy sauce.", [curry, sauce], [shortGroup, longGroup]);
+        Assert.Equal(["curry sauce ingredients", "soy sauce"], matches.Select(reference => reference.Text));
+        Assert.Same(longGroup, Assert.Single(matches[0].Groups).Group);
+        Assert.Same(sauce, Assert.Single(matches[1].Ingredients));
+    }
+
+    [Fact]
+    public void SameNameGroupsAndIngredientsRemainSeparateChoices()
+    {
+        var first = new IngredientGroup { Id = "first", Name = "Flour", Order = 1 };
+        var second = new IngredientGroup { Id = "second", Name = "Flour", Order = 0 };
+        var flour = Ingredient("1 cup flour");
+        var salt = Ingredient("1 tsp salt"); salt.GroupId = first.Id;
+        var sugar = Ingredient("1 tbsp sugar"); sugar.GroupId = second.Id;
+        var match = Assert.Single(MethodIngredientLinks.Find("Add flour.", [flour, salt, sugar], [first, second]));
+        Assert.True(match.NeedsChoice);
+        Assert.Equal([second, first], match.Groups.Select(reference => reference.Group));
+        Assert.Equal([flour], match.Ingredients);
+        Assert.Equal([sugar], match.Groups[0].Ingredients);
+        Assert.Equal([salt], match.Groups[1].Ingredients);
+    }
+
+    [Theory]
+    [InlineData("Chicken", "Add chicken stock.")]
+    [InlineData("Cream", "Add coconut cream.")]
+    [InlineData("Seasonings", "Add preseasonings or seasonings_extra.")]
+    public void GroupNamesDoNotBecomeMisleadingCompoundOrSubstringReferences(string name, string method)
+    {
+        var ingredient = Ingredient("1 tsp salt"); ingredient.GroupId = "g";
+        Assert.Empty(MethodIngredientLinks.Find(method, [ingredient], [new() { Id = "g", Name = name }]));
+    }
 }

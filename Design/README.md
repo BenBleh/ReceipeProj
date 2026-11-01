@@ -83,9 +83,9 @@ unchanged. No alias-editing UI, guessed connections or installer rebuild is
 requested. Ingredient/method corrections remain appropriate for unsupported
 typos, brand substitutions and genuinely unclear references.
 
-## Method ingredient group links - design for review
+## Method ingredient group links
 
-**Proposed, not implemented.** Page **11 - Method ingredient links** now also
+**Approved and implemented in source.** Page **11 - Method ingredient links** also
 contains panels **10-13** and the **14 / Group references** behaviour handoff.
 See `previews/ingredient-group-links-review.png` for the four states and
 `previews/ingredient-group-links-handoff.png` for the rules.
@@ -117,8 +117,10 @@ This grouping has **not** been applied to the stored recipe.
   clearly labelled choices rather than guessing or merging distinct references.
   Reuse existing group IDs/membership, accessibility and offline behaviour.
 
-The group-reference proposal is awaiting review and approval. No app code,
-recipe data, paste controls, installers or APKs were changed for this design.
+The approved group-reference behaviour is implemented alongside individual
+ingredient links. Recipe grouping and method-edit recommendations remain
+separate proposals: no stored recipes or paste controls were changed, and no
+new installers or APKs were produced.
 
 ## Direct GitHub storage
 

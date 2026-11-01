@@ -136,18 +136,23 @@ public static class AppDialogs
         }
 
         public DialogPage(IngredientReference reference, Recipe recipe, decimal multiplier)
-            : this(reference.Ingredients.Count == 1 ? "Ingredient" : "Related ingredients", true)
+            : this(reference.Groups.SingleOrDefault()?.Group.Name ??
+                (reference.Ingredients.Count == 1 ? "Ingredient" : "Related ingredients"), true)
         {
+            var groupReference = reference.Groups.SingleOrDefault();
+            var ingredients = groupReference?.Ingredients ?? reference.Ingredients;
             body.Spacing = 12;
-            var context = reference.Ingredients.Count == 1 ? $"From “{reference.Text}”" :
+            var context = groupReference is not null ? $"Ingredient group · {groupReference.CountDescription}" :
+                reference.Ingredients.Count == 1 ? $"From “{reference.Text}”" :
                 $"“{reference.Text}” matches more than one line.";
             if (multiplier != 1) context += $" · Using {multiplier:0.###}× amounts";
             body.Add(new Label { Text = context, Style = Resource<Style>("MutedLabel"), FontSize = 14 });
-            foreach (var ingredient in reference.Ingredients)
+            var groupRows = new VerticalStackLayout { Spacing = 20 };
+            foreach (var ingredient in ingredients)
             {
                 var rows = new VerticalStackLayout { Spacing = 8, BindingContext = ingredient };
                 var group = RecipeIngredients.Sections(recipe).First(section => section.Ingredients.Contains(ingredient));
-                if (group.ShowHeading)
+                if (groupReference is null && group.ShowHeading)
                     rows.Add(new Label { Text = group.Name, Style = Resource<Style>("MutedLabel"), FontSize = 13 });
                 var line = new Label { FontSize = 20, LineBreakMode = LineBreakMode.WordWrap };
                 line.SetBinding(Label.TextProperty, nameof(Ingredient.DisplayDescription));
@@ -159,18 +164,25 @@ public static class AppDialogs
                     Style = Resource<Style>("MutedLabel") };
                 review.SetBinding(IsVisibleProperty, nameof(Ingredient.ScalingNeedsReview));
                 rows.Add(review);
-                var ingredientCard = new Border { Padding = 16, StrokeThickness = 0,
-                    StrokeShape = new RoundRectangle { CornerRadius = 16 }, Content = rows };
-                ingredientCard.SetAppThemeColor(BackgroundColorProperty, Resource<Color>("Tint"), Resource<Color>("DarkSurface"));
-                body.Add(ingredientCard);
+                if (groupReference is null) body.Add(IngredientCard(rows));
+                else groupRows.Add(rows);
             }
-            var show = MakeButton(reference.Ingredients.Count == 1 ? "Show in ingredients" : "Show both in ingredients");
-            if (reference.Ingredients.Count > 2) show.Text = "Show all in ingredients";
+            if (groupReference is not null) body.Add(IngredientCard(groupRows));
+            var show = MakeButton(groupReference is not null || ingredients.Count == 1 ? "Show in ingredients" : "Show both in ingredients");
+            if (groupReference is null && ingredients.Count > 2) show.Text = "Show all in ingredients";
             show.Clicked += async (_, _) => await Close("show");
             buttons.Add(show);
             safe = MakeButton("Back to method", "SecondaryButton");
             safe.Clicked += async (_, _) => await Close(null);
             buttons.Add(safe);
+        }
+
+        private static Border IngredientCard(View content)
+        {
+            var card = new Border { Padding = 16, StrokeThickness = 0,
+                StrokeShape = new RoundRectangle { CornerRadius = 16 }, Content = content };
+            card.SetAppThemeColor(BackgroundColorProperty, Resource<Color>("Tint"), Resource<Color>("DarkSurface"));
+            return card;
         }
 
         private DialogPage(string title, bool sheet)

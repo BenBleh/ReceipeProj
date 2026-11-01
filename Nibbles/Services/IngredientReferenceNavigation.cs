@@ -19,7 +19,31 @@ public sealed class IngredientReferenceNavigation(Page owner, RecipeDetailsViewM
         try
         {
             var position = methodScroll.ScrollY;
-            if (!isWide() && !await AppDialogs.IngredientAsync(owner, args.Reference, model.Recipe, model.Multiplier))
+            var reference = args.Reference;
+            if (reference.NeedsChoice)
+            {
+                var choices = new List<(string Label, IngredientReference Reference)>();
+                foreach (var candidate in reference.Groups)
+                    choices.Add(($"Ingredient group: {candidate.Group.Name} ({candidate.CountDescription})\n" +
+                        string.Join("; ", candidate.Ingredients.Take(2).Select(ingredient => ingredient.DisplayDescription)),
+                        reference with { Ingredients = [], Groups = [candidate] }));
+                foreach (var ingredient in reference.Ingredients)
+                {
+                    var section = model.IngredientSections.First(section => section.Ingredients.Contains(ingredient));
+                    choices.Add(($"Ingredient: {ingredient.DisplayDescription}" + (section.IsNamed ? $"\n{section.Name}" : ""),
+                        reference with { Ingredients = [ingredient], Groups = [] }));
+                }
+                var labels = choices.Select((choice, index) => $"{index + 1}. {choice.Label}").ToArray();
+                var selected = await AppDialogs.ChooseAsync(owner, $"“{reference.Text}” refers to…", labels);
+                if (selected is null) return;
+                var selectedIndex = Array.IndexOf(labels, selected);
+                if (selectedIndex < 0) throw new InvalidOperationException("The selected reference could not be found.");
+                reference = choices[selectedIndex].Reference;
+            }
+            var group = reference.Groups.SingleOrDefault();
+            var ingredients = group?.Ingredients ?? reference.Ingredients;
+            if (ingredients.Count == 0) throw new InvalidOperationException("The reference has no related ingredients.");
+            if (!isWide() && !await AppDialogs.IngredientAsync(owner, reference, model.Recipe, model.Multiplier))
                 return;
             returnPosition = position;
             HasReturn = true;
@@ -29,13 +53,19 @@ public sealed class IngredientReferenceNavigation(Page owner, RecipeDetailsViewM
             UpdateReturnVisibility();
             await Task.Delay(120);
             foreach (var ingredient in model.Recipe.Ingredients)
-                ingredient.IsHighlighted = args.Reference.Ingredients.Contains(ingredient);
-            var first = args.Reference.Ingredients[0];
-            var target = ingredientsScroll.GetVisualTreeDescendants().OfType<IngredientItemView>()
-                .FirstOrDefault(view => ReferenceEquals(view.BindingContext, first))
-                ?? throw new InvalidOperationException("The related ingredient could not be found in the visible list.");
-            await ingredientsScroll.ScrollToAsync(target, ScrollToPosition.Center, false);
-            SemanticScreenReader.Default.Announce(string.Join(". ", args.Reference.Ingredients.Select(item => item.DisplayDescription)));
+                ingredient.IsHighlighted = ingredients.Contains(ingredient);
+            foreach (var section in model.IngredientSections)
+                section.IsHighlighted = group is not null && section.Id == group.Group.Id;
+            VisualElement? target = group is null
+                ? ingredientsScroll.GetVisualTreeDescendants().OfType<IngredientItemView>()
+                    .FirstOrDefault(view => ReferenceEquals(view.BindingContext, ingredients[0]))
+                : ingredientsScroll.GetVisualTreeDescendants().OfType<Grid>()
+                    .FirstOrDefault(view => view.BindingContext is IngredientSection section && section.Id == group.Group.Id);
+            if (target is null) throw new InvalidOperationException("The related ingredient or group could not be found in the visible list.");
+            await ingredientsScroll.ScrollToAsync(target, group is null ? ScrollToPosition.Center : ScrollToPosition.Start, false);
+            SemanticScreenReader.Default.Announce(group is null
+                ? string.Join(". ", ingredients.Select(item => item.DisplayDescription))
+                : $"Ingredient group {group.Group.Name}. {group.CountDescription}.");
             var generation = ++highlightGeneration;
             owner.Dispatcher.DispatchDelayed(TimeSpan.FromSeconds(12), () =>
             {
@@ -44,7 +74,7 @@ public sealed class IngredientReferenceNavigation(Page owner, RecipeDetailsViewM
         }
         catch (Exception exception)
         {
-            model.ErrorMessage = $"Could not show this ingredient. {exception.Message}";
+            model.ErrorMessage = $"Could not show this ingredient reference. {exception.Message}";
             System.Diagnostics.Debug.WriteLine(exception);
         }
         finally { opening = false; }
@@ -82,5 +112,6 @@ public sealed class IngredientReferenceNavigation(Page owner, RecipeDetailsViewM
         highlightGeneration++;
         if (model.Recipe is not null)
             foreach (var ingredient in model.Recipe.Ingredients) ingredient.IsHighlighted = false;
+        foreach (var section in model.IngredientSections) section.IsHighlighted = false;
     }
 }

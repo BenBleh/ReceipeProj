@@ -33,7 +33,12 @@
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="models:IngredientSection">
                             <VerticalStackLayout Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowHeading}">
+                                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowHeading}" AutomationId="IngredientGroupHeading">
+                                    <Grid.Triggers>
+                                        <DataTrigger TargetType="Grid" Binding="{Binding IsHighlighted}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}" />
+                                        </DataTrigger>
+                                    </Grid.Triggers>
                                     <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" FontSize="20" />
                                     <Label Grid.Column="1" Text="{Binding Summary}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
                                 </Grid>

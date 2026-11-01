@@ -75,6 +75,15 @@ typos and uncertain matches remain plain text.
 No manual linking, fuzzy AI matching or recipe migration is required. Improve
 the recipe wording when a reference does not match.
 
+Named, non-empty ingredient groups also link by their complete name. A group
+sheet shows every member as one collection, with a scrollable list and scaled
+and original quantities. **Show in ingredients** highlights the heading and
+all members; wide cooking reveals them in the existing pane. If a phrase names
+both an ingredient and a group, or several groups, labelled choices keep those
+targets distinct. Group names are literal, not guessed synonyms or inferred
+collections. This extension is implemented in source; existing 1.4.0 installers
+have not been rebuilt, and stored recipe groups are unchanged.
+
 The sheet uses current displayed scaled amounts, including review/approximation
 markers, and shows the original line when scaled. These are ingredient-list
 amounts, not inferred portions for a particular step. Method wording, quantities,
