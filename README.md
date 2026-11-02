@@ -81,8 +81,8 @@ and original quantities. **Show in ingredients** highlights the heading and
 all members; wide cooking reveals them in the existing pane. If a phrase names
 both an ingredient and a group, or several groups, labelled choices keep those
 targets distinct. Group names are literal, not guessed synonyms or inferred
-collections. This extension is implemented in source; existing 1.4.0 installers
-have not been rebuilt, and stored recipe groups are unchanged.
+collections. The broader ingredient matching and group-reference extension are
+included in 1.5.0. Matching itself never changes stored recipes.
 
 The sheet uses current displayed scaled amounts, including review/approximation
 markers, and shows the original line when scaled. These are ingredient-list
@@ -167,14 +167,14 @@ The existing Android launch configuration is unchanged.
 ## Nibbles installable builds
 
 Run these commands from the repository root with the private token-file
-environment variable set. The current release is 1.4.0, Android version code 9;
+environment variable set. The current release is 1.5.0, Android version code 10;
 increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.4.0\android
-Copy-Item .\artifacts\Nibbles\1.4.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.4.0\Nibbles-1.4.0-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.5.0\android
+Copy-Item .\artifacts\Nibbles\1.5.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.5.0\Nibbles-1.5.0-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -191,10 +191,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.4.0 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.5.0 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The private installer is `artifacts\Nibbles\1.4.0\Nibbles-1.4.0-Windows-x64-Setup.exe`.
+The private installer is `artifacts\Nibbles\1.5.0\Nibbles-1.5.0-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;
