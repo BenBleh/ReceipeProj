@@ -90,6 +90,31 @@ amounts, not inferred portions for a particular step. Method wording, quantities
 paw checks and saved JSON remain unchanged. Design annotations and the removed
 instructional quantity disclaimers are not app UI.
 
+## App dependency baseline (2 November 2026)
+
+The app's direct NuGet dependencies use the latest stable versions reviewed:
+
+| Package | Version |
+| --- | --- |
+| Microsoft.Maui.Controls / Essentials / Controls.Compatibility | 10.0.120 |
+| CommunityToolkit.Maui | 15.0.1 |
+| CommunityToolkit.Maui.Markup | 8.0.0 |
+| CommunityToolkit.Mvvm | 8.4.2 (already current) |
+| Microsoft.Extensions.Logging.Debug | 10.0.14 |
+
+Test tooling uses Microsoft.NET.Test.Sdk 18.11.0, coverlet.collector 10.1.0,
+xunit.runner.visualstudio 4.0.1 and xunit 2.9.3 (already current).
+Framework-managed transitive packages retain MAUI's supported dependency graph;
+in particular, do not independently upgrade Windows App SDK to 2.x for MAUI 10.
+NuGet reports no known vulnerable packages in the app's resolved graph.
+The retired API and historical web projects are not app dependencies and were
+not upgraded as part of this change.
+
+The .NET 10 target, installed SDK/workloads and minimum OS versions are unchanged.
+Windows and Android builds and runtime regressions were checked with SDK 10.0.302;
+iOS/MacCatalyst package restore is covered, but building and testing those targets
+still requires a Mac.
+
 ## Legacy API setup (not required by Nibbles 1.3.0)
 
 1.Install IIS
