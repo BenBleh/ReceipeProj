@@ -1,7 +1,7 @@
 # Nibbles redesign
 
 `Nibbles-redesign.fig` is the editable OpenPencil design, containing the approved
-1.2.0 screens and the approved 1.2.1/1.2.2 revisions below. Open it in OpenPencil to
+1.2.0 screens and the approved revisions below, updated through 1.6.0. Open it in OpenPencil to
 continue designing. `Nibbles-overview.png`, the screen overviews,
 and `previews` provide quick references; `assets` contains the approved mascot,
 recipe-photo references, app icon, and launch artwork.
@@ -18,6 +18,34 @@ links are available on recipe details. The original pink paws are retained in
 dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
+
+## Released 1.6.0 behaviour updates
+
+The editable document now reflects incremental refresh, post-save navigation
+and outside-tap sheet dismissal. Page **10 - Direct GitHub storage** includes
+**13 / Nibbles 1.6.0 - Refresh, save & return**, an editable flow-diagram handoff.
+See `previews/github-release-160-handoff.png`. These diagrams and annotations
+describe behaviour; they are not extra instructional text in the app.
+
+- Launch and pull-to-refresh check the branch commit. Unchanged content needs
+  only that reference request; the first download uses a pinned archive.
+  Later refreshes reuse verified unchanged local files, download added/changed
+  content, omit removals and promote only a fully validated snapshot.
+- Confirmed creates open the new recipe details and replace the editor.
+  Confirmed edits return to the existing details page with saved content.
+  Back returns to the library without duplicate pages. The same applies after
+  **Check save** confirms an interrupted save; failures retain the editor.
+- A confirmed save with failed cache refresh keeps the **Saved to GitHub**
+  warning, then shows the saved in-memory details with refresh guidance.
+- Tapping outside action, ingredient and whole-group sheets cancels them,
+  including their centered Windows equivalents. Inside taps, blank sheet
+  padding and scrolling do not dismiss. Confirmations and text-entry prompts
+  continue to ignore outside taps; paste and scaling screens are unchanged.
+
+Pages **09 - App-styled dialogs and menus** and **11 - Method ingredient links**
+have matching dismissal notes. Their overviews and relevant handoff previews
+have been refreshed. Earlier historical API/server boards remain superseded
+by the direct-GitHub handoff.
 
 ## Method ingredient links
 
@@ -77,25 +105,25 @@ layout, not reordered, rewritten or renumbered recipe data.
   introduced by this design. Preserve cooking progress, checks, scaling,
   foreground keep-awake and existing numbered method layout.
 
-The broader matching rules are approved and implemented in source. Page 11's handoff
+The broader matching rules were released in 1.5.0. Page 11's handoff
 and previews describe this behaviour; the screens and compact sheets are
-unchanged. No alias-editing UI, guessed connections or installer rebuild is
-requested. Ingredient/method corrections remain appropriate for unsupported
+unchanged apart from the 1.6.0 outside-tap dismissal behaviour. No alias-editing
+UI or guessed connections are introduced. Ingredient/method corrections remain appropriate for unsupported
 typos, brand substitutions and genuinely unclear references.
 
 ## Method ingredient group links
 
-**Approved and implemented in source.** Page **11 - Method ingredient links** also
+**Approved and released in 1.5.0.** Page **11 - Method ingredient links** also
 contains panels **10-13** and the **14 / Group references** behaviour handoff.
 See `previews/ingredient-group-links-review.png` for the four states and
 `previews/ingredient-group-links-handoff.png` for the rules.
 The existing approved ingredient-link designs remain in place.
 
 The example is **Low Calorie KFC Popcorn Chicken**. Its method stays exactly
-`Mix seasonings with flour`. The mockup proposes putting its 11 spice/herb
-ingredient rows into an existing-style group named **Seasonings**, while leaving
+`Mix seasonings with flour`. Its 11 spice/herb
+ingredient rows belong to a group named **Seasonings**, leaving
 flour, baking powder, chicken, oil spray and egg outside that group.
-This grouping has **not** been applied to the stored recipe.
+This grouping was applied after separate recipe review.
 
 - Match complete, explicitly named, non-empty groups locally, alongside existing
   ingredient references. Prefer longer whole-name matches; do not infer groups,
@@ -117,15 +145,15 @@ This grouping has **not** been applied to the stored recipe.
   clearly labelled choices rather than guessing or merging distinct references.
   Reuse existing group IDs/membership, accessibility and offline behaviour.
 
-The approved group-reference behaviour is implemented alongside individual
-ingredient links. Recipe grouping and method-edit recommendations remain
-separate proposals: no stored recipes or paste controls were changed, and no
-new installers or APKs were produced.
+The approved group-reference behaviour is released alongside individual
+ingredient links. Separately approved recipe grouping and method corrections
+have been applied; unresolved report decisions remain separate from this
+design. Matching itself never changes stored recipes or paste controls.
 
 ## Direct GitHub storage
 
 **Approved and implemented in 1.3.0.** Page **10 - Direct GitHub storage** has
-12 boards: eight phone states, two Windows examples, and two implementation
+13 boards: eight phone states, two Windows examples, and three implementation
 handoffs explicitly marked **design notes, not app UI**.
 `github-storage-overview.png` and `previews/github-*.png` provide previews.
 The design artifacts contain no credentials.
@@ -178,6 +206,9 @@ installer or silently restore the home-API connection.
 - An interrupted save with an unknown outcome uses **Check save** instead of
   blindly resending. A confirmed remote save followed by local-cache failure
   says **Saved to GitHub**, with refresh guidance, not "Could not save".
+- Successful creates and edits open the saved recipe details, including after
+  **Check save** confirms publication. Avoid duplicate details/editor pages on
+  Back; refresh the library's saved title when returning.
 - Existing app-themed dialogs, native photo/permission pickers and the
   no-backup-status-UI rule remain. No repository-switching, cache-mixing or
   account-management workflow is introduced.
@@ -221,7 +252,7 @@ with app refresh/cache/search, editor saves and online-only editing.
 | JPEG conversion and 120 x 120 thumbnail | Process on Windows, Android and iOS without Windows-only `System.Drawing`; retain cover/thumbnail paths and supported legacy step-image handling. |
 | Original source, notes and legacy fields | Retain them, including hidden `TimeToComplete`; no new cooking-time UI. |
 | Device-only checks/scaling/paths | Never serialize temporary amounts, paw checks or device paths into recipe JSON; do not leave image-upload base64 in persisted recipes. |
-| Local cache, optional photos and search | Fetch at one pinned commit; stage/validate before promoting a complete snapshot, retain the prior usable cache on failure and rebuild search. Missing photos use the chef-cat fallback. |
+| Local cache, optional photos and search | Check the branch commit; reuse unchanged verified local files and fetch only added/changed content after the first archive. Omit removals, stage/validate at a pinned commit before promotion, retain the prior cache on failure and rebuild search. Missing photos use the chef-cat fallback. |
 | Retry-safe saves and cache warnings | Preserve edits on failure, confirm remote publication before success, prevent duplicate UUID creates and distinguish remote success from cache failure. |
 
 Before cutover, drain/reconcile the existing backup queue and verify GitHub
@@ -256,6 +287,9 @@ hiding the actions. Retain context-dependent options and the existing outcomes.
 Destructive actions have explicit labels and danger styling; safe actions remain
 easy to find. Escape/Android Back cancels, focus stays inside the overlay and
 returns to its invoking control, and outside taps never discard/reset/remove.
+In 1.6.0, outside taps cancel action and ingredient sheets; inside taps and
+scrolling do not dismiss them. Confirmations and name prompts still ignore
+outside taps, preserving input and explicit destructive decisions.
 Name fields retain input and show validation inline; keyboard and large-text
 layouts must keep fields and actions reachable.
 
