@@ -208,10 +208,23 @@ public static class AppDialogs
             card = new Border
             {
                 Padding = 24, StrokeThickness = 0, StrokeShape = new RoundRectangle { CornerRadius = 22 },
-                Content = content, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center
+                Content = content, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center,
+                AutomationId = "DialogCard"
             };
             card.SetAppThemeColor(BackgroundColorProperty, Resource<Color>("Surface"), Resource<Color>("DarkSurface"));
-            layout = new Grid { Padding = 24, SafeAreaEdges = SafeAreaEdges.All };
+            layout = new Grid { SafeAreaEdges = SafeAreaEdges.All };
+            if (sheet)
+            {
+                var backdrop = new BoxView { Color = Colors.Transparent, AutomationId = "DialogBackdrop" };
+                var tap = new TapGestureRecognizer();
+                tap.Tapped += async (_, args) =>
+                {
+                    if (args.GetPosition(layout) is { } point && !card.Bounds.Contains(point))
+                        await Close(null);
+                };
+                backdrop.GestureRecognizers.Add(tap);
+                layout.Add(backdrop);
+            }
             layout.Add(card);
             Content = layout;
             layout.SizeChanged += (_, _) => UpdateSize();
@@ -252,13 +265,13 @@ public static class AppDialogs
             if (layout.Width <= 0 || layout.Height <= 0)
                 return;
             var phone = DeviceInfo.Idiom == DeviceIdiom.Phone;
-            layout.Padding = sheet && phone ? new Thickness(12, 24) : new Thickness(24);
-            card.WidthRequest = Math.Min(500, Math.Max(1, layout.Width - layout.Padding.HorizontalThickness));
+            card.Margin = sheet && phone ? new Thickness(12, 24) : new Thickness(24);
+            card.WidthRequest = Math.Min(500, Math.Max(1, layout.Width - card.Margin.HorizontalThickness));
             card.VerticalOptions = sheet && phone ? LayoutOptions.End : LayoutOptions.Center;
             var width = Math.Max(1, card.WidthRequest - card.Padding.HorizontalThickness);
             var fixedHeight = heading.Measure(width, double.PositiveInfinity).Height +
                 buttons.Measure(width, double.PositiveInfinity).Height + 96;
-            scroll.MaximumHeightRequest = Math.Max(48, layout.Height - layout.Padding.VerticalThickness - fixedHeight);
+            scroll.MaximumHeightRequest = Math.Max(48, layout.Height - card.Margin.VerticalThickness - fixedHeight);
         }
 
         private async Task Submit(string accept)

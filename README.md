@@ -225,8 +225,10 @@ Both apps use GitHub over HTTPS; the home network and VPN are no longer required
 
 App-owned confirmations, group-name prompts and action menus share the approved
 cream/forest styling in light and dark themes. Prompts validate names inline;
-destructive actions remain explicit, outside taps do nothing, and Back/Escape
-cancels. Phone action menus use bottom sheets; Windows dialogs are centered and
+destructive actions remain explicit, and Back/Escape cancels. Tapping outside an
+action or ingredient sheet cancels it; tapping inside does not dismiss it.
+Confirmations and text-entry prompts still ignore outside taps.
+Phone action menus use bottom sheets; Windows dialogs are centered and
 width-limited. Long content scrolls separately from the action buttons, including
 when the phone keyboard is open. Native photo pickers and permission prompts,
 and the existing paste/scaling workflows, are unchanged. No API update is needed
