@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -264,6 +265,161 @@ public sealed class GitHubRecipeTests : IDisposable
         Assert.Throws<ArgumentException>(() => RecipeWritePreparation.ForSave(recipe));
     }
 
+    [Fact]
+    public async Task UnchangedHeadOnlyChecksTheBranchReference()
+    {
+        var store = Store;
+        var head = await store.ReadHeadAsync();
+        git.Reads.Clear();
+        Assert.Same(head, await store.ReadHeadAsync(head));
+        Assert.Equal(["git/ref/heads/main"], git.Reads);
+    }
+
+    [Fact]
+    public async Task FirstSnapshotUsesPinnedArchiveAndIncludesOnlyListedRecipesAndPhotos()
+    {
+        var store = Store;
+        var snapshot = await InitialSnapshot(store);
+        Assert.Single(git.Reads, path => path.StartsWith("zipball/"));
+        Assert.Equal(RecipeBytes(Id, "Original"), await File.ReadAllBytesAsync(Path.Combine(root, snapshot.Directory, Id + ".json")));
+        Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(Path.Combine(root, snapshot.Directory, Id, "thumb.jpeg")));
+        Assert.False(File.Exists(Path.Combine(root, snapshot.Directory, "unrelated.txt")));
+        await AssertPointer(snapshot);
+    }
+
+    [Fact]
+    public async Task IncrementalSnapshotFetchesOnlyChangedAndAddedBlobsAndDropsRemovedFiles()
+    {
+        var store = Store;
+        var old = await InitialSnapshot(store);
+        var originalRecipe = await File.ReadAllBytesAsync(Path.Combine(root, old.Directory, Id + ".json"));
+        git.Intervene(new()
+        {
+            ["MasterList.csv"] = Bytes($"{Id},Updated\r\n{Other},New recipe\r\n"),
+            [Id + ".json"] = RecipeBytes(Id, "Updated"),
+            [Other + ".json"] = RecipeBytes(Other, "New recipe"),
+            [Other + "/0.jpeg"] = [5, 6]
+        }, [Id + "/thumb.jpeg"]);
+        var head = await store.ReadHeadAsync(old.Head);
+        git.Reads.Clear();
+        var snapshot = await new GitHubRecipeSnapshot(store, root).DownloadAsync(head, old);
+        Assert.Equal(new[]
+        {
+            "MasterList.csv", Id + ".json", Other + ".json", Other + "/0.jpeg"
+        }.Select(path => "git/blobs/" + head.Files[path]).Order(), git.Reads.Order());
+        Assert.Equal([7, 8], await File.ReadAllBytesAsync(Path.Combine(root, snapshot.Directory, Id, "0.jpeg")));
+        Assert.False(File.Exists(Path.Combine(root, snapshot.Directory, Id, "thumb.jpeg")));
+        Assert.Equal(originalRecipe, await File.ReadAllBytesAsync(Path.Combine(root, old.Directory, Id + ".json")));
+        await AssertPointer(snapshot);
+    }
+
+    [Fact]
+    public async Task RemovingARecipeDropsItsJsonAndPhotosWithoutDownloadingUnchangedFiles()
+    {
+        var store = Store;
+        git.Intervene(new()
+        {
+            ["MasterList.csv"] = Bytes($"{Id},Original\r\n{Other},Other\r\n"),
+            [Other + ".json"] = RecipeBytes(Other, "Other"), [Other + "/thumb.jpeg"] = [9]
+        });
+        var old = await InitialSnapshot(store);
+        git.Intervene(new() { ["MasterList.csv"] = Bytes($"{Id},Original\r\n") });
+        var head = await store.ReadHeadAsync();
+        git.Reads.Clear();
+        var snapshot = await new GitHubRecipeSnapshot(store, root).DownloadAsync(head, old);
+        Assert.Equal(["git/blobs/" + head.Files["MasterList.csv"]], git.Reads);
+        Assert.False(File.Exists(Path.Combine(root, snapshot.Directory, Other + ".json")));
+        Assert.False(Directory.Exists(Path.Combine(root, snapshot.Directory, Other)));
+    }
+
+    [Fact]
+    public async Task UnrelatedCommitReusesTheEntireSnapshotWithoutBlobOrArchiveDownloads()
+    {
+        var store = Store;
+        var old = await InitialSnapshot(store);
+        git.Intervene(new() { ["unrelated.txt"] = Bytes("Not app content") });
+        var head = await store.ReadHeadAsync(old.Head);
+        git.Reads.Clear();
+        var snapshot = await new GitHubRecipeSnapshot(store, root).DownloadAsync(head, old);
+        Assert.Empty(git.Reads);
+        Assert.Equal(head.Commit, snapshot.Head.Commit);
+        await AssertPointer(snapshot);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MissingOrCorruptCachedFilesAreDownloadedAgain(bool missing)
+    {
+        var store = Store;
+        var old = await InitialSnapshot(store);
+        var path = Path.Combine(root, old.Directory, Id, "0.jpeg");
+        if (missing) File.Delete(path); else await File.WriteAllBytesAsync(path, [99]);
+        git.Intervene(new() { ["unrelated.txt"] = Bytes("Another commit") });
+        var head = await store.ReadHeadAsync();
+        git.Reads.Clear();
+        var snapshot = await new GitHubRecipeSnapshot(store, root).DownloadAsync(head, old);
+        Assert.Equal(["git/blobs/" + head.Files[Id + "/0.jpeg"]], git.Reads);
+        Assert.Equal([7, 8], await File.ReadAllBytesAsync(Path.Combine(root, snapshot.Directory, Id, "0.jpeg")));
+    }
+
+    [Theory]
+    [InlineData("network")]
+    [InlineData("hash")]
+    [InlineData("json")]
+    [InlineData("id")]
+    [InlineData("missing-recipe")]
+    public async Task FailedIncrementalSnapshotKeepsPreviousPointerAndFiles(string failure)
+    {
+        var store = Store;
+        var old = await InitialSnapshot(store);
+        var pointer = await File.ReadAllBytesAsync(Path.Combine(root, "current.json"));
+        git.Intervene(new()
+        {
+            [Id + ".json"] = failure switch
+            {
+                "json" => Bytes("{"),
+                "id" => RecipeBytes(Other, "Wrong ID"),
+                _ => RecipeBytes(Id, "Changed")
+            },
+            ["MasterList.csv"] = failure == "missing-recipe" ? Bytes($"{Other},Missing\r\n") : git.Content("MasterList.csv")
+        });
+        var head = await store.ReadHeadAsync();
+        if (failure == "network") git.FailBlob = head.Files[Id + ".json"];
+        if (failure == "hash") git.CorruptBlob = head.Files[Id + ".json"];
+        var operation = new GitHubRecipeSnapshot(store, root).DownloadAsync(head, old);
+        if (failure == "network") await Assert.ThrowsAsync<HttpRequestException>(() => operation);
+        else if (failure == "json") await Assert.ThrowsAsync<JsonException>(() => operation);
+        else await Assert.ThrowsAsync<InvalidDataException>(() => operation);
+        Assert.Equal(pointer, await File.ReadAllBytesAsync(Path.Combine(root, "current.json")));
+        Assert.Equal(RecipeBytes(Id, "Original"), await File.ReadAllBytesAsync(Path.Combine(root, old.Directory, Id + ".json")));
+        Assert.Single(Directory.GetDirectories(root));
+    }
+
+    private static byte[] RecipeBytes(string id, string title) =>
+        JsonSerializer.SerializeToUtf8Bytes(new AppRecipe { Id = id, Title = title });
+
+    private async Task<GitHubCachedSnapshot> InitialSnapshot(GitHubRecipeRepository store)
+    {
+        git.Intervene(new()
+        {
+            [Id + ".json"] = RecipeBytes(Id, "Original"), [Id + "/thumb.jpeg"] = [1, 2, 3], [Id + "/0.jpeg"] = [7, 8]
+        });
+        return await new GitHubRecipeSnapshot(store, root).DownloadAsync(await store.ReadHeadAsync(), null);
+    }
+
+    private async Task<GitHubCachedSnapshot> ReadPointer() =>
+        JsonSerializer.Deserialize<GitHubCachedSnapshot>(await File.ReadAllTextAsync(Path.Combine(root, "current.json")))!;
+
+    private async Task AssertPointer(GitHubCachedSnapshot expected)
+    {
+        var actual = await ReadPointer();
+        Assert.Equal(expected.Directory, actual.Directory);
+        Assert.Equal(expected.Head.Commit, actual.Head.Commit);
+        Assert.Equal(expected.Head.Tree, actual.Head.Tree);
+        Assert.Equal(expected.Head.Files.OrderBy(entry => entry.Key), actual.Head.Files.OrderBy(entry => entry.Key));
+    }
+
     private async Task<GitHubEditBaseline> Baseline(GitHubRecipeRepository store) =>
         GitHubRecipeRepository.Baseline(await store.ReadHeadAsync(), GitHubRecipeRepository.ParseIndex(git.Content("MasterList.csv")), Id, false);
 
@@ -284,6 +440,9 @@ public sealed class GitHubRecipeTests : IDisposable
         public int BlobWrites { get; private set; }
         public List<bool> ForceValues { get; } = [];
         public List<string> CommitMessages { get; } = [];
+        public List<string> Reads { get; } = [];
+        public string? FailBlob { get; set; }
+        public string? CorruptBlob { get; set; }
         public Action? BeforePatch { get; set; }
         public bool LoseResponse { get; set; }
         public bool RejectWithServerError { get; set; }
@@ -302,14 +461,18 @@ public sealed class GitHubRecipeTests : IDisposable
         public string Text(string path) => Encoding.UTF8.GetString(Content(path));
         private string Blob(byte[] bytes)
         {
-            var sha = Convert.ToHexString(SHA1.HashData(bytes));
+            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
+            hash.AppendData(Encoding.ASCII.GetBytes($"blob {bytes.Length}\0"));
+            hash.AppendData(bytes);
+            var sha = Convert.ToHexString(hash.GetHashAndReset());
             blobs[sha] = bytes;
             return sha;
         }
-        public void Intervene(Dictionary<string, byte[]> files)
+        public void Intervene(Dictionary<string, byte[]> files, string[]? removed = null)
         {
             var tree = Head == "" ? new Dictionary<string, string>() : new(trees[commits[Head].Tree]);
             foreach (var (name, bytes) in files) tree[name] = Blob(bytes);
+            foreach (var name in removed ?? []) tree.Remove(name);
             var treeId = "t" + trees.Count;
             trees.Add(treeId, tree);
             var commit = "c" + commits.Count;
@@ -327,6 +490,7 @@ public sealed class GitHubRecipeTests : IDisposable
             var suffix = request.RequestUri.PathAndQuery.Split("/repos/BenBleh/rfiles/")[1];
             if (request.Method == HttpMethod.Get)
             {
+                Reads.Add(suffix);
                 if (RejectReads is { } rejection) return Json(new { message = "rejected" }, rejection);
                 if (suffix == "git/ref/heads/main") return Json(new { @object = new { sha = Head } });
                 if (suffix.StartsWith("git/commits/")) return Json(new { tree = new { sha = commits[suffix[12..]].Tree } });
@@ -335,7 +499,23 @@ public sealed class GitHubRecipeTests : IDisposable
                     var tree = trees[suffix[10..].Split('?')[0]];
                     return Json(new { truncated = false, tree = tree.Select(item => new { path = item.Key, sha = item.Value, type = "blob", mode = "100644" }) });
                 }
-                if (suffix.StartsWith("git/blobs/")) return Json(new { encoding = "base64", content = Convert.ToBase64String(blobs[suffix[10..]]) });
+                if (suffix.StartsWith("git/blobs/"))
+                {
+                    var sha = suffix[10..];
+                    if (sha == FailBlob) throw new HttpRequestException("Simulated interrupted blob download.");
+                    return Json(new { encoding = "base64", content = Convert.ToBase64String(sha == CorruptBlob ? Bytes("corrupt") : blobs[sha]) });
+                }
+                if (suffix.StartsWith("zipball/"))
+                {
+                    using var output = new MemoryStream();
+                    using (var zip = new ZipArchive(output, ZipArchiveMode.Create, true))
+                        foreach (var (path, sha) in trees[commits[suffix[8..]].Tree])
+                        {
+                            using var entry = zip.CreateEntry("snapshot/" + path).Open();
+                            entry.Write(blobs[sha]);
+                        }
+                    return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(output.ToArray()) };
+                }
                 if (suffix.StartsWith("compare/"))
                 {
                     var from = suffix[8..].Split("...")[0];

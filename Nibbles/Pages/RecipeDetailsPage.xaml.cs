@@ -11,17 +11,27 @@ namespace Nibbles;
 [QueryProperty(nameof(SearchSection), "section")]
 [QueryProperty(nameof(SearchGroup), "group")]
 [QueryProperty(nameof(SearchStep), "step")]
-public partial class RecipeDetailsPage : ContentPage
+public partial class RecipeDetailsPage : ContentPage, IQueryAttributable
 {
     private readonly CookingSessionStore sessions;
     private readonly ReceipeAPIService service;
     private readonly IngredientReferenceNavigation references;
     private bool returningFromScale;
+    private Recipe? savedRecipe;
     public string RecipeId { get; set; } = string.Empty;
     public bool CanAdd { get; set; }
     public string SearchSection { get; set; } = "";
     public string SearchGroup { get; set; } = "";
     public int SearchStep { get; set; } = -1;
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.TryGetValue("savedRecipe", out var value) && value is Recipe recipe)
+        {
+            savedRecipe = recipe;
+            RecipeId = recipe.Id!;
+        }
+    }
 
     public RecipeDetailsPage(ReceipeAPIService service, CookingSessionStore sessions)
     {
@@ -51,7 +61,12 @@ public partial class RecipeDetailsPage : ContentPage
         }
         var viewModel = (RecipeDetailsViewModel)BindingContext;
         viewModel.CanAdd = service.CanWrite;
-        if (!string.IsNullOrEmpty(RecipeId))
+        if (savedRecipe is { } saved)
+        {
+            viewModel.ShowRecipe(saved);
+            savedRecipe = null;
+        }
+        else if (!string.IsNullOrEmpty(RecipeId))
             await viewModel.LoadAsync(RecipeId);
         try
         {

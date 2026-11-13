@@ -418,6 +418,8 @@ public partial class AddEditViewModel : ObservableObject
                 await AppDialogs.AlertAsync(Page, "Saved to GitHub", "Your recipe is saved. This device's copy could not be refreshed. Reconnect and refresh before going offline.");
             }
             CleanupPhoto();
+            if (!File.Exists(Recipe.ImagePath))
+                Recipe.ImagePath = "nibbles_chef.png";
             Recipe.ImageData = null;
             foreach (var step in Recipe.Steps) step.ImageData = null;
             original = JsonSerializer.Serialize(Recipe);
@@ -449,7 +451,17 @@ public partial class AddEditViewModel : ObservableObject
             IsSaving = false;
             RefreshAccess();
         }
-        if (saved || discardedRemovedRecipe)
+        if (saved)
+        {
+            var shell = Shell.Current;
+            var stack = shell.Navigation.NavigationStack;
+            var returningToDetails = stack.Count >= 2 && stack[^2] is RecipeDetailsPage details &&
+                details.RecipeId == Recipe.Id;
+            var route = returningToDetails ? ".." :
+                $"../{nameof(RecipeDetailsPage)}?recipeId={Uri.EscapeDataString(Recipe.Id!)}";
+            await shell.GoToAsync(route, new ShellNavigationQueryParameters { ["savedRecipe"] = Recipe });
+        }
+        else if (discardedRemovedRecipe)
             await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
     }
 

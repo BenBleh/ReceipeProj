@@ -47,10 +47,11 @@ public sealed class GitHubRecipeRepository
 
     private static string Url(string suffix) => $"repos/{Repository}/{suffix}";
 
-    public async Task<GitHubHead> ReadHeadAsync()
+    public async Task<GitHubHead> ReadHeadAsync(GitHubHead? cachedHead = null)
     {
         using var reference = await GetJson(Url($"git/ref/heads/{Branch}"));
         var commit = reference.RootElement.GetProperty("object").GetProperty("sha").GetString()!;
+        if (cachedHead?.Commit == commit) return cachedHead;
         using var details = await GetJson(Url($"git/commits/{commit}"));
         var tree = details.RootElement.GetProperty("tree").GetProperty("sha").GetString()!;
         using var listing = await GetJson(Url($"git/trees/{tree}?recursive=1"));

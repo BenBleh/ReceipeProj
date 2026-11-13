@@ -1,23 +1,19 @@
 using Nibbles.Models;
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace Nibbles.Services;
 
 public sealed class ReceipeAPIService
 {
-    private sealed record CachePointer(string Directory, GitHubHead Head);
     private readonly GitHubRecipeRepository repository;
     private readonly ConditionalWeakTable<Recipe, GitHubEditBaseline> baselines = new();
     private readonly SemaphoreSlim refreshGate = new(1, 1);
     private static string Data => FileSystem.Current.AppDataDirectory;
     private static string Cache => Path.Combine(Data, "GitHubRecipes");
     private static string Pointer => Path.Combine(Cache, "current.json");
-    private CachePointer? current;
+    private GitHubCachedSnapshot? current;
     private bool canWrite;
     public bool CanWrite
     {
@@ -55,7 +51,7 @@ public sealed class ReceipeAPIService
         {
             CanWrite = false;
             if (current is null && File.Exists(Pointer))
-                current = JsonSerializer.Deserialize<CachePointer>(await File.ReadAllTextAsync(Pointer))
+                current = JsonSerializer.Deserialize<GitHubCachedSnapshot>(await File.ReadAllTextAsync(Pointer))
                     ?? throw new InvalidDataException("The downloaded recipe snapshot record is empty.");
             try
             {
@@ -65,9 +61,9 @@ public sealed class ReceipeAPIService
                     if (outcome.Outcome == GitHubSaveOutcome.Unknown)
                         throw new GitHubSaveUncertainException();
                 }
-                var head = await repository.ReadHeadAsync();
+                var head = await repository.ReadHeadAsync(current?.Head);
                 if (current?.Head.Commit != head.Commit)
-                    await DownloadSnapshot(head);
+                    current = await new GitHubRecipeSnapshot(repository, Cache).DownloadAsync(head, current);
                 CanWrite = !HasPendingSave;
                 StatusMessage = CanWrite ? "GitHub connected" : "Save confirmed, but its local record could not be cleared. Refresh to retry. Editing is disabled.";
             }
@@ -107,67 +103,6 @@ public sealed class ReceipeAPIService
 
     private string CurrentRoot => current is null ? Path.Combine(Data, "rFiles") : Path.Combine(Cache, current.Directory);
     private static string ImagePath(string root, string id) => Path.Combine(root, id, id + ".jpeg");
-
-    private async Task DownloadSnapshot(GitHubHead head)
-    {
-        var indexBytes = await repository.ReadBlobAsync(head.Files["MasterList.csv"]);
-        var entries = GitHubRecipeRepository.ParseIndex(indexBytes);
-        Directory.CreateDirectory(Cache);
-        var name = head.Commit + "-" + Guid.NewGuid().ToString("N");
-        var stage = Path.Combine(Cache, name);
-        var archive = Path.Combine(Cache, name + ".zip");
-        Directory.CreateDirectory(stage);
-        var promoted = false;
-        try
-        {
-            await repository.DownloadArchiveAsync(head.Commit, archive);
-            using var zip = ZipFile.OpenRead(archive);
-            var prefix = zip.Entries.FirstOrDefault()?.FullName.Split('/')[0] + "/";
-            var wanted = new HashSet<string>(StringComparer.Ordinal) { "MasterList.csv" };
-            foreach (var entry in entries)
-            {
-                wanted.Add(entry.Id + ".json");
-                var cover = entry.Id + "/" + entry.Id + ".jpeg";
-                if (head.Files.ContainsKey(cover)) wanted.Add(cover);
-                foreach (var path in head.Files.Keys.Where(path => GitHubRecipeRepository.IsPhotoPath(entry.Id, path)))
-                    wanted.Add(path);
-            }
-            foreach (var file in wanted)
-            {
-                if (!head.Files.TryGetValue(file, out var sha))
-                    throw new InvalidDataException("A listed recipe is missing from the GitHub snapshot.");
-                var entry = zip.GetEntry(prefix + file) ?? throw new InvalidDataException("The GitHub archive is incomplete.");
-                var target = Path.Combine(stage, file.Replace('/', Path.DirectorySeparatorChar));
-                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                await using (var input = entry.Open())
-                await using (var output = File.Create(target))
-                    await input.CopyToAsync(output);
-                var bytes = await File.ReadAllBytesAsync(target);
-                var header = Encoding.ASCII.GetBytes($"blob {bytes.Length}\0");
-                using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
-                hash.AppendData(header);
-                hash.AppendData(bytes);
-                if (!Convert.ToHexString(hash.GetHashAndReset()).Equals(sha, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidDataException("A downloaded recipe file does not match its GitHub revision.");
-                if (file.EndsWith(".json", StringComparison.Ordinal))
-                {
-                    var recipe = RecipeWritePreparation.Read(bytes);
-                    if (recipe.Id + ".json" != file)
-                        throw new InvalidDataException("A downloaded recipe has an inconsistent ID.");
-                }
-            }
-            var pointer = new CachePointer(name, head);
-            await File.WriteAllTextAsync(Pointer + ".tmp", JsonSerializer.Serialize(pointer));
-            File.Move(Pointer + ".tmp", Pointer, true);
-            current = pointer;
-            promoted = true;
-        }
-        finally
-        {
-            if (File.Exists(archive)) File.Delete(archive);
-            if (!promoted) Directory.Delete(stage, true);
-        }
-    }
 
     public async Task<Recipe?> GetRecipe(string recipeId)
     {

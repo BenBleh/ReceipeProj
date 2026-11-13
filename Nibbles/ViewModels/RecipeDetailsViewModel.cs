@@ -67,28 +67,33 @@ public partial class RecipeDetailsViewModel(ReceipeAPIService service) : Observa
     {
         try
         {
-            if (Recipe is not null)
-                foreach (var ingredient in Recipe.Ingredients)
-                    ingredient.PropertyChanged -= IngredientChanged;
-            Recipe = await service.GetRecipe(id);
-            IngredientSections.Clear();
-            if (Recipe is not null)
-            {
-                foreach (var section in RecipeIngredients.Sections(Recipe))
-                    IngredientSections.Add(section);
-                foreach (var ingredient in Recipe.Ingredients)
-                    ingredient.PropertyChanged += IngredientChanged;
-            }
-            CheckedCount = 0;
-            ErrorMessage = string.Empty;
-            OnPropertyChanged(nameof(HasSourceLink));
-            OnPropertyChanged(nameof(HasNotes));
+            ShowRecipe(await service.GetRecipe(id));
         }
         catch (Exception exception)
         {
             ErrorMessage = $"Could not open this recipe. {exception.Message}";
             System.Diagnostics.Debug.WriteLine(exception);
         }
+    }
+
+    public void ShowRecipe(Recipe? recipe)
+    {
+        if (Recipe is not null)
+            foreach (var ingredient in Recipe.Ingredients)
+                ingredient.PropertyChanged -= IngredientChanged;
+        Recipe = recipe;
+        IngredientSections.Clear();
+        if (Recipe is not null)
+        {
+            foreach (var section in RecipeIngredients.Sections(Recipe))
+                IngredientSections.Add(section);
+            foreach (var ingredient in Recipe.Ingredients)
+                ingredient.PropertyChanged += IngredientChanged;
+        }
+        CheckedCount = Recipe?.Ingredients.Count(ingredient => ingredient.IsChecked) ?? 0;
+        ErrorMessage = string.Empty;
+        OnPropertyChanged(nameof(HasSourceLink));
+        OnPropertyChanged(nameof(HasNotes));
     }
 
     private void IngredientChanged(object? sender, PropertyChangedEventArgs args)

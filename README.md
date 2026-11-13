@@ -14,6 +14,15 @@ search, cooking and scaling work offline, but adding, editing and saving do not.
 An interrupted editor retains its in-memory draft until reconnection or discard;
 there is no offline upload queue.
 
+On launch and pull-to-refresh, the app checks GitHub's current commit. An unchanged
+commit requires only the branch-reference request, with no recipe/photo downloads.
+The first download uses a pinned repository archive. Subsequent refreshes compare
+file revisions, copy unchanged verified files from the local cache, and download
+only added or changed recipe JSON, photos and the master list when it changes.
+Removed recipes/photos are omitted from the new local snapshot. All files are
+validated before the snapshot replaces the previous cache; a failed refresh
+retains the previous downloaded recipes in read-only mode.
+
 Before saving, the app checks the recipe, its master-list entry and replaced
 photos against the editor's original revision. Unrelated changes are preserved.
 Recipe JSON, the latest merged `MasterList.csv` and changed JPEGs publish in one
@@ -21,6 +30,13 @@ non-force commit. Conflicts keep edits and offer explicit discard/reload.
 An uncertain publication keeps a durable commit record and requires checking
 the save outcome before resubmission. Local-cache failure after a confirmed
 publication is reported as **Saved to GitHub**, not a failed save.
+Successful additions and edits open the saved recipe's details, including after
+checking an interrupted save. Editing returns to the existing details page;
+adding replaces the editor with details, so Back returns to the recipe library.
+If the post-save cache refresh fails, the saved in-memory recipe is still shown
+with the existing cache-refresh warning; reconnect and refresh before going offline.
+These refresh/navigation improvements are in source and are not included in the
+existing 1.5.0 installer/APK.
 
 ### Private build input
 
