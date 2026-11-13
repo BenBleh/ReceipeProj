@@ -35,8 +35,8 @@ checking an interrupted save. Editing returns to the existing details page;
 adding replaces the editor with details, so Back returns to the recipe library.
 If the post-save cache refresh fails, the saved in-memory recipe is still shown
 with the existing cache-refresh warning; reconnect and refresh before going offline.
-These refresh/navigation improvements are in source and are not included in the
-existing 1.5.0 installer/APK.
+These refresh/navigation improvements and outside-tap sheet dismissal are
+included in the 1.6.0 installer/APK.
 
 ### Private build input
 
@@ -183,14 +183,14 @@ The existing Android launch configuration is unchanged.
 ## Nibbles installable builds
 
 Run these commands from the repository root with the private token-file
-environment variable set. The current release is 1.5.0, Android version code 10;
+environment variable set. The current release is 1.6.0, Android version code 11;
 increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.5.0\android
-Copy-Item .\artifacts\Nibbles\1.5.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.5.0\Nibbles-1.5.0-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.6.0\android
+Copy-Item .\artifacts\Nibbles\1.6.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.6.0\Nibbles-1.6.0-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -207,10 +207,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.5.0 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.6.0 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The private installer is `artifacts\Nibbles\1.5.0\Nibbles-1.5.0-Windows-x64-Setup.exe`.
+The private installer is `artifacts\Nibbles\1.6.0\Nibbles-1.6.0-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;
