@@ -4,12 +4,12 @@ Vehicle to practice API creation and Agular/Typescript sites!
 The approved Nibbles redesign, assets, ingredient-group schema, and deployment
 notes are in [Design](Design/README.md).
 
-## Ingredient selection (unreleased)
+## Ingredient selection (1.8.0 test builds)
 
 The Ingredients editor now supports selecting one or many existing rows and
 moving them to an existing or new group, with one Cancel action and no success
-confirmation. Moves remain in the draft until normal Save. This source update
-has not been built or packaged; existing 1.7.0 installers are unchanged.
+confirmation. Moves remain in the draft until normal Save. Included in the
+private 1.8.0 Android and Windows installers, together with source-photo fetching.
 
 ## Nibbles direct GitHub storage (1.3.0)
 
@@ -76,29 +76,40 @@ API site/application pool. Do not reset or force-push over app changes.
 iOS uses the same storage implementation and its native image encoder; building
 and signing iOS still requires a Mac.
 
-## On-device source fetching (1.7.0 test builds)
+## On-device source fetching (1.8.0 test builds)
 
 In the existing recipe editor, enter a public HTTPS recipe website or
 Instagram/TikTok post URL in **Source**, then press **Fetch**. Fetching and
 deterministic parsing run inside the app; no extra service, Python installation,
 source-account login or paid AI is required. Website Recipe JSON-LD and public
-post captions are supported, not video/audio transcription or automatic photos.
+post captions are supported, not video/audio transcription.
 Manual source text is still valid and does not trigger a request.
 
 Results become editable title, ingredients/groups and method. Existing recipe
-text requires explicit replacement confirmation; notes, cover photo, source,
+text requires explicit replacement confirmation; notes, any existing cover photo, source,
 identity and edit baseline are preserved. Cancel, failure and **Keep editing**
 leave the recipe unchanged. **Paste source text** offers the same local parsing
 when automatic access is unavailable. Only normal **Save** writes to GitHub,
 with existing required-field and conflict handling; there is no review checkbox
 or fetched-text viewer.
 
+Fetch also attempts a cover photo when none has been chosen. Websites prefer
+the matched Recipe JSON-LD image, with an Open Graph preview fallback.
+Instagram uses the matched post/Reel preview (the first item for a carousel);
+TikTok uses the matched video's cover. Public access is best-effort: blocked,
+missing or unsupported images leave the recipe text usable and show a photo
+warning. Existing photos are never replaced automatically. Images are downloaded,
+decoded and converted locally to a bounded JPEG, staged in the editor and only
+stored by normal Save; no expiring source-image URL is needed for offline use.
+
 Social access and caption interpretation remain best-effort. Missing fields
 are not invented, and apparently complete results can still need corrections.
 Private/local addresses, oversized responses and excessive requests are refused;
 restricted hosts are not automatically retried. iOS device validation requires
-a Mac. Private 1.7.0 test installers include this feature; existing 1.6.0
-artifacts are retained.
+a Mac. Private 1.8.0 test installers include photo fetching and ingredient
+selection; existing 1.7.0 and 1.6.0 artifacts are retained. The sampled social
+image hosts restricted live downloads during verification; caption imports
+remained available, so social thumbnails are not guaranteed.
 
 ## Method ingredient links (1.4.0)
 
@@ -214,14 +225,14 @@ The existing Android launch configuration is unchanged.
 ## Nibbles installable builds
 
 Run these commands from the repository root with the private token-file
-environment variable set. The current test build is 1.7.0, Android version code 12;
+environment variable set. The current test build is 1.8.0, Android version code 13;
 increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.7.0\android
-Copy-Item .\artifacts\Nibbles\1.7.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.7.0\Nibbles-1.7.0-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -p:TargetFrameworks=net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.8.0\android
+Copy-Item .\artifacts\Nibbles\1.8.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.8.0\Nibbles-1.8.0-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -238,10 +249,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.7.0 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.8.0 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The private installer is `artifacts\Nibbles\1.7.0\Nibbles-1.7.0-Windows-x64-Setup.exe`.
+The private installer is `artifacts\Nibbles\1.8.0\Nibbles-1.8.0-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;

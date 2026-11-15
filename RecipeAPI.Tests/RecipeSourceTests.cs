@@ -178,21 +178,28 @@ public class RecipeSourceTests
         {
             ["__DEFAULT_SCOPE__"] = new Dictionary<string, object>
             {
-                ["webapp.video-detail"] = new { statusCode = 0, itemInfo = new { itemStruct = new { id = "12345", desc = Caption } } }
+                ["webapp.video-detail"] = new { statusCode = 0, itemInfo = new { itemStruct = new
+                { id = "12345", desc = Caption, video = new { cover = "https://cdn.example.com/cover.jpg" } } } }
             }
         };
         var html = "<script id='__UNIVERSAL_DATA_FOR_REHYDRATION__'>" + JsonSerializer.Serialize(data) + "</script>";
         Assert.Equal(4, RecipeSourceParser.TikTok(html, "12345").Text.Ingredients.Count);
+        Assert.Equal("https://cdn.example.com/cover.jpg", Assert.Single(RecipeSourceParser.TikTok(html, "12345").ImageCandidates));
         Assert.Throws<RecipeSourceException>(() => RecipeSourceParser.TikTok(html, "54321"));
         var json = JsonSerializer.Serialize(new
         {
             data = new
             {
                 xdt_api__v1__media__shortcode__web_info = new
-                { items = new[] { new { code = "Post123", caption = new { text = Caption } } } }
+                { items = new[] { new { code = "Post123", caption = new { text = Caption },
+                    carousel_media = new[] {
+                        new { image_versions2 = new { candidates = new[] { new { url = "https://cdn.example.com/first.jpg", width = 1080 } } } },
+                        new { image_versions2 = new { candidates = new[] { new { url = "https://cdn.example.com/second.jpg", width = 1080 } } } }
+                    } } } }
             }
         });
         Assert.Equal(4, RecipeSourceParser.Instagram(json, "Post123").Text.Ingredients.Count);
+        Assert.Equal("https://cdn.example.com/first.jpg", Assert.Single(RecipeSourceParser.Instagram(json, "Post123").ImageCandidates));
         Assert.Throws<RecipeSourceException>(() => RecipeSourceParser.Instagram(json, "Different"));
     }
 
@@ -319,6 +326,147 @@ public class RecipeSourceTests
         }));
         var error = await Assert.ThrowsAsync<RecipeSourceException>(() => service.FetchAsync("https://example.com/recipe", CancellationToken.None));
         Assert.Contains("size limit", error.Message);
+    }
+
+    [Theory]
+    [InlineData("string")]
+    [InlineData("object")]
+    [InlineData("array")]
+    [InlineData("reference")]
+    public void WebsitePrioritizesItsRecipeImageAndKeepsOpenGraphAsFallback(string shape)
+    {
+        var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(JsonSerializer.Serialize(Metadata))!;
+        metadata["image"] = shape switch
+        {
+            "string" => "/recipe.jpg",
+            "object" => new { contentUrl = "/recipe.jpg" },
+            "array" => new object[] { "/recipe.jpg", new { url = "/wide.jpg" } },
+            _ => new Dictionary<string, object> { ["@id"] = "#photo" }
+        };
+        var html = Html(new Dictionary<string, object> { ["@graph"] = new object[]
+        {
+            metadata, new Dictionary<string, object> { ["@type"] = "ImageObject", ["@id"] = "#photo", ["url"] = "/recipe.jpg" }
+        } }) + "<meta property='og:image' content='/preview.jpg'><img src='/advert.jpg'>";
+        var draft = RecipeSourceParser.Website(html);
+        Assert.Equal("/recipe.jpg", draft.ImageCandidates[0]);
+        Assert.Equal("/preview.jpg", draft.ImageCandidates[^1]);
+        Assert.DoesNotContain("/advert.jpg", draft.ImageCandidates);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("nibbles_chef.png", false)]
+    [InlineData("selected.jpg", true)]
+    public void PhotoEligibilityPreservesSelectedAndStoredPhotos(string? path, bool expected)
+    {
+        var recipe = new Recipe { ImagePath = path };
+        Assert.Equal(expected, RecipeSourceDraft.HasPhoto(recipe));
+        recipe.ImageData = "data:image/jpeg;base64,photo";
+        Assert.True(RecipeSourceDraft.HasPhoto(recipe));
+    }
+
+    private static readonly byte[] Photo = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jT1sAAAAASUVORK5CYII=");
+    private static string PageWithPhoto => Html(Metadata) + "<meta property='og:image' content='/photo.png'>";
+    private static HttpResponseMessage PhotoResponse()
+    {
+        var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Photo) };
+        response.Content.Headers.ContentType = new("image/png");
+        return response;
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ImageIsDownloadedIntoDraftOnlyWhenRequested(bool includeImage)
+    {
+        var paths = new List<string>();
+        var service = new RecipeSourceService(() => new FakeHandler(request =>
+        {
+            paths.Add(request.RequestUri!.AbsolutePath);
+            Assert.Null(request.Headers.Authorization);
+            return request.RequestUri.AbsolutePath switch
+            {
+                "/robots.txt" => Response(HttpStatusCode.NotFound, ""),
+                "/photo.png" => PhotoResponse(),
+                _ => Response(HttpStatusCode.OK, PageWithPhoto)
+            };
+        }));
+        var draft = await service.FetchAsync("https://example.com/recipe", CancellationToken.None, includeImage);
+        Assert.Equal(2, draft.Text.Ingredients.Count);
+        Assert.Equal(includeImage, paths.Contains("/photo.png"));
+        if (includeImage) Assert.Equal(Photo, draft.ImageBytes);
+        else Assert.Null(draft.ImageBytes);
+        Assert.Null(draft.Text.ImagePath);
+        Assert.Null(draft.Text.ImageData);
+    }
+
+    [Theory]
+    [InlineData("private")]
+    [InlineData("redirect")]
+    [InlineData("format")]
+    [InlineData("signature")]
+    [InlineData("size")]
+    [InlineData("policy")]
+    [InlineData("timeout")]
+    public async Task UnavailableOrUnsafePhotoDoesNotDiscardTheRecipe(string problem)
+    {
+        var downloaded = false;
+        var service = new RecipeSourceService(() => new FakeHandler(request =>
+        {
+            var path = request.RequestUri!.AbsolutePath;
+            Assert.NotEqual("127.0.0.1", request.RequestUri.Host);
+            if (path == "/robots.txt") return Response(HttpStatusCode.OK,
+                problem == "policy" ? "User-agent: *\nDisallow: /photo.png" : "", "text/plain");
+            if (path != "/photo.png") return Response(HttpStatusCode.OK,
+                problem == "private" ? PageWithPhoto.Replace("/photo.png", "https://127.0.0.1/photo.png") : PageWithPhoto);
+            downloaded = true;
+            if (problem == "redirect")
+                return new HttpResponseMessage(HttpStatusCode.Redirect) { Headers = { Location = new Uri("https://127.0.0.1/photo.png") } };
+            if (problem == "format") return Response(HttpStatusCode.OK, "<svg/>", "image/svg+xml");
+            if (problem == "signature") return Response(HttpStatusCode.OK, "not an image", "image/png");
+            if (problem == "timeout") throw new OperationCanceledException();
+            var image = PhotoResponse();
+            image.Content.Headers.ContentLength = 6_000_001;
+            return image;
+        }));
+        var draft = await service.FetchAsync("https://example.com/recipe", CancellationToken.None);
+        Assert.Equal(2, draft.Text.Ingredients.Count);
+        Assert.Null(draft.ImageBytes);
+        Assert.Contains(draft.Warnings, warning => warning.StartsWith("Photo not imported:"));
+        Assert.DoesNotContain(draft.Warnings, warning => warning.Contains("Paste"));
+        Assert.Equal(problem is not ("private" or "policy"), downloaded);
+    }
+
+    [Fact]
+    public async Task BrokenRecipeImageFallsBackToPagePreview()
+    {
+        var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(JsonSerializer.Serialize(Metadata))!;
+        metadata["image"] = "/broken.jpg";
+        var service = new RecipeSourceService(() => new FakeHandler(request => request.RequestUri!.AbsolutePath switch
+        {
+            "/robots.txt" => Response(HttpStatusCode.NotFound, ""),
+            "/broken.jpg" => Response(HttpStatusCode.NotFound, ""),
+            "/preview.png" => PhotoResponse(),
+            _ => Response(HttpStatusCode.OK, Html(metadata) + "<meta property='og:image' content='/preview.png'>")
+        }));
+        var draft = await service.FetchAsync("https://example.com/recipe", CancellationToken.None);
+        Assert.Equal(Photo, draft.ImageBytes);
+        Assert.DoesNotContain(draft.Warnings, warning => warning.StartsWith("Photo not imported:"));
+    }
+
+    [Fact]
+    public async Task CancellingDuringPhotoDownloadCancelsTheWholeLookup()
+    {
+        using var cancel = new CancellationTokenSource();
+        var service = new RecipeSourceService(() => new FakeHandler(request =>
+        {
+            if (request.RequestUri!.AbsolutePath == "/robots.txt") return Response(HttpStatusCode.NotFound, "");
+            if (request.RequestUri.AbsolutePath != "/photo.png") return Response(HttpStatusCode.OK, PageWithPhoto);
+            cancel.Cancel();
+            throw new OperationCanceledException(cancel.Token);
+        }));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.FetchAsync("https://example.com/recipe", cancel.Token));
     }
 
     private static HttpResponseMessage Response(HttpStatusCode status, string body, string mediaType = "text/html") =>

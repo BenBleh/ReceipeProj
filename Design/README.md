@@ -19,13 +19,13 @@ dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
 
-## Select and group ingredients - unreleased implementation
+## Select and group ingredients - 1.8.0 test builds
 
 Page **13 - Select and group ingredients** is the approved design for moving one
 or many already-added ingredients into a new or existing group. The interaction
-is implemented in source, with focused regression tests added. Compilation,
-test execution and device checks are deferred until the next requested build;
-the existing 1.7.0 installers do not include it. No stored recipes were changed.
+is implemented and included in the private 1.8.0 Android and Windows installers.
+Focused regression tests and actual Windows/Android editor checks cover the
+selection and move workflow. No stored recipes were changed during these checks.
 Earlier editor boards remain historical references; this page extends their
 ingredient-editing interaction. The editable boards are static states, not a
 clickable prototype.
@@ -62,10 +62,20 @@ Review previews:
 - [Dark mobile and Windows](previews/ingredient-selection-platforms.png)
 - [Interaction handoff and edge states](previews/ingredient-selection-handoff.png)
 
-## Source fetching - 1.7.0 test builds
+## Source fetching - 1.8.0 test builds
 
 Page **12 - Source fetch** contains the approved design for the importer now
 implemented in the app source and packaged for private testing in 1.7.0.
+The 1.8.0 extension fills an empty cover-photo slot during the same Fetch action:
+matched Recipe JSON-LD image then Open Graph preview for websites, matched
+post/Reel preview for Instagram (first carousel item), and video cover for
+TikTok. Existing photos stay unchanged. Image downloads retain address,
+redirect, access-policy, size and cancellation limits; unsupported or blocked
+images add a photo warning without discarding the recipe text. Native decoding
+limits imported images to 16 megapixels and the resulting JPEG to a 1600-pixel
+long edge. Only normal Save publishes the staged image.
+Website photo imports were exercised on Windows and Android. The sampled social
+image hosts restricted live downloads; those imports retained their caption text.
 It uses the existing **Source field + Fetch
 button**, then the existing Details / Ingredients / Method editor. The nine screen
 states include phone light/dark layouts, Windows, partial results, pasted-text
@@ -110,7 +120,7 @@ captions are best-effort. Pasted source text uses the same local caption parser.
 Access restrictions and unsupported formats fall back visibly to paste; caption
 parsing and grouping are not a semantic-accuracy guarantee.
 This implementation does not introduce AI, OCR, video
-transcription, automatic image extraction, a share target or a cooking-time
+transcription, a share target or a cooking-time
 control. The local research prototype remains separate from the app.
 
 Preview references:

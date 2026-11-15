@@ -25,12 +25,14 @@ public static class RecipeSourceParser
     {
         var document = new HtmlParser().ParseDocument(html);
         var candidates = new List<JsonElement>();
+        var imageObjects = new List<JsonElement>();
         foreach (var script in document.QuerySelectorAll("script[type='application/ld+json']"))
         {
             try
             {
                 using var data = JsonDocument.Parse(script.TextContent, new JsonDocumentOptions { MaxDepth = 64 });
                 candidates.AddRange(Objects(data.RootElement).Where(item => HasType(item, "Recipe")).Select(item => item.Clone()));
+                imageObjects.AddRange(Objects(data.RootElement).Where(item => HasType(item, "ImageObject")).Select(item => item.Clone()));
             }
             catch (JsonException exception)
             {
@@ -53,7 +55,28 @@ public static class RecipeSourceParser
         if (node.TryGetProperty("recipeInstructions", out var method))
             foreach (var instruction in Instructions(method, warnings))
                 recipe.Steps.Add(new Step { Num = recipe.Steps.Count, Instructions = instruction });
-        return Finish(recipe, warnings);
+        var images = node.TryGetProperty("image", out var image) ? ImageUrls(image, imageObjects) : [];
+        return Finish(recipe, warnings) with
+        {
+            ImageCandidates = images.Distinct(StringComparer.Ordinal).Take(2).Concat(document.QuerySelectorAll("meta[property='og:image'], meta[property='og:image:secure_url']")
+                .Select(meta => meta.GetAttribute("content") ?? "")).Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.Ordinal).Take(12).ToList()
+        };
+    }
+
+    private static IEnumerable<string> ImageUrls(JsonElement value, IReadOnlyList<JsonElement> imageObjects)
+    {
+        if (value.ValueKind == JsonValueKind.String)
+            return [value.GetString()!];
+        if (value.ValueKind == JsonValueKind.Array)
+            return value.EnumerateArray().SelectMany(item => ImageUrls(item, imageObjects)).ToList();
+        if (value.ValueKind != JsonValueKind.Object) return [];
+        var urls = new[] { GetString(value, "contentUrl"), GetString(value, "url") }.Where(url => url.Length > 0).ToList();
+        var id = GetString(value, "@id");
+        if (urls.Count == 0 && id.Length > 0)
+            urls.AddRange(imageObjects.Where(item => GetString(item, "@id") == id)
+                .SelectMany(item => new[] { GetString(item, "contentUrl"), GetString(item, "url") }).Where(url => url.Length > 0));
+        return urls;
     }
 
     private static void AddWebsiteGroups(IDocument document, Recipe recipe, List<string> ingredients, List<string> warnings)
@@ -126,7 +149,10 @@ public static class RecipeSourceParser
             var item = detail.GetProperty("itemInfo").GetProperty("itemStruct");
             if (detail.GetProperty("statusCode").GetInt32() != 0 || GetString(item, "id") != videoId)
                 throw new RecipeSourceException("TikTok returned a different or unavailable post. Paste its description instead.");
-            return Caption(GetString(item, "desc"));
+            var images = item.TryGetProperty("video", out var video) && video.ValueKind == JsonValueKind.Object
+                ? new[] { GetString(video, "cover"), GetString(video, "originCover") }.Where(url => url.Length > 0).ToList()
+                : [];
+            return Caption(GetString(item, "desc")) with { ImageCandidates = images };
         }
         catch (Exception exception) when (exception is JsonException or KeyNotFoundException or InvalidOperationException)
         {
@@ -142,7 +168,18 @@ public static class RecipeSourceParser
             var items = data.RootElement.GetProperty("data").GetProperty("xdt_api__v1__media__shortcode__web_info").GetProperty("items");
             if (items.GetArrayLength() != 1 || GetString(items[0], "code") != shortcode)
                 throw new RecipeSourceException("Instagram returned a different or unavailable post. Paste its caption instead.");
-            return Caption(GetString(items[0].GetProperty("caption"), "text"));
+            var item = items[0];
+            if (item.TryGetProperty("carousel_media", out var carousel) && carousel.ValueKind == JsonValueKind.Array &&
+                carousel.GetArrayLength() > 0 && carousel[0].ValueKind == JsonValueKind.Object)
+                item = carousel[0];
+            var images = new List<string>();
+            if (item.TryGetProperty("image_versions2", out var versions) && versions.ValueKind == JsonValueKind.Object &&
+                versions.TryGetProperty("candidates", out var thumbnails) && thumbnails.ValueKind == JsonValueKind.Array)
+                images.AddRange(thumbnails.EnumerateArray().Where(thumbnail => thumbnail.ValueKind == JsonValueKind.Object)
+                    .OrderByDescending(thumbnail => thumbnail.TryGetProperty("width", out var width) && width.ValueKind == JsonValueKind.Number &&
+                        width.TryGetInt32(out var pixels) ? pixels : 0)
+                    .Select(thumbnail => GetString(thumbnail, "url")).Where(url => url.Length > 0).Distinct().Take(3));
+            return Caption(GetString(items[0].GetProperty("caption"), "text")) with { ImageCandidates = images };
         }
         catch (Exception exception) when (exception is JsonException or KeyNotFoundException or InvalidOperationException)
         {

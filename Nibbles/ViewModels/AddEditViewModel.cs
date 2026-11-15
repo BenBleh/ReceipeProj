@@ -182,7 +182,7 @@ public partial class AddEditViewModel : ObservableObject
         IsFetchingSource = true;
         try
         {
-            var draft = await sourceService.FetchAsync(source, request.Token);
+            var draft = await sourceService.FetchAsync(source, request.Token, includeImage: !RecipeSourceDraft.HasPhoto(Recipe));
             if (sourceRequest != request || request.IsCancellationRequested) return;
             IsApplyingSource = true;
             IsFetchingSource = false;
@@ -252,14 +252,36 @@ public partial class AddEditViewModel : ObservableObject
             var missing = draft.MissingFields.Length == 0 ? "" :
                 $"\nMissing {draft.MissingFields}: those fields will be cleared and must be filled before saving.";
             if (!await AppDialogs.ConfirmAsync(Page, "Replace recipe text?",
-                $"Title, ingredients, groups and method will replace your current draft.\n{draft.Summary}.{missing}\nYour notes and photo will be kept.",
+                $"Title, ingredients, groups and method will replace your current draft.\n{draft.Summary}.{missing}\nYour notes and any existing photo will be kept.",
                 "Replace text", "Keep editing", destructive: true))
             {
                 SourceStatus = "Kept your current recipe. No fetched or pasted text was applied.";
                 return;
             }
         }
+        string? sourcePhoto = null;
+        if (draft.ImageBytes is not null && !RecipeSourceDraft.HasPhoto(Recipe))
+        {
+            try
+            {
+                var jpeg = await RecipePhotoProcessor.JpegAsync(draft.ImageBytes, thumbnail: false, maxDimension: 1600);
+                sourcePhoto = Path.Combine(FileSystem.CacheDirectory, Guid.NewGuid().ToString("N") + ".jpeg");
+                await File.WriteAllBytesAsync(sourcePhoto, jpeg);
+            }
+            catch (Exception exception)
+            {
+                if (sourcePhoto is not null) DeleteTemporaryPhoto(sourcePhoto);
+                sourcePhoto = null;
+                draft = draft with { Warnings = draft.Warnings.Append("The source photo could not be prepared. You can choose a photo manually.").ToList() };
+                System.Diagnostics.Debug.WriteLine($"Source photo preparation failed: {exception.GetType().Name}");
+            }
+        }
         draft.ApplyTo(Recipe);
+        if (sourcePhoto is not null)
+        {
+            selectedPhotoPath = sourcePhoto;
+            Recipe.ImagePath = sourcePhoto;
+        }
         RefreshSections();
         OnPropertyChanged(nameof(Recipe));
         IsPastingSource = false;
@@ -761,6 +783,11 @@ public partial class AddEditViewModel : ObservableObject
         if (selectedPhotoPath is null) return;
         var path = selectedPhotoPath;
         selectedPhotoPath = null;
+        DeleteTemporaryPhoto(path);
+    }
+
+    private static void DeleteTemporaryPhoto(string path)
+    {
         try
         {
             File.Delete(path);

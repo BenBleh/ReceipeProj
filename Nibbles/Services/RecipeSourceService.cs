@@ -13,6 +13,7 @@ public sealed class RecipeSourceService
 {
     private const string Agent = "NibblesSource";
     private const int BodyLimit = 8_000_000;
+    private const int ImageLimit = 6_000_000;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
     private static readonly HashSet<string> TikTokHosts = new(StringComparer.OrdinalIgnoreCase)
         { "tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com" };
@@ -49,7 +50,7 @@ public sealed class RecipeSourceService
         return true;
     }
 
-    public async Task<RecipeSourceDraft> FetchAsync(string source, CancellationToken cancellationToken)
+    public async Task<RecipeSourceDraft> FetchAsync(string source, CancellationToken cancellationToken, bool includeImage = true)
     {
         if (!TrySourceUrl(source, out var url))
             throw new RecipeSourceException("Use a public HTTPS recipe or Instagram/TikTok post URL, without credentials or a custom port.");
@@ -62,7 +63,8 @@ public sealed class RecipeSourceService
         client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.8");
         var requests = 0;
         var nextRequest = DateTimeOffset.MinValue;
-        async Task<(HttpStatusCode Status, string Body, Uri? Redirect)> Send(Uri target, HttpContent? content = null, string? lsd = null)
+        async Task<(HttpStatusCode Status, string Body, Uri? Redirect, byte[]? Image)> Send(Uri target,
+            HttpContent? content = null, string? lsd = null, bool image = false)
         {
             if (!TryPublicUrl(target.AbsoluteUri, out _))
                 throw new RecipeSourceException("A redirect or source request points to an unsupported address.");
@@ -73,6 +75,7 @@ public sealed class RecipeSourceService
             if (wait > TimeSpan.Zero) await Task.Delay(wait, deadline.Token);
             nextRequest = DateTimeOffset.UtcNow.AddSeconds(1);
             using var request = new HttpRequestMessage(content is null ? HttpMethod.Get : HttpMethod.Post, target) { Content = content };
+            if (image) request.Headers.Accept.ParseAdd("image/jpeg,image/png,image/webp;q=0.8");
             if (IsInstagram(target))
             {
                 request.Headers.UserAgent.Clear();
@@ -95,7 +98,9 @@ public sealed class RecipeSourceService
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests)
             {
-                var reasonText = $"This source restricted automated access (HTTP {(int)response.StatusCode}). Further fetches to this host are stopped until the app restarts. Paste its text instead.";
+                var reasonText = image
+                    ? $"The photo host restricted automated access (HTTP {(int)response.StatusCode}). Photo requests to this host are stopped until the app restarts."
+                    : $"This source restricted automated access (HTTP {(int)response.StatusCode}). Further fetches to this host are stopped until the app restarts. Paste its text instead.";
                 stoppedHosts[host] = reasonText;
                 throw new RecipeSourceException(reasonText);
             }
@@ -103,18 +108,33 @@ public sealed class RecipeSourceService
             {
                 if (response.Headers.Location is null)
                     throw new RecipeSourceException("The source redirect has no destination. Paste its text instead.");
-                return (response.StatusCode, "", new Uri(target, response.Headers.Location));
+                return (response.StatusCode, "", new Uri(target, response.Headers.Location), null);
             }
             if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
                 throw new RecipeSourceException($"The source returned HTTP {(int)response.StatusCode}. Paste its text instead.");
+            var mediaType = response.Content.Headers.ContentType?.MediaType;
+            if (image)
+            {
+                if (!response.IsSuccessStatusCode || mediaType is not ("image/jpeg" or "image/png" or "image/webp"))
+                    throw new RecipeSourceException("The source photo is unavailable or uses an unsupported format.");
+                var bytes = await ReadResponseBytesAsync(response, ImageLimit, deadline.Token);
+                var valid = mediaType switch
+                {
+                    "image/jpeg" => bytes.Length >= 3 && bytes[0] == 0xff && bytes[1] == 0xd8 && bytes[2] == 0xff,
+                    "image/png" => bytes.AsSpan().StartsWith(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }),
+                    _ => bytes.Length >= 12 && bytes.AsSpan(0, 4).SequenceEqual("RIFF"u8) &&
+                        bytes.AsSpan(8, 4).SequenceEqual("WEBP"u8)
+                };
+                if (!valid) throw new RecipeSourceException("The source photo did not contain a supported image.");
+                return (response.StatusCode, "", null, bytes);
+            }
             var limit = target.AbsolutePath == "/robots.txt" ? 1_000_000 : BodyLimit;
             var body = await ReadBodyAsync(response, limit, deadline.Token);
-            var mediaType = response.Content.Headers.ContentType?.MediaType;
             if (response.IsSuccessStatusCode && target.AbsolutePath != "/robots.txt" &&
                 !(content is null ? mediaType is "text/html" or "application/xhtml+xml" :
                   mediaType is "application/json" or "text/javascript"))
                 throw new RecipeSourceException("The source returned an unsupported response. Paste the recipe text instead.");
-            return (response.StatusCode, body, null);
+            return (response.StatusCode, body, null, null);
         }
         async Task Robots(Uri target)
         {
@@ -122,7 +142,7 @@ public sealed class RecipeSourceService
             if (!policies.TryGetValue(origin, out var cached) || DateTimeOffset.UtcNow - cached.Time > TimeSpan.FromHours(1))
             {
                 var robotsUrl = new Uri(origin + "/robots.txt");
-                (HttpStatusCode Status, string Body, Uri? Redirect) result = (HttpStatusCode.NotFound, "", null);
+                (HttpStatusCode Status, string Body, Uri? Redirect, byte[]? Image) result = (HttpStatusCode.NotFound, "", null, null);
                 for (var redirect = 0; redirect < 3; redirect++)
                 {
                     result = await Send(robotsUrl);
@@ -143,6 +163,49 @@ public sealed class RecipeSourceService
                 var delay = RobotsDelay(cached.Policy, target.PathAndQuery);
                 nextRequest = DateTimeOffset.UtcNow.AddSeconds(Math.Max(1, delay));
             }
+        }
+        async Task<RecipeSourceDraft> WithImage(RecipeSourceDraft draft, Uri page)
+        {
+            if (!includeImage) return draft;
+            var reason = "No source photo was available.";
+            foreach (var candidate in draft.ImageCandidates.Distinct(StringComparer.Ordinal).Take(3))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    if (!Uri.TryCreate(page, candidate, out var imageUrl) || !TryPublicUrl(imageUrl.AbsoluteUri, out imageUrl))
+                        throw new RecipeSourceException("The source photo points to an unsupported address.");
+                    for (var redirect = 0; redirect < 3; redirect++)
+                    {
+                        try { await Robots(imageUrl); }
+                        catch (RecipeSourceException exception)
+                        {
+                            throw new RecipeSourceException("The photo host's automated-access policy could not be satisfied.", exception);
+                        }
+                        var response = await Send(imageUrl, image: true);
+                        if (response.Redirect is { } target)
+                        {
+                            if (!TryPublicUrl(target.AbsoluteUri, out imageUrl))
+                                throw new RecipeSourceException("The source photo redirected to an unsupported address.");
+                            continue;
+                        }
+                        cancellationToken.ThrowIfCancellationRequested();
+                        return draft with { ImageBytes = response.Image };
+                    }
+                    reason = "The source photo redirected too many times.";
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    reason = "The source photo timed out.";
+                    break;
+                }
+                catch (Exception exception) when (exception is RecipeSourceException or HttpRequestException or IOException or SocketException)
+                {
+                    reason = exception.Message;
+                    System.Diagnostics.Debug.WriteLine($"Source image unavailable: {exception.GetType().Name}");
+                }
+            }
+            return draft with { Warnings = draft.Warnings.Append($"Photo not imported: {reason} You can choose a photo manually.").ToList() };
         }
         try
         {
@@ -177,7 +240,7 @@ public sealed class RecipeSourceService
                 var result = await Send(new Uri("https://www.instagram.com/api/graphql"), form, lsd);
                 if (result.Status != HttpStatusCode.OK || result.Redirect is not null)
                     throw new RecipeSourceException("Instagram did not return a public caption. Paste the expanded caption instead.");
-                return RecipeSourceParser.Instagram(result.Body, shortcode);
+                return await WithImage(RecipeSourceParser.Instagram(result.Body, shortcode), url);
             }
             var tiktok = TikTokHosts.Contains(url.IdnHost);
             var expectedVideo = tiktok ? TikTokVideoId(url) : null;
@@ -206,7 +269,8 @@ public sealed class RecipeSourceService
                     throw new RecipeSourceException($"The source returned HTTP {(int)response.Status}. Paste its text instead.");
                 if (tiktok && expectedVideo is null)
                     throw new RecipeSourceException("The TikTok short link did not resolve to a video. Paste its direct post link or description.");
-                return tiktok ? RecipeSourceParser.TikTok(response.Body, expectedVideo!) : RecipeSourceParser.Website(response.Body);
+                var draft = tiktok ? RecipeSourceParser.TikTok(response.Body, expectedVideo!) : RecipeSourceParser.Website(response.Body);
+                return await WithImage(draft, url);
             }
             throw new RecipeSourceException("The source redirected too many times. Paste the recipe text instead.");
         }
@@ -292,6 +356,14 @@ public sealed class RecipeSourceService
 
     private static async Task<string> ReadBodyAsync(HttpResponseMessage response, int limit, CancellationToken token)
     {
+        var bytes = await ReadResponseBytesAsync(response, limit, token);
+        var charset = response.Content.Headers.ContentType?.CharSet?.Trim('"');
+        try { return (string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset)).GetString(bytes); }
+        catch (ArgumentException exception) { throw new RecipeSourceException("The source text encoding is unsupported.", exception); }
+    }
+
+    private static async Task<byte[]> ReadResponseBytesAsync(HttpResponseMessage response, int limit, CancellationToken token)
+    {
         if (response.Content.Headers.ContentLength > limit)
             throw new RecipeSourceException("The source response exceeded the size limit.");
         await using var stream = await response.Content.ReadAsStreamAsync(token);
@@ -309,9 +381,7 @@ public sealed class RecipeSourceService
             };
             bytes = await ReadBoundedAsync(decoder, limit, token);
         }
-        var charset = response.Content.Headers.ContentType?.CharSet?.Trim('"');
-        try { return (string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset)).GetString(bytes); }
-        catch (ArgumentException exception) { throw new RecipeSourceException("The source text encoding is unsupported.", exception); }
+        return bytes;
     }
 
     private static async Task<byte[]> ReadBoundedAsync(Stream stream, int limit, CancellationToken token)

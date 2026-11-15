@@ -4,6 +4,13 @@ namespace Nibbles.Services;
 
 public sealed record RecipeSourceDraft(Recipe Text, IReadOnlyList<string> Warnings)
 {
+    public IReadOnlyList<string> ImageCandidates { get; init; } = [];
+    public byte[]? ImageBytes { get; init; }
+
+    public static bool HasPhoto(Recipe recipe) =>
+        !string.IsNullOrWhiteSpace(recipe.ImageData) ||
+        (!string.IsNullOrWhiteSpace(recipe.ImagePath) && recipe.ImagePath != "nibbles_chef.png");
+
     public string Summary => $"{Text.Ingredients.Count} ingredients / {Text.IngredientGroups.Count} groups / {Text.Steps.Count} steps";
     public string MissingFields => string.Join(", ", new[]
     {
