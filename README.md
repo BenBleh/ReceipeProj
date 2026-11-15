@@ -4,6 +4,12 @@ Vehicle to practice API creation and Agular/Typescript sites!
 The approved Nibbles redesign, assets, ingredient-group schema, and deployment
 notes are in [Design](Design/README.md).
 
+## Ingredient selection (unreleased)
+
+The Ingredients editor now supports selecting one or many existing rows and
+moving them to an existing or new group, with one Cancel action and no success
+confirmation. Moves remain in the draft until normal Save. This source update
+has not been built or packaged; existing 1.7.0 installers are unchanged.
 
 ## Nibbles direct GitHub storage (1.3.0)
 

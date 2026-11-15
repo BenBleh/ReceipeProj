@@ -49,7 +49,7 @@
                 <Button Text="{Binding SaveLabel}" Command="{Binding SaveCommand}" />
             </HorizontalStackLayout>
         </Grid>
-        <Grid Grid.Column="1" Grid.Row="1" RowDefinitions="Auto,*" Padding="24,8,24,16" RowSpacing="16">
+        <Grid Grid.Column="1" Grid.Row="1" RowDefinitions="Auto,*,Auto" Padding="24,8,24,16" RowSpacing="16">
             <VerticalStackLayout Spacing="12">
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4" IsEnabled="{Binding IsEditingEnabled}">
                     <Button Text="Details" Style="{StaticResource DetailsTab}" />
@@ -104,17 +104,25 @@
                         <Border Style="{StaticResource Field}"><Editor Text="{Binding Recipe.Notes}" Placeholder="Family favourites, substitutions, or a tip for next time…" MinimumHeightRequest="100" /></Border>
                         <Button Text="Next: Ingredients →" Command="{Binding SelectSectionCommand}" CommandParameter="1" />
                     </VerticalStackLayout>
-                    <VerticalStackLayout IsVisible="{Binding IsIngredients}" IsEnabled="{Binding IsEditingEnabled}" Spacing="18">
+                    <VerticalStackLayout IsVisible="{Binding IsIngredients}" Spacing="18">
                         <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
                         <Grid ColumnDefinitions="*,Auto">
-                            <VerticalStackLayout Spacing="4">
+                            <VerticalStackLayout Spacing="4" IsVisible="{Binding IsNormalIngredientEditing}">
                                 <Label Text="Ingredient groups" Style="{StaticResource SectionHeading}" />
                                 <Label Text="{Binding RecipeSummary}" Style="{StaticResource MutedLabel}" />
                             </VerticalStackLayout>
-                            <Button Grid.Column="1" Text="+ Group" Style="{StaticResource QuietButton}" Command="{Binding AddGroupCommand}" />
+                            <Button Grid.Column="1" Text="Select" Style="{StaticResource QuietButton}" Command="{Binding BeginIngredientSelectionCommand}"
+                                    IsVisible="{Binding IsNormalIngredientEditing}" AutomationId="SelectIngredients" />
+                            <Label Text="{Binding IngredientSelectionSummary}" IsVisible="{Binding IsSelectingIngredients}"
+                                   FontFamily="OpenSansSemibold" VerticalOptions="Center" AutomationId="IngredientSelectionCount"
+                                   SemanticProperties.Description="{Binding IngredientSelectionSummary}" />
+                            <Button Grid.Column="1" Text="Cancel" Style="{StaticResource QuietButton}" Command="{Binding CancelIngredientSelectionCommand}"
+                                    IsVisible="{Binding IsSelectingIngredients}" AutomationId="CancelIngredientSelection" />
                         </Grid>
-                        <Label Text="Keep one list, or use groups such as Marinade, Sauce, and To serve. Use ⋯ to rename, move, or remove a heading." Style="{StaticResource MutedLabel}" />
-                        <VerticalStackLayout Spacing="16" BindableLayout.ItemsSource="{Binding IngredientSections}">
+                        <Label Text="Keep one list, or use groups such as Marinade, Sauce, and To serve. Use ⋯ to rename, move, or remove a heading."
+                               Style="{StaticResource MutedLabel}" IsVisible="{Binding IsNormalIngredientEditing}" />
+                        <VerticalStackLayout x:Name="IngredientSectionsLayout" Spacing="16" BindableLayout.ItemsSource="{Binding IngredientSections}"
+                                             IsEnabled="{Binding IsIngredientEditingEnabled}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:IngredientSection">
                                     <Border Padding="16">
@@ -124,22 +132,50 @@
                                                 <Button Grid.Column="1" Text="⋯" FontSize="24" Style="{StaticResource QuietButton}" IsVisible="{Binding IsNamed}"
                                                         SemanticProperties.Description="Manage ingredient group"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=GroupOptionsCommand}"
-                                                        CommandParameter="{Binding .}" />
+                                                        CommandParameter="{Binding .}">
+                                                    <Button.Triggers>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsSelectingIngredients}" Value="True">
+                                                            <Setter Property="IsVisible" Value="False" />
+                                                        </DataTrigger>
+                                                    </Button.Triggers>
+                                                </Button>
                                             </Grid>
                                             <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLine}}" />
                                             <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Ingredients}">
                                                 <BindableLayout.ItemTemplate>
                                                     <DataTemplate x:DataType="models:Ingredient">
-                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
-                                                            <Editor Text="{Binding FQIngrediantDescription}" Placeholder="e.g. 2 cloves garlic, crushed" SemanticProperties.Description="Ingredient description" />
-                                                            <Button Grid.Column="1" Text="⋯" FontSize="22" Style="{StaticResource QuietButton}" VerticalOptions="Start"
-                                                                    SemanticProperties.Description="Move or remove ingredient"
-                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IngredientOptionsCommand}" CommandParameter="{Binding .}" />
-                                                        </Grid>
+                                                        <Border Padding="0" StrokeThickness="0">
+                                                            <Border.Triggers>
+                                                                <DataTrigger TargetType="Border" Binding="{Binding IsSelectedForEditing}" Value="True">
+                                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource PrimaryDark}}" />
+                                                                </DataTrigger>
+                                                            </Border.Triggers>
+                                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                                                                <Editor Text="{Binding FQIngrediantDescription}" Placeholder="e.g. 2 cloves garlic, crushed" SemanticProperties.Description="Ingredient description"
+                                                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsNormalIngredientEditing}" />
+                                                                <Button Grid.Column="1" Text="⋯" FontSize="22" Style="{StaticResource QuietButton}" VerticalOptions="Start"
+                                                                        SemanticProperties.Description="Move or remove ingredient"
+                                                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsNormalIngredientEditing}"
+                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IngredientOptionsCommand}" CommandParameter="{Binding .}" />
+                                                                <Grid Grid.ColumnSpan="2" ColumnDefinitions="48,*" MinimumHeightRequest="48" IsEnabled="{Binding CanSelectForEditing}"
+                                                                      IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsSelectingIngredients}">
+                                                                    <CheckBox IsChecked="{Binding IsSelectedForEditing, Mode=TwoWay}" MinimumWidthRequest="44" MinimumHeightRequest="48"
+                                                                              SemanticProperties.Description="{Binding FQIngrediantDescription}" />
+                                                                    <Label Grid.Column="1" Text="{Binding FQIngrediantDescription, TargetNullValue='Empty ingredient'}"
+                                                                           VerticalTextAlignment="Center" Padding="0,8,8,8">
+                                                                        <Label.GestureRecognizers>
+                                                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=ToggleIngredientSelectionCommand}"
+                                                                                                  CommandParameter="{Binding .}" />
+                                                                        </Label.GestureRecognizers>
+                                                                    </Label>
+                                                                </Grid>
+                                                            </Grid>
+                                                        </Border>
                                                     </DataTemplate>
                                                 </BindableLayout.ItemTemplate>
                                             </VerticalStackLayout>
-                                            <Grid ColumnDefinitions="*,Auto">
+                                            <Grid ColumnDefinitions="*,Auto"
+                                                  IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsNormalIngredientEditing}">
                                                 <Button Text="+ Ingredient" Style="{StaticResource QuietButton}" HorizontalOptions="Start"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=AddIngredientCommand}" CommandParameter="{Binding .}" />
                                                 <Button Grid.Column="1" Text="Paste list" Style="{StaticResource QuietButton}"
@@ -150,8 +186,10 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                        <Button Text="+ Add ingredient group" Style="{StaticResource SecondaryButton}" Command="{Binding AddGroupCommand}" />
-                        <Button Text="Next: Method →" Command="{Binding SelectSectionCommand}" CommandParameter="2" />
+                        <Button Text="+ Add ingredient group" Style="{StaticResource SecondaryButton}" Command="{Binding AddGroupCommand}"
+                                IsVisible="{Binding IsNormalIngredientEditing}" IsEnabled="{Binding IsEditingEnabled}" />
+                        <Button Text="Next: Method →" Command="{Binding SelectSectionCommand}" CommandParameter="2"
+                                IsVisible="{Binding IsNormalIngredientEditing}" />
                     </VerticalStackLayout>
                     <VerticalStackLayout IsVisible="{Binding IsMethod}" IsEnabled="{Binding IsEditingEnabled}" Spacing="16">
                         <Label Text="One clear instruction per step. Use ⋯ to reorder or remove a step." Style="{StaticResource MutedLabel}" />
@@ -175,6 +213,9 @@
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>
+            <Border Grid.Row="2" IsVisible="{Binding IsSelectingIngredients}" Padding="0,12,0,0" StrokeThickness="0">
+                <Button Text="Move to group" Command="{Binding MoveSelectedIngredientsCommand}" AutomationId="MoveIngredientsToGroup" />
+            </Border>
         </Grid>
         <Border x:Name="PreviewRail" Grid.Column="2" Grid.Row="1" IsVisible="False" Margin="0,8,24,24" Padding="24" StrokeThickness="0">
             <ScrollView>

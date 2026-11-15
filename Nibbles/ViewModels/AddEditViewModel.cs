@@ -14,6 +14,7 @@ public partial class AddEditViewModel : ObservableObject
     private readonly RecipeSourceService sourceService;
     private Recipe? observedRecipe;
     private CancellationTokenSource? sourceRequest;
+    private readonly HashSet<Ingredient> observedIngredients = [];
     private string original = string.Empty;
     private string? selectedPhotoPath;
     private bool isNew = true;
@@ -88,14 +89,33 @@ public partial class AddEditViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(UsePastedSourceCommand))]
     public partial string PastedSource { get; set; } = "";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsNormalIngredientEditing))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    public partial bool IsSelectingIngredients { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+    [NotifyPropertyChangedFor(nameof(CanLeave))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReconnectCommand))]
+    public partial bool IsMovingIngredients { get; set; }
+
     public ObservableCollection<IngredientSection> IngredientSections { get; } = [];
+    public event Action<string?>? IngredientGroupMoved;
     public bool IsDetails => SelectedSection == 0;
     public bool IsIngredients => SelectedSection == 1;
     public bool IsMethod => SelectedSection == 2;
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-    public bool IsEditingEnabled => IsReady && !IsSaving && IsOnline && !HasUnconfirmedSave && !IsFetchingSource && !IsApplyingSource;
+    private bool HasEditorAccess => IsReady && !IsSaving && IsOnline && !HasUnconfirmedSave && !IsFetchingSource && !IsApplyingSource;
+    public bool IsIngredientEditingEnabled => HasEditorAccess && !IsMovingIngredients;
+    public bool IsEditingEnabled => IsIngredientEditingEnabled && !IsSelectingIngredients;
+    public bool IsNormalIngredientEditing => !IsSelectingIngredients;
+    public int SelectedIngredientCount => Recipe.Ingredients.Count(ingredient => ingredient.IsSelectedForEditing && ingredient.CanSelectForEditing);
+    public string IngredientSelectionSummary => $"{SelectedIngredientCount} selected";
     public bool HasSourceStatus => !string.IsNullOrEmpty(SourceStatus);
-    public bool CanLeave => !IsSaving && !HasUnconfirmedSave && !IsApplyingSource;
+    public bool CanLeave => !IsSaving && !HasUnconfirmedSave && !IsApplyingSource && !IsMovingIngredients;
     public bool NeedsReconnect => !IsOnline && !HasUnconfirmedSave;
     public string SaveLabel => HasUnconfirmedSave ? "Check save" : "Save";
     public string EditorTitle => isNew ? "Add a recipe" : "Edit recipe";
@@ -103,11 +123,14 @@ public partial class AddEditViewModel : ObservableObject
         $"{Recipe.Ingredients.Count} {(Recipe.Ingredients.Count == 1 ? "ingredient" : "ingredients")} / " +
         $"{Recipe.IngredientGroups.Count} {(Recipe.IngredientGroups.Count == 1 ? "group" : "groups")}";
     public bool HasUnsavedChanges => selectedPhotoPath is not null || JsonSerializer.Serialize(Recipe) != original;
-    private bool CanSave => IsReady && !IsSaving && !IsFetchingSource && !IsApplyingSource && (HasUnconfirmedSave || IsOnline);
-    private bool CanReconnect => !IsSaving && !IsFetchingSource && !IsApplyingSource && NeedsReconnect;
+    private bool CanSave => IsReady && !IsSaving && !IsFetchingSource && !IsApplyingSource && !IsSelectingIngredients && !IsMovingIngredients && (HasUnconfirmedSave || IsOnline);
+    private bool CanReconnect => !IsSaving && !IsFetchingSource && !IsApplyingSource && !IsMovingIngredients && NeedsReconnect;
     private bool CanFetchSource => IsEditingEnabled && RecipeSourceService.TrySourceUrl(Recipe.Source, out _);
     private bool CanUsePastedSource => IsEditingEnabled && !string.IsNullOrWhiteSpace(PastedSource);
     private bool CanCancelFetch => !IsApplyingSource;
+    private bool CanBeginIngredientSelection => IsEditingEnabled && Recipe.Ingredients.Any(ingredient => ingredient.CanSelectForEditing);
+    private bool CanCancelIngredientSelection => IsSelectingIngredients && !IsMovingIngredients;
+    private bool CanMoveSelectedIngredients => IsSelectingIngredients && IsIngredientEditingEnabled && SelectedIngredientCount > 0;
 
     public AddEditViewModel(ReceipeAPIService service, RecipeSourceService sourceService)
     {
@@ -120,6 +143,11 @@ public partial class AddEditViewModel : ObservableObject
             {
                 FetchSourceCommand.NotifyCanExecuteChanged();
                 UsePastedSourceCommand.NotifyCanExecuteChanged();
+                OnPropertyChanged(nameof(IsIngredientEditingEnabled));
+                BeginIngredientSelectionCommand.NotifyCanExecuteChanged();
+                CancelIngredientSelectionCommand.NotifyCanExecuteChanged();
+                MoveSelectedIngredientsCommand.NotifyCanExecuteChanged();
+                SelectSectionCommand.NotifyCanExecuteChanged();
             }
         };
         RefreshAccess();
@@ -282,6 +310,7 @@ public partial class AddEditViewModel : ObservableObject
 
     private void ApplyRecipe(Recipe recipe)
     {
+        CancelIngredientSelection();
         Recipe = recipe;
         isNew = false;
         RefreshSections();
@@ -318,8 +347,13 @@ public partial class AddEditViewModel : ObservableObject
 
     public async Task<bool> ConfirmDiscardAsync()
     {
-        if (IsSaving || IsApplyingSource)
+        if (IsSaving || IsApplyingSource || IsMovingIngredients)
             return false;
+        if (IsSelectingIngredients)
+        {
+            CancelIngredientSelection();
+            return false;
+        }
         if (HasUnconfirmedSave)
         {
             ErrorMessage = "Check whether your save completed before leaving.";
@@ -334,13 +368,100 @@ public partial class AddEditViewModel : ObservableObject
 
     public void RefreshSections()
     {
+        foreach (var ingredient in observedIngredients) ingredient.PropertyChanged -= IngredientChanged;
+        observedIngredients.Clear();
+        foreach (var ingredient in Recipe.Ingredients)
+            if (observedIngredients.Add(ingredient)) ingredient.PropertyChanged += IngredientChanged;
         IngredientSections.Clear();
         foreach (var section in RecipeIngredients.Sections(Recipe, includeEmptyUngrouped: true))
             IngredientSections.Add(section);
         OnPropertyChanged(nameof(RecipeSummary));
+        RefreshIngredientSelection();
+    }
+
+    private void IngredientChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName is nameof(Ingredient.IsSelectedForEditing) or nameof(Ingredient.FQIngrediantDescription))
+        {
+            RefreshIngredientSelection();
+            if (IsSelectingIngredients && args.PropertyName == nameof(Ingredient.IsSelectedForEditing))
+                SemanticScreenReader.Default.Announce(IngredientSelectionSummary);
+        }
+    }
+
+    private void RefreshIngredientSelection()
+    {
+        OnPropertyChanged(nameof(SelectedIngredientCount));
+        OnPropertyChanged(nameof(IngredientSelectionSummary));
+        BeginIngredientSelectionCommand.NotifyCanExecuteChanged();
+        MoveSelectedIngredientsCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanBeginIngredientSelection))]
+    private void BeginIngredientSelection()
+    {
+        foreach (var ingredient in Recipe.Ingredients) ingredient.IsSelectedForEditing = false;
+        IsSelectingIngredients = true;
+        RefreshIngredientSelection();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCancelIngredientSelection))]
+    public void CancelIngredientSelection()
+    {
+        IsSelectingIngredients = false;
+        foreach (var ingredient in Recipe.Ingredients) ingredient.IsSelectedForEditing = false;
+        RefreshIngredientSelection();
     }
 
     [RelayCommand]
+    private void ToggleIngredientSelection(Ingredient ingredient)
+    {
+        if (IsSelectingIngredients && IsIngredientEditingEnabled && ingredient.CanSelectForEditing)
+            ingredient.IsSelectedForEditing = !ingredient.IsSelectedForEditing;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanMoveSelectedIngredients))]
+    private async Task MoveSelectedIngredients()
+    {
+        IsMovingIngredients = true;
+        try
+        {
+            var selected = Recipe.Ingredients.Where(ingredient => ingredient.IsSelectedForEditing && ingredient.CanSelectForEditing).ToList();
+            while (true)
+            {
+                var destination = await AppDialogs.ChooseIngredientGroupAsync(Page, Recipe, selected);
+                if (destination is null) return;
+                string? name = null;
+                if (destination.IsNew)
+                {
+                    name = await AppDialogs.PromptAsync(Page, "New ingredient group",
+                        $"Create a group and move {selected.Count} {(selected.Count == 1 ? "ingredient" : "ingredients")}.",
+                        accept: "Create & move", cancel: "Back", validate: value => RecipeIngredients.NewGroupNameError(Recipe, value));
+                    if (name is null) continue;
+                }
+                RefreshAccess();
+                if (!HasEditorAccess)
+                    throw new InvalidOperationException("Editing is unavailable. Your ingredients are unchanged; reconnect before moving them.");
+                var groupId = destination.Id;
+                if (name is not null)
+                    groupId = RecipeIngredients.CreateGroupAndMoveIngredients(Recipe, selected, name).Id;
+                else
+                    RecipeIngredients.MoveIngredients(Recipe, selected, groupId);
+                CancelIngredientSelection();
+                RefreshSections();
+                IngredientGroupMoved?.Invoke(groupId);
+                return;
+            }
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = $"Could not move these ingredients. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+        finally { IsMovingIngredients = false; }
+    }
+
+    [RelayCommand(CanExecute = nameof(IsEditingEnabled))]
     private void SelectSection(string section) => SelectedSection = int.Parse(section, System.Globalization.CultureInfo.InvariantCulture);
 
     [RelayCommand]
@@ -624,9 +745,19 @@ public partial class AddEditViewModel : ObservableObject
             await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
     }
 
+    public void Cleanup()
+    {
+        CleanupPhoto();
+        foreach (var ingredient in observedIngredients) ingredient.PropertyChanged -= IngredientChanged;
+        observedIngredients.Clear();
+        if (observedRecipe is not null) observedRecipe.PropertyChanged -= RecipeChanged;
+        observedRecipe = null;
+    }
+
     public void CleanupPhoto()
     {
         CancelFetch();
+        CancelIngredientSelection();
         if (selectedPhotoPath is null) return;
         var path = selectedPhotoPath;
         selectedPhotoPath = null;

@@ -26,7 +26,15 @@ namespace Nibbles.Models
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DisplayDescription))]
+        [NotifyPropertyChangedFor(nameof(CanSelectForEditing))]
         public partial string? FQIngrediantDescription { get; set; }
+
+        [JsonIgnore]
+        [ObservableProperty]
+        public partial bool IsSelectedForEditing { get; set; }
+
+        [JsonIgnore]
+        public bool CanSelectForEditing => !string.IsNullOrWhiteSpace(FQIngrediantDescription);
 
         [JsonIgnore]
         [ObservableProperty]

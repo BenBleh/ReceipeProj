@@ -65,4 +65,56 @@ public static class RecipeIngredients
         for (var index = 0; index < recipe.IngredientGroups.Count; index++)
             recipe.IngredientGroups[index].Order = index;
     }
+
+    public static string? NewGroupNameError(Recipe recipe, string name)
+    {
+        var trimmed = name.Trim();
+        if (trimmed.Length == 0) return "Enter a group name.";
+        if (trimmed.Length > 100) return "Use 100 characters or fewer.";
+        return recipe.IngredientGroups.Any(group => string.Equals(group.Name.Trim(), trimmed, StringComparison.OrdinalIgnoreCase))
+            ? "A group with this name already exists. Choose another name, or go Back to use it."
+            : null;
+    }
+
+    public static void MoveIngredients(Recipe recipe, IReadOnlyCollection<Ingredient> selected, string? destinationId)
+    {
+        if (destinationId is not null && !recipe.IngredientGroups.Any(group => group.Id == destinationId))
+            throw new ArgumentException("The destination group no longer exists.", nameof(destinationId));
+        var ordered = IngredientsToMove(recipe, selected);
+        var destination = Sections(recipe, includeEmptyUngrouped: true).First(section => section.Id == destinationId);
+        AppendMovedIngredients(recipe, ordered.Where(ingredient => !destination.Ingredients.Contains(ingredient)).ToList(), destinationId);
+    }
+
+    public static IngredientGroup CreateGroupAndMoveIngredients(Recipe recipe, IReadOnlyCollection<Ingredient> selected, string name)
+    {
+        if (NewGroupNameError(recipe, name) is { } error)
+            throw new ArgumentException(error, nameof(name));
+        var ordered = IngredientsToMove(recipe, selected);
+        var group = new IngredientGroup
+        {
+            Name = name.Trim(),
+            Order = checked(recipe.IngredientGroups.Select(group => group.Order).DefaultIfEmpty(-1).Max() + 1)
+        };
+        recipe.IngredientGroups.Add(group);
+        AppendMovedIngredients(recipe, ordered, group.Id);
+        return group;
+    }
+
+    private static List<Ingredient> IngredientsToMove(Recipe recipe, IReadOnlyCollection<Ingredient> selected)
+    {
+        if (selected.Count == 0 || selected.Any(ingredient => !recipe.Ingredients.Contains(ingredient) || !ingredient.CanSelectForEditing))
+            throw new ArgumentException("Select at least one complete ingredient from this recipe.", nameof(selected));
+        var selection = selected.ToHashSet();
+        return Sections(recipe).SelectMany(section => section.Ingredients).Where(selection.Contains).ToList();
+    }
+
+    private static void AppendMovedIngredients(Recipe recipe, List<Ingredient> incoming, string? destinationId)
+    {
+        foreach (var ingredient in incoming)
+        {
+            recipe.Ingredients.Remove(ingredient);
+            ingredient.GroupId = destinationId;
+            recipe.Ingredients.Add(ingredient);
+        }
+    }
 }

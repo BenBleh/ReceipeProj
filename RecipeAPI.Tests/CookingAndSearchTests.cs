@@ -55,8 +55,11 @@ public sealed class CookingAndSearchTests
         recipe.Ingredients[0].ScaledDescription = "2 egg";
         recipe.Ingredients[0].ScalingNeedsReview = true;
         recipe.Ingredients[0].IsChecked = true;
+        recipe.Ingredients[0].IsSelectedForEditing = true;
         Assert.Equal(before, JsonSerializer.Serialize(recipe));
         Assert.Equal(revision, CookingSession.RecipeRevision(recipe));
+        recipe.Ingredients[0].IsSelectedForEditing = false;
+        Assert.True(recipe.Ingredients[0].IsChecked);
     }
 
     [Theory]

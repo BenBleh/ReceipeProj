@@ -18,8 +18,9 @@ public static class AppDialogs
         await ShowAsync(owner, new DialogPage(title, message, accept, null, false));
 
     public static Task<string?> PromptAsync(Page owner, string title, string message,
-        string accept = "OK", string initialValue = "", int maxLength = 100) =>
-        ShowAsync(owner, new DialogPage(title, message, accept, "Cancel", false, initialValue, maxLength));
+        string accept = "OK", string initialValue = "", int maxLength = 100, string cancel = "Cancel",
+        Func<string, string?>? validate = null) =>
+        ShowAsync(owner, new DialogPage(title, message, accept, cancel, false, initialValue, maxLength, validate));
 
     public static Task<string?> ChooseAsync(Page owner, string title, IEnumerable<string> actions,
         params string[] destructiveActions) =>
@@ -27,6 +28,22 @@ public static class AppDialogs
 
     public static async Task<bool> IngredientAsync(Page owner, IngredientReference reference, Recipe recipe, decimal multiplier) =>
         await ShowAsync(owner, new DialogPage(reference, recipe, multiplier)) is not null;
+
+    public sealed record IngredientDestination(string? Id, bool IsNew);
+
+    public static async Task<IngredientDestination?> ChooseIngredientGroupAsync(Page owner, Recipe recipe,
+        IReadOnlyCollection<Ingredient> ingredients)
+    {
+        var result = await ShowAsync(owner, new DialogPage(recipe, ingredients));
+        return result switch
+        {
+            null => null,
+            "new" => new(null, true),
+            "ungrouped" => new(null, false),
+            _ when result.StartsWith("group:", StringComparison.Ordinal) => new(result["group:".Length..], false),
+            _ => throw new InvalidOperationException("The selected ingredient destination is invalid.")
+        };
+    }
 
     private static async Task<string?> ShowAsync(Page owner, DialogPage dialog)
     {
@@ -78,6 +95,8 @@ public static class AppDialogs
         private readonly Entry? input;
         private readonly Label error = new() { IsVisible = false, AutomationId = "DialogError" };
         private readonly Button? safe;
+        private readonly Func<string, string?>? inputValidator;
+        private Button? submitButton;
         private readonly bool sheet;
         private bool closing;
 #if WINDOWS
@@ -86,8 +105,9 @@ public static class AppDialogs
         public Task<string?> Completion => completion.Task;
 
         public DialogPage(string title, string message, string accept, string? cancel, bool destructive,
-            string? initialValue = null, int maxLength = 100) : this(title, false)
+            string? initialValue = null, int maxLength = 100, Func<string, string?>? validate = null) : this(title, false)
         {
+            inputValidator = validate;
             body.Add(new Label { Text = message, FontSize = 16 });
             if (initialValue is not null)
             {
@@ -98,8 +118,14 @@ public static class AppDialogs
                 var field = new Border { Style = Resource<Style>("Field"), Content = input };
                 body.Add(field);
                 body.Add(error);
-                body.Add(new Label { Text = $"{maxLength} characters maximum", Style = Resource<Style>("MutedLabel") });
-                input.TextChanged += (_, _) => { error.IsVisible = false; UpdateSize(); };
+                if (validate is null)
+                    body.Add(new Label { Text = $"{maxLength} characters maximum", Style = Resource<Style>("MutedLabel") });
+                input.TextChanged += (_, _) =>
+                {
+                    if (inputValidator is null) error.IsVisible = false;
+                    else UpdateInputValidation(showError: true);
+                    UpdateSize();
+                };
                 input.Completed += async (_, _) => await Submit(accept);
             }
             safe = MakeButton(cancel ?? accept, cancel is not null ? "SecondaryButton" : null);
@@ -108,6 +134,7 @@ public static class AppDialogs
             {
                 buttons.Add(safe);
                 var confirm = MakeButton(accept);
+                submitButton = confirm;
                 if (destructive)
                 {
                     confirm.SetAppThemeColor(Button.BackgroundColorProperty, Color.FromArgb("#A43632"), Color.FromArgb("#723A35"));
@@ -117,6 +144,63 @@ public static class AppDialogs
                 buttons.Add(confirm);
             }
             else buttons.Add(safe);
+            if (inputValidator is not null) UpdateInputValidation(showError: false);
+        }
+
+        public DialogPage(Recipe recipe, IReadOnlyCollection<Ingredient> ingredients)
+            : this($"Move {ingredients.Count} {(ingredients.Count == 1 ? "ingredient" : "ingredients")}", true)
+        {
+            body.Add(new Label { Text = "Choose a destination", Style = Resource<Style>("MutedLabel") });
+            string? destination = null;
+            var move = MakeButton($"Move {ingredients.Count} {(ingredients.Count == 1 ? "ingredient" : "ingredients")}");
+            move.IsEnabled = false;
+            move.AutomationId = "MoveSelectedIngredients";
+            var radioGroup = Guid.NewGuid().ToString();
+            var sections = RecipeIngredients.Sections(recipe, includeEmptyUngrouped: true);
+            foreach (var section in sections.OrderBy(section => section.Id is null ? 0 : 1))
+            {
+                var name = section.Id is null ? "Ingredients (no group)" : section.Name;
+                var alreadyHere = ingredients.Count(section.Ingredients.Contains);
+                var incoming = ingredients.Count - alreadyHere;
+                var option = new RadioButton
+                {
+                    Content = name, GroupName = radioGroup, MinimumHeightRequest = 48,
+                    HorizontalOptions = LayoutOptions.Fill
+                };
+                var rows = new VerticalStackLayout { Spacing = 4 };
+                rows.Add(option);
+                if (alreadyHere > 0)
+                    rows.Add(new Label
+                    {
+                        Text = incoming == 0 ? "Already in this group" : $"{alreadyHere} already here; {incoming} will move",
+                        Style = Resource<Style>("MutedLabel"), FontSize = 12, Margin = new Thickness(44, 0, 0, 0)
+                    });
+                var destinationCard = IngredientCard(rows);
+                destinationCard.SetAppThemeColor(BackgroundColorProperty, Resource<Color>("Surface"), Resource<Color>("DarkCanvas"));
+                option.CheckedChanged += (_, args) =>
+                {
+                    destinationCard.SetAppThemeColor(BackgroundColorProperty,
+                        Resource<Color>(args.Value ? "Tint" : "Surface"), Resource<Color>(args.Value ? "PrimaryDark" : "DarkCanvas"));
+                    if (!args.Value) return;
+                    destination = section.Id is null ? "ungrouped" : "group:" + section.Id;
+                    move.IsEnabled = incoming > 0;
+                };
+                var tap = new TapGestureRecognizer();
+                tap.Tapped += (_, _) => option.IsChecked = true;
+                destinationCard.GestureRecognizers.Add(tap);
+                body.Add(destinationCard);
+            }
+            var create = MakeButton("+ New group", "QuietButton");
+            create.Clicked += async (_, _) => await Close("new");
+            body.Add(create);
+            move.Clicked += async (_, _) =>
+            {
+                if (destination is not null && move.IsEnabled) await Close(destination);
+            };
+            buttons.Add(move);
+            safe = MakeButton("Cancel", "SecondaryButton");
+            safe.Clicked += async (_, _) => await Close(null);
+            buttons.Add(safe);
         }
 
         public DialogPage(string title, IEnumerable<string> actions, string[] destructiveActions) : this(title, true)
@@ -276,17 +360,29 @@ public static class AppDialogs
 
         private async Task Submit(string accept)
         {
-            if (input is not null && string.IsNullOrWhiteSpace(input.Text))
+            var validationError = input is null ? null : inputValidator is not null
+                ? inputValidator(input.Text?.Trim() ?? "")
+                : string.IsNullOrWhiteSpace(input.Text) ? "Give your ingredient group a name." : null;
+            if (validationError is not null)
             {
-                error.Text = "Give your ingredient group a name.";
+                error.Text = validationError;
                 SemanticProperties.SetDescription(error, error.Text);
                 error.IsVisible = true;
                 UpdateSize();
-                input.Focus();
+                input?.Focus();
                 SemanticScreenReader.Default.Announce(error.Text);
                 return;
             }
-            await Close(input is null ? accept : input.Text.Trim());
+            await Close(input is null ? accept : input.Text?.Trim() ?? "");
+        }
+
+        private void UpdateInputValidation(bool showError)
+        {
+            var message = inputValidator?.Invoke(input?.Text?.Trim() ?? "");
+            if (submitButton is not null) submitButton.IsEnabled = message is null;
+            error.Text = message;
+            SemanticProperties.SetDescription(error, message ?? "");
+            error.IsVisible = showError && message is not null;
         }
 
         private async Task Close(string? result)

@@ -19,6 +19,49 @@ dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
 
+## Select and group ingredients - unreleased implementation
+
+Page **13 - Select and group ingredients** is the approved design for moving one
+or many already-added ingredients into a new or existing group. The interaction
+is implemented in source, with focused regression tests added. Compilation,
+test execution and device checks are deferred until the next requested build;
+the existing 1.7.0 installers do not include it. No stored recipes were changed.
+Earlier editor boards remain historical references; this page extends their
+ingredient-editing interaction. The editable boards are static states, not a
+clickable prototype.
+
+**Select** enters a temporary selection mode in Ingredients. Tap ingredient
+rows across any groups; tap a selected row again to deselect it. **Cancel**
+clears the selection and returns to normal editing. There are no separate
+Clear or Select all controls. A count and a pinned **Move to group** action
+support both one and multiple ingredients. Selection
+does not edit ingredient wording or quantities; ordinary editing, menus,
+adding/pasting, editor tabs and Save resume when selection ends.
+
+Choose an existing group (or **Ingredients (no group)**), then explicitly move.
+Alternatively, **+ New group** opens a name prompt and **Create & move** performs
+both actions together. Blank and duplicate names have inline validation.
+Cancel/back from the picker preserves selection without moving anything;
+cancel/back from selection returns to normal editing. The name prompt's Back
+returns to the picker without creating an empty group.
+
+Existing destination rows keep their order; incoming rows append in their
+current displayed order. Already-present rows stay put without duplication.
+Empty source groups are retained, and only ordinary recipe **Save** persists
+the draft. Updated groups are the only success feedback: no success banner,
+toast or additional confirmation is shown after moving. Selection is temporary
+and unrelated to cooking checks.
+Phone light/dark, keyboard-safe name entry, a centered Windows picker,
+empty-selection and duplicate-name states are included, with accessibility and
+preservation rules on the handoff board.
+
+Review previews:
+
+- [Normal editing, single and multiple selection](previews/ingredient-selection-entry.png)
+- [Existing destination, new group and result](previews/ingredient-selection-move.png)
+- [Dark mobile and Windows](previews/ingredient-selection-platforms.png)
+- [Interaction handoff and edge states](previews/ingredient-selection-handoff.png)
+
 ## Source fetching - 1.7.0 test builds
 
 Page **12 - Source fetch** contains the approved design for the importer now

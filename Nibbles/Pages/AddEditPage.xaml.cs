@@ -13,7 +13,9 @@ public partial class AddEditPage : ContentPage
     public AddEditPage(ReceipeAPIService service, RecipeSourceService sourceService)
     {
         InitializeComponent();
-        BindingContext = new AddEditViewModel(service, sourceService);
+        var viewModel = new AddEditViewModel(service, sourceService);
+        viewModel.IngredientGroupMoved += RevealIngredientGroup;
+        BindingContext = viewModel;
     }
 
     protected override async void OnAppearing()
@@ -55,7 +57,7 @@ public partial class AddEditPage : ContentPage
                 args.Cancel();
                 return;
             }
-            viewModel.CleanupPhoto();
+            viewModel.Cleanup();
             leaving = true;
         }
         finally
@@ -65,6 +67,34 @@ public partial class AddEditPage : ContentPage
     }
 
     private async void Cancel_Clicked(object sender, EventArgs args) => await Shell.Current.GoToAsync("..");
+
+    protected override bool OnBackButtonPressed()
+    {
+        var viewModel = (AddEditViewModel)BindingContext;
+        if (viewModel.IsMovingIngredients) return true;
+        if (!viewModel.IsSelectingIngredients) return base.OnBackButtonPressed();
+        viewModel.CancelIngredientSelection();
+        return true;
+    }
+
+    private void RevealIngredientGroup(string? groupId) => Dispatcher.Dispatch(async () =>
+    {
+        try
+        {
+            await Task.Delay(120);
+            var group = IngredientSectionsLayout.Children.OfType<Border>().FirstOrDefault(view =>
+                view.BindingContext is Models.IngredientSection section && section.Id == groupId);
+            if (group is null)
+                throw new InvalidOperationException("The destination group is not visible.");
+            await FormScroll.ScrollToAsync(group, ScrollToPosition.Start, false);
+            group.GetVisualTreeDescendants().OfType<Label>().FirstOrDefault()?.SetSemanticFocus();
+        }
+        catch (Exception exception)
+        {
+            ((AddEditViewModel)BindingContext).ErrorMessage = $"The ingredients were moved, but their group could not be shown. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+    });
 
     private void Page_SizeChanged(object sender, EventArgs args)
     {
