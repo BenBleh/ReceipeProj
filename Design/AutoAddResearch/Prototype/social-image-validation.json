@@ -1,0 +1,451 @@
+{
+  "observed_date_utc": "2026-11-15",
+  "scope": "Four fresh public-post lookups; not universal platform coverage. No source login, video download, access-control workaround, signed-URL retention or production app changes.",
+  "protocol_reference": "https://www.rfc-editor.org/rfc/rfc9309.html#section-2.3.1.3",
+  "finding": "For the observed TikTok image CDN, HTTP 403 for robots.txt was not an image refusal: the actual images returned HTTP 200 and decoded successfully.",
+  "samples": [
+    {
+      "source": "https://www.instagram.com/reel/C5BjXxMvlUq/",
+      "platform": "instagram",
+      "result": "metadata_rate_limited",
+      "metadata_http_status": 429,
+      "image_requested": false,
+      "retries": 0,
+      "limitation": "No current image-host result; the earlier image-policy exclusion is not resolved."
+    },
+    {
+      "source": "https://www.tiktok.com/@/video/7514530797588827400",
+      "platform": "tiktok",
+      "result": "downloaded_and_decoded",
+      "matched_post_identity": true,
+      "image_host": "p16-common-sign.tiktokcdn.com",
+      "robots_http_status": 403,
+      "image_http_status": 200,
+      "downloaded_bytes": 231679,
+      "jpeg_bytes": 335218,
+      "jpeg_dimensions": [1117, 1600],
+      "jpeg_sha256": "ddc6950e35f1b7eac6f5874e4a49f18271e91fbb0e2f2825f8290b2800a10b88"
+    },
+    {
+      "source": "https://www.tiktok.com/@jasminseats/video/7374209506705788168",
+      "retrieved_utc": "2026-11-15T11:11:04.827664+00:00",
+      "platform": "tiktok",
+      "result": "downloaded_decoded_and_visually_checked",
+      "matched_post_identity": true,
+      "image_host": "p16-common-sign.tiktokcdn.com",
+      "robots_http_status": 403,
+      "robots_content_type": "text/html",
+      "image_http_status": 200,
+      "image_content_type": "image/jpeg",
+      "downloaded_bytes": 806428,
+      "jpeg_bytes": 246966,
+      "jpeg_dimensions": [900, 1600],
+      "jpeg_sha256": "c94a010f38fc9ff870248539f9a9e67cb48d536bbdde1f8b127724d5c261c3e7"
+    },
+    {
+      "source": "https://www.tiktok.com/@food_bylucy/video/7538351446840904967",
+      "retrieved_utc": "2026-11-15T11:11:11.613602+00:00",
+      "platform": "tiktok",
+      "result": "downloaded_decoded_and_visually_checked",
+      "matched_post_identity": true,
+      "image_host": "p16-common-sign.tiktokcdn.com",
+      "robots_policy": "Reused the same-session HTTP 403 unavailable-policy cache from the preceding sample; no second robots request.",
+      "image_http_status": 200,
+      "image_content_type": "image/jpeg",
+      "downloaded_bytes": 186926,
+      "jpeg_bytes": 210907,
+      "jpeg_dimensions": [1040, 1386],
+      "jpeg_sha256": "1ac96f5c024eaf46d6f30d91a375ce60b537a36d781d379ea362ade930b55393"
+    }
+  ],
+  "reel_specific_research_followup": {
+    "local_date": "2026-11-16",
+    "utc_date": "2026-11-15",
+    "evidence_type": "Vendor documentation and user-reported results; no new authenticated extraction tests.",
+    "new_authenticated_extraction_requests": 0,
+    "user_reports": {
+      "trendsee": "Displayed Reel thumbnails, consistent with the earlier retained browser evidence.",
+      "microlink": "Returned page images but not the wanted thumbnails. Not independently reproduced."
+    },
+    "peekalink_coverage": "Documents Instagram posts and video media, with a /p/ example, but no explicit Reel guarantee. Neither Reel exclusion nor the cause of the failed trial is established.",
+    "apify": {
+      "actor": "https://apify.com/apify/instagram-reel-scraper",
+      "explicit_reel_support": true,
+      "cover_field": "displayUrl",
+      "documented_cover_delivery": "Instagram CDN URL, not a verified stored image.",
+      "free_position": "$5 recurring monthly platform credit; Free access blocks at exhaustion, no card required.",
+      "free_plan_readme_price": "$2.60 per 1000 Reel results; not the headline from-$1 rate.",
+      "possible_file_stage": "https://apify.com/lukaskrivka/images-download-upload",
+      "file_stage": "Documented dataset image downloader can read displayUrl and write actual image files to Apify key-value storage; adds platform usage against the same credit.",
+      "tested": false,
+      "remaining_gates": "Authorized token, bounded total cost within Free credit, source-use permission, exact-post/cover identity, stored image download and decoding, creator-image retention rights."
+    },
+    "socialkit": {
+      "docs": "https://docs.socialkit.dev/api-reference/instagram-stats-api",
+      "pricing": "https://www.socialkit.dev/pricing",
+      "explicit_reel_support": true,
+      "cover_field": "thumbnail",
+      "free_position": "20 recurring monthly credits, all APIs, no card; successful single stats request costs 1 credit.",
+      "documented_cover_delivery": "Temporary Instagram CDN URL.",
+      "download_api_caveat": "The separate Download API hosts the video on S3, not the documented thumbnail; local frame extraction would not guarantee the chosen creator cover.",
+      "public_status_observation": "The unauthenticated status endpoint responded; instagram.stats was unknown with missing freshness, not a verified working extraction.",
+      "authenticated_tested": false
+    },
+    "other_options": {
+      "sociavault": "Explicit Reel support, but only 50 one-time free trial credits established; not ongoing free.",
+      "instabatch": "Advertises free Reel thumbnail webpage; no supported free external API established in reviewed pages; not runtime tested.",
+      "cobalt": "Public informational GET lists Instagram, but API docs require owner permission for third-party hosted use or self-hosting. No extraction POST attempted.",
+      "codenest_apify": "Reel-specific thumbnail actor returns direct Instagram CDN URLs, with event plus platform pricing; not tested."
+    },
+    "conclusion": "Most relevant next trial is Apify Reel metadata plus its documented hosted-image file stage, within existing Free credit and permitted source access; SocialKit Stats is a smaller recurring-free candidate. Neither is proven for recipe cover import. Preserve the earlier positive TrendSee browser evidence.",
+    "report": "../instagram-caption-research.md"
+  },
+  "apify_authenticated_trial": {
+    "authorization": "User supplied an Apify token privately and authorized a bounded trial within recurring Free credit.",
+    "result": "Two exact Reel covers downloaded from Apify storage, decoded and visually checked against their recipe captions.",
+    "account": {
+      "plan": "FREE",
+      "is_paying": false,
+      "monthly_credit_usd": 5,
+      "storage_retention_days": 7,
+      "remaining_credit_after_usd": 4.973778558904466,
+      "plan_payment_or_limit_changes": false
+    },
+    "metadata_run": {
+      "actor": "apify/instagram-reel-scraper",
+      "build": "0.0.651",
+      "run_id": "ETdAQIjLmxIvbSe69",
+      "status": "SUCCEEDED",
+      "explicit_reel_urls": 2,
+      "transcripts": false,
+      "downloaded_videos": false,
+      "shares_count_addon": false,
+      "max_total_charge_usd": 0.03,
+      "refreshed_charge_usd": 0.0062,
+      "charged_events": {
+        "actor-start": 1,
+        "reel": 2,
+        "shares-count": 0,
+        "transcript": 0,
+        "video-download": 0
+      }
+    },
+    "rejected_image_submission": {
+      "actor": "lukaskrivka/images-download-upload",
+      "build": "0.2.11",
+      "http_status": 400,
+      "run_started": false,
+      "reason": "imageCheckMaxRetries has minimum 1; rejected zero-retry configuration.",
+      "action": "Did not loosen refusal handling; used another documented downloader supporting zero retries."
+    },
+    "image_run": {
+      "actor": "automa-flow/parallel-bulk-file-downloader",
+      "build": "0.1.27",
+      "run_id": "xq1jtORYlD8QSLY0j",
+      "status": "SUCCEEDED",
+      "explicit_matched_cover_urls": 2,
+      "treat_html_as": "file",
+      "page_discovery": false,
+      "concurrency": 1,
+      "max_retries": 0,
+      "max_file_size_mib": 8,
+      "transfer_deadline_seconds": 15,
+      "max_total_charge_usd": 0.05,
+      "refreshed_charge_usd": 0.00805,
+      "charged_events": {
+        "apify-actor-start": 1,
+        "file-downloaded": 2,
+        "stored-10mib": 2,
+        "s3-uploaded-10mib": 0
+      }
+    },
+    "total_refreshed_run_charges_usd": 0.01425,
+    "billing_caveat": "Immediate completion responses had stale counters. Refreshed run records reconciled both Reel events and both stored-file events. Account-level usage also includes other requests/storage.",
+    "samples": [
+      {
+        "source": "https://www.instagram.com/reel/C5BjXxMvlUq/",
+        "matched_shortcode": "C5BjXxMvlUq",
+        "exact_shortcode_matches": 1,
+        "provider_type": "Video",
+        "provider_product_type": "clips",
+        "caption_characters": 1363,
+        "exact_cover_url_matched_to_manifest": true,
+        "source_image_http_status": 200,
+        "source_download_attempts": 1,
+        "content_type": "image/jpeg",
+        "downloaded_bytes": 184603,
+        "original_sha256": "01620d3e25ca1eefcbd2474aa575213a544b292c05f9872fa83722130d52355c",
+        "manifest_sha256_matched": true,
+        "jpeg_dimensions": [720, 1280],
+        "normalized_jpeg_bytes": 183451,
+        "normalized_jpeg_sha256": "500eb81efdabaef4685552aa980767c796581b86378c4ce426fd699ea587c34b",
+        "all_white": false,
+        "visual_check": "Creamy pesto chicken tortellini; dish and cover title match the returned recipe caption.",
+        "result": "downloaded_decoded_and_visually_checked"
+      },
+      {
+        "source": "https://www.instagram.com/reel/C1r36c1vLmQ/",
+        "matched_shortcode": "C1r36c1vLmQ",
+        "exact_shortcode_matches": 1,
+        "provider_type": "Video",
+        "provider_product_type": "clips",
+        "caption_characters": 1435,
+        "exact_cover_url_matched_to_manifest": true,
+        "source_image_http_status": 200,
+        "source_download_attempts": 1,
+        "content_type": "image/jpeg",
+        "downloaded_bytes": 186588,
+        "original_sha256": "109f0dee59255c2f9f0abb93873ea5c530db900ae6f84b314a24cd629e7f3bb6",
+        "manifest_sha256_matched": true,
+        "jpeg_dimensions": [720, 1280],
+        "normalized_jpeg_bytes": 185430,
+        "normalized_jpeg_sha256": "19928b90ae58dd13f5485509dcaa9a6a55e4c098cd2a1f42687335c807c4380b",
+        "all_white": false,
+        "visual_check": "Creamy chicken with potatoes and broccoli; dish and cover title match the returned recipe caption.",
+        "result": "downloaded_decoded_and_visually_checked"
+      }
+    ],
+    "credential_handling": "Token kept outside repository and sent only in Authorization headers to api.apify.com. Signed media/storage URLs and full captions are not retained here.",
+    "limitations": [
+      "Two successful public recipe samples do not establish universal Reel reliability.",
+      "The metadata actor's internal upstream collection behavior was not independently observed.",
+      "Source-use and creator-image retention rights are not granted by successful API delivery.",
+      "Free allowance, pricing and service availability can change.",
+      "Apify storage expires after seven days on this account; app integration must copy chosen bytes into local recipe storage on Save.",
+      "No native app integration, installer, commit or push was performed."
+    ],
+    "report": "../instagram-caption-research.md"
+  },
+  "apify_tiktok_authenticated_trial": {
+    "local_date": "2026-11-16",
+    "authorization": "User requested the same Apify stored-cover trial for TikTok. Announced combined run cap $0.08 within existing recurring Free credit.",
+    "result": "Two exact TikTok post covers downloaded from Apify storage, decoded, manifest-hash matched and visually checked against their captions.",
+    "account": {
+      "plan": "FREE",
+      "is_paying": false,
+      "remaining_credit_after_usd": 4.959486209760675,
+      "storage_retention_days": 7,
+      "plan_payment_or_limit_changes": false
+    },
+    "metadata_run": {
+      "actor": "clockworks/tiktok-video-scraper",
+      "build": "0.0.511",
+      "run_id": "u69Vn4soWiuI5tZpK",
+      "status": "SUCCEEDED",
+      "explicit_post_urls": 2,
+      "related_videos": false,
+      "downloaded_videos": false,
+      "builtin_cover_downloads": false,
+      "slideshow_downloads": false,
+      "subtitles_or_transcripts": false,
+      "cover_field": "videoMeta.coverUrl",
+      "max_total_charge_usd": 0.03,
+      "refreshed_charge_usd": 0.006,
+      "charged_events": {
+        "result": 2,
+        "video-download": 0,
+        "transcription-minute": 0
+      }
+    },
+    "image_run": {
+      "actor": "automa-flow/parallel-bulk-file-downloader",
+      "build": "0.1.27",
+      "run_id": "Z2feZ61fbxtw2aU3o",
+      "status": "SUCCEEDED",
+      "explicit_matched_cover_urls": 2,
+      "treat_html_as": "file",
+      "page_discovery": false,
+      "concurrency": 1,
+      "max_retries": 0,
+      "max_file_size_mib": 8,
+      "transfer_deadline_seconds": 15,
+      "max_total_charge_usd": 0.05,
+      "refreshed_charge_usd": 0.00805,
+      "charged_events": {
+        "apify-actor-start": 1,
+        "file-downloaded": 2,
+        "stored-10mib": 2,
+        "s3-uploaded-10mib": 0
+      }
+    },
+    "total_refreshed_run_charges_usd": 0.01405,
+    "billing_caveat": "Immediate completion responses had stale counters. Refreshed run records reconciled both metadata results and both stored-file events. Account totals include other requests/storage.",
+    "samples": [
+      {
+        "source": "https://www.tiktok.com/@jasminseats/video/7374209506705788168",
+        "matched_post_id": "7374209506705788168",
+        "exact_id_matches": 1,
+        "canonical_url_id_matched": true,
+        "caption_characters": 2103,
+        "is_slideshow": false,
+        "exact_cover_url_matched_to_manifest": true,
+        "source_image_http_status": 200,
+        "source_download_attempts": 1,
+        "content_type": "image/jpeg",
+        "downloaded_bytes": 806428,
+        "original_sha256": "b7951368fb1783ea14836b02113b64bdd35e0f56d2ad50dbbb8b1172c94f1b71",
+        "manifest_sha256_matched": true,
+        "source_dimensions": [2160, 3840],
+        "normalized_jpeg_dimensions": [900, 1600],
+        "normalized_jpeg_bytes": 246966,
+        "normalized_jpeg_sha256": "c94a010f38fc9ff870248539f9a9e67cb48d536bbdde1f8b127724d5c261c3e7",
+        "matches_previously_verified_direct_source_jpeg": true,
+        "all_white": false,
+        "visual_check": "Chicken boscaiola pasta; the dish and visible cover title match the exact post caption.",
+        "result": "downloaded_decoded_and_visually_checked"
+      },
+      {
+        "source": "https://www.tiktok.com/@food_bylucy/video/7538351446840904967",
+        "matched_post_id": "7538351446840904967",
+        "exact_id_matches": 1,
+        "canonical_url_id_matched": true,
+        "caption_characters": 1488,
+        "is_slideshow": false,
+        "exact_cover_url_matched_to_manifest": true,
+        "source_image_http_status": 200,
+        "source_download_attempts": 1,
+        "content_type": "image/jpeg",
+        "downloaded_bytes": 186926,
+        "original_sha256": "ba598daf82cc9d2b1eab43af35577aae44ec0acf6a66e611ad319df76f98ff7a",
+        "manifest_sha256_matched": true,
+        "source_dimensions": [1040, 1386],
+        "normalized_jpeg_dimensions": [1040, 1386],
+        "normalized_jpeg_bytes": 210907,
+        "normalized_jpeg_sha256": "1ac96f5c024eaf46d6f30d91a375ce60b537a36d781d379ea362ade930b55393",
+        "matches_previously_verified_direct_source_jpeg": true,
+        "all_white": false,
+        "visual_check": "Gut friendly chicken, rice and broth; the dish and visible cover title match the exact post caption.",
+        "result": "downloaded_decoded_and_visually_checked"
+      }
+    ],
+    "integration_conclusion": "One optional Apify-backed Get image flow can share stored-image delivery and validation across Instagram and TikTok; only the metadata actor, ID matcher and cover-field mapping differ.",
+    "limitations": [
+      "Two public TikTok samples, not universal platform coverage.",
+      "The metadata actor's internal collection behavior was not independently observed.",
+      "Built-in shouldDownloadCovers mode was documented but not tested; both platforms used the same separate zero-retry downloader.",
+      "Successful file delivery does not grant source-use or creator-image retention permission.",
+      "Free allowance, pricing and service availability can change.",
+      "Apify storage expires after seven days on this account; Save must copy the chosen image into local recipe storage.",
+      "No native app integration, installer, commit or push was performed."
+    ],
+    "credential_handling": "Private token used only in Authorization headers to api.apify.com. Signed CDN/storage URLs and full captions remain outside this repository.",
+    "report": "../instagram-caption-research.md"
+  },
+  "remaining_work": "Integrate the shared optional Apify stored-cover flow for Instagram and TikTok only when requested, with platform-specific exact-ID/cover mapping, focused regression tests, privately supplied per-user credentials, spending caps and Save-only local persistence. Source-use and creator-image retention permissions remain separate from successful image retrieval.",
+  "third_party_followup": {
+    "observed_date_utc": "2026-11-15",
+    "authorization": "User requested research into free hosted thumbnail tools/APIs, explicitly including TrendSee and the Public APIs video-thumbnail listing.",
+    "scope": "Normal public TrendSee form and one published Peekalink CDN example; no account creation, paid API runs or native app changes.",
+    "trendsee": {
+      "tool": "https://tools.trendsee.io/instagram-thumbnail-downloader",
+      "source": "https://www.instagram.com/reel/C5BjXxMvlUq/",
+      "browser_evidence_id": "ev_6ca829f12563ffb84595021c0cea7dbfe7b5401701a9f9a1440f97d64aeb94b4",
+      "browser_cleanup": "terminated-owned-process",
+      "web_backend_request": "POST /api/download",
+      "web_backend_http_status": 200,
+      "browser_image_http_status": 200,
+      "image_identity_matches_shortcode": true,
+      "image_host": "scontent-lga3-1.cdninstagram.com",
+      "app_style_probe": {
+        "robots_http_status": 200,
+        "result": "Explicit robots exclusion for the image URL; image not requested.",
+        "actual_image_requested": false
+      },
+      "api_contract": "No supported public external API/free quota established from reviewed pages; an observed web backend is not a documented integration contract.",
+      "retention_caveat": "Footer Privacy/Terms links were placeholders. Full browser capture, including ephemeral source URLs, retained privately outside the repository."
+    },
+    "peekalink": {
+      "pricing": "https://www.peekalink.io/pricing",
+      "instagram_documentation": "https://docs.peekalink.io/supported-link-types/instagram-post.md",
+      "free_allowance_advertised": "50 requests/hour; no extra requests allowed on Free.",
+      "requires_account_and_key": true,
+      "instagram_status": "BETA; subsequent user-authorized authenticated trial below did not establish usable covers.",
+      "public_homepage_image_probe": {
+        "scope": "Published CDN example only, not a fresh Instagram lookup.",
+        "image_host": "cdn.peekalink.io",
+        "robots_http_status": 200,
+        "image_http_status": 200,
+        "image_content_type": "image/jpeg",
+        "downloaded_bytes": 48528,
+        "jpeg_bytes": 53636,
+        "jpeg_dimensions": [768, 960],
+        "jpeg_sha256": "fb5c940cb5b0761f39696df375d318e00fd7b212709002ecf3fffd90d12aaede"
+      },
+      "authenticated_free_trial": {
+        "observed_date_utc": "2026-11-15",
+        "api_requests": 3,
+        "endpoint": "POST https://api.peekalink.io/",
+        "authentication": "User-supplied key read privately outside the repository and used only in the intended API Authorization header.",
+        "credential_printed_or_committed": false,
+        "account_plan_or_payment_changes": false,
+        "app_integration": false,
+        "samples": [
+          {
+            "source": "https://www.instagram.com/reel/C5BjXxMvlUq/",
+            "retrieved_utc": "2026-11-15T11:34:50.671256+00:00",
+            "api_http_status": 200,
+            "api_response_bytes": 1614,
+            "api_elapsed_seconds": 3.011,
+            "api_ok": true,
+            "provider_type": "PAGE",
+            "provider_source_status": 200,
+            "returned_permalink_matched": true,
+            "instagram_post_object_present": false,
+            "image_inspected": false,
+            "result": "Generic page result, not a verified Instagram cover."
+          },
+          {
+            "source": "https://www.instagram.com/reel/C1r36c1vLmQ/",
+            "retrieved_utc": "2026-11-15T11:35:54.248773+00:00",
+            "api_http_status": 200,
+            "api_response_bytes": 1614,
+            "api_elapsed_seconds": 3.071,
+            "api_ok": true,
+            "provider_type": "PAGE",
+            "provider_source_status": 200,
+            "returned_permalink_matched": true,
+            "instagram_post_object_present": false,
+            "image_host": "cdn.peekalink.io",
+            "robots_http_status": 200,
+            "image_http_status": 200,
+            "downloaded_bytes": 3024,
+            "jpeg_bytes": 15027,
+            "jpeg_dimensions": [1280, 720],
+            "jpeg_sha256": "b3ea039586ffed3ef4bc3cd549216daacee5b702e93cd9cff7beeaab1fc3beb7",
+            "image_equals_page_screenshot": true,
+            "image_all_pixels_white": true,
+            "vendor_extracted_text_http_status": 200,
+            "vendor_extracted_text_characters": 0,
+            "result": "Blank page screenshot, not a usable recipe thumbnail."
+          },
+          {
+            "source": "https://www.instagram.com/p/C08wu-CpLgm/",
+            "retrieved_utc": "2026-11-15T11:36:19.281455+00:00",
+            "api_http_status": 400,
+            "api_response_bytes": 144,
+            "api_elapsed_seconds": 4.205,
+            "retries": 0,
+            "result": "API error; no usable preview. Underlying error cause not established."
+          }
+        ],
+        "confirmed_usable_covers": 0,
+        "conclusion": "Do not integrate on this evidence. HTTP 200, ok true and a downloadable JPEG can still be an unusable generic-page screenshot, not an Instagram cover.",
+        "limitations": "Three sources only. First result's image was not inspected. No proof that all Instagram URLs fail, that Free excludes Instagram, or that a paid plan would solve this."
+      },
+      "remaining_gates": [
+        "Vendor clarification and actual working free-tier retrieval of real recipe Reels with exact-post cover validation.",
+        "Permission for persistent recipe-photo storage rather than only transient link previews.",
+        "User-owned API key, explicit provider disclosure and no paid fallback."
+      ]
+    },
+    "other_services": {
+      "apyhub": "Documented video-file/video-file-URL frame extraction, not an established Instagram permalink resolver. 3000 free atoms/month and 550 atoms per documented thumbnail operation.",
+      "microlink": "Advertises 25 free requests/day; Instagram cover retrieval not tested.",
+      "linkpreview": "Advertises 60 free requests/hour for personal use; Instagram retrieval not tested and robots exclusions remain enforced.",
+      "apify": "Recurring 5 USD monthly free usage credit; account/token, actual actor event costs and image delivery remain untested.",
+      "opengraph_io": "Testing Free allowance of 100 requests listed; renewal period and Instagram cover success not established.",
+      "instafix": "Repository archived 2026-04-02; public embed availability and persistent-photo use not established."
+    },
+    "recommendation": "The subsequent authenticated Peekalink Free trial did not establish usable covers, so integration is not recommended on current evidence. Full source links, results and caveats are recorded in instagram-caption-research.md."
+  }
+}

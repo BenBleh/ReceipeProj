@@ -233,7 +233,7 @@ public class RecipeSourceTests
             Assert.Null(request.Headers.Authorization);
             Assert.DoesNotContain(request.Headers, header => header.Key.Contains("github", StringComparison.OrdinalIgnoreCase));
             return request.RequestUri.AbsolutePath == "/robots.txt" ? Response(HttpStatusCode.NotFound, "") : Response(HttpStatusCode.OK, Html(Metadata));
-        }));
+        }), () => throw new InvalidOperationException("Website fetch must not read the Apify key."));
         var draft = await service.FetchAsync("https://example.com/new-recipe", CancellationToken.None);
         Assert.Equal(new[] { "/robots.txt", "/new-recipe" }, paths);
         Assert.Equal(2, draft.Text.Ingredients.Count);
@@ -283,30 +283,13 @@ public class RecipeSourceTests
     }
 
     [Fact]
-    public async Task AnonymousInstagramFlowUsesOnlyPublicTokensAndVerifiedCaption()
+    public async Task SocialFetchWithoutPrivateKeyDoesNotContactInstagram()
     {
-        var paths = new List<string>();
-        var service = new RecipeSourceService(() => new FakeHandler(request =>
-        {
-            paths.Add(request.RequestUri!.AbsolutePath);
-            Assert.Null(request.Headers.Authorization);
-            if (paths.Count == 1)
-                return Response(HttpStatusCode.OK, """["LSD",[],{"token":"public-token"}],"IG_USER_EIMU":"0" """);
-            Assert.Equal("/api/graphql", request.RequestUri.AbsolutePath);
-            Assert.Equal(HttpMethod.Post, request.Method);
-            Assert.Equal("public-token", request.Headers.GetValues("x-fb-lsd").Single());
-            return Response(HttpStatusCode.OK, JsonSerializer.Serialize(new
-            {
-                data = new
-                {
-                    xdt_api__v1__media__shortcode__web_info =
-                new { items = new[] { new { code = "Post123", caption = new { text = Caption } } } }
-                }
-            }), "application/json");
-        }));
-        var draft = await service.FetchAsync("https://www.instagram.com/reel/Post123/", CancellationToken.None);
-        Assert.Equal(new[] { "/", "/api/graphql" }, paths);
-        Assert.Equal(2, draft.Text.Steps.Count);
+        var service = new RecipeSourceService(() => new FakeHandler(_ =>
+            throw new InvalidOperationException("Missing credentials must not cause any request.")));
+        var error = await Assert.ThrowsAsync<RecipeSourceException>(() =>
+            service.FetchAsync("https://www.instagram.com/reel/Post123/", CancellationToken.None));
+        Assert.Contains("private Apify build input", error.Message);
     }
 
     [Fact]

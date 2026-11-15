@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Nibbles.Services;
@@ -20,9 +19,18 @@ public sealed class RecipeSourceService
     private readonly ConcurrentDictionary<string, string> stoppedHosts = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, (DateTimeOffset Time, string? Policy)> policies = new();
     private readonly Func<HttpMessageHandler> handlerFactory;
+    private readonly ApifyRecipeSourceService social;
 
-    public RecipeSourceService() : this(CreateHandler) { }
-    public RecipeSourceService(Func<HttpMessageHandler> handlerFactory) => this.handlerFactory = handlerFactory;
+    public RecipeSourceService() : this(CreateHandler, ApifyRecipeSourceService.ReadPrivateToken) { }
+    public RecipeSourceService(Func<HttpMessageHandler> handlerFactory) : this(handlerFactory, () => null) { }
+    public RecipeSourceService(Func<HttpMessageHandler> handlerFactory, Func<string?> apifyToken)
+    {
+        this.handlerFactory = handlerFactory;
+        social = new(handlerFactory, apifyToken);
+    }
+
+    public static bool IsSocialSource(string? value) =>
+        TrySourceUrl(value, out var uri) && (IsInstagram(uri) || TikTokHosts.Contains(uri.IdnHost));
 
     public static bool TrySourceUrl(string? value, out Uri uri)
     {
@@ -31,7 +39,7 @@ public sealed class RecipeSourceService
             (!TikTokHosts.Contains(uri.IdnHost) || IsTikTokUrl(uri));
     }
 
-    private static bool TryPublicUrl(string? value, out Uri uri)
+    internal static bool TryPublicUrl(string? value, out Uri uri)
     {
         uri = null!;
         if (string.IsNullOrWhiteSpace(value) || value.Length > 4096 || value.Any(char.IsControl) ||
@@ -54,6 +62,8 @@ public sealed class RecipeSourceService
     {
         if (!TrySourceUrl(source, out var url))
             throw new RecipeSourceException("Use a public HTTPS recipe or Instagram/TikTok post URL, without credentials or a custom port.");
+        if (IsInstagram(url) || TikTokHosts.Contains(url.IdnHost))
+            return await social.FetchAsync(url, cancellationToken, includeImage);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(60));
         using var handler = handlerFactory();
@@ -63,8 +73,7 @@ public sealed class RecipeSourceService
         client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.8");
         var requests = 0;
         var nextRequest = DateTimeOffset.MinValue;
-        async Task<(HttpStatusCode Status, string Body, Uri? Redirect, byte[]? Image)> Send(Uri target,
-            HttpContent? content = null, string? lsd = null, bool image = false)
+        async Task<(HttpStatusCode Status, string Body, Uri? Redirect, byte[]? Image)> Send(Uri target, bool image = false)
         {
             if (!TryPublicUrl(target.AbsoluteUri, out _))
                 throw new RecipeSourceException("A redirect or source request points to an unsupported address.");
@@ -74,27 +83,8 @@ public sealed class RecipeSourceService
             var wait = nextRequest - DateTimeOffset.UtcNow;
             if (wait > TimeSpan.Zero) await Task.Delay(wait, deadline.Token);
             nextRequest = DateTimeOffset.UtcNow.AddSeconds(1);
-            using var request = new HttpRequestMessage(content is null ? HttpMethod.Get : HttpMethod.Post, target) { Content = content };
+            using var request = new HttpRequestMessage(HttpMethod.Get, target);
             if (image) request.Headers.Accept.ParseAdd("image/jpeg,image/png,image/webp;q=0.8");
-            if (IsInstagram(target))
-            {
-                request.Headers.UserAgent.Clear();
-                request.Headers.UserAgent.ParseAdd("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36");
-                request.Headers.TryAddWithoutValidation("x-ig-app-id", "936619743392459");
-                request.Headers.Referrer = new Uri("https://www.instagram.com/");
-                if (handler is SocketsHttpHandler sockets)
-                {
-                    var csrf = sockets.CookieContainer.GetCookies(target)["csrftoken"]?.Value;
-                    if (!string.IsNullOrEmpty(csrf)) request.Headers.TryAddWithoutValidation("x-csrftoken", csrf);
-                }
-                if (lsd is not null)
-                {
-                    request.Headers.TryAddWithoutValidation("x-fb-lsd", lsd);
-                    request.Headers.TryAddWithoutValidation("sec-fetch-site", "same-origin");
-                    request.Headers.TryAddWithoutValidation("sec-fetch-mode", "cors");
-                    request.Headers.TryAddWithoutValidation("sec-fetch-dest", "empty");
-                }
-            }
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests)
             {
@@ -118,21 +108,14 @@ public sealed class RecipeSourceService
                 if (!response.IsSuccessStatusCode || mediaType is not ("image/jpeg" or "image/png" or "image/webp"))
                     throw new RecipeSourceException("The source photo is unavailable or uses an unsupported format.");
                 var bytes = await ReadResponseBytesAsync(response, ImageLimit, deadline.Token);
-                var valid = mediaType switch
-                {
-                    "image/jpeg" => bytes.Length >= 3 && bytes[0] == 0xff && bytes[1] == 0xd8 && bytes[2] == 0xff,
-                    "image/png" => bytes.AsSpan().StartsWith(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }),
-                    _ => bytes.Length >= 12 && bytes.AsSpan(0, 4).SequenceEqual("RIFF"u8) &&
-                        bytes.AsSpan(8, 4).SequenceEqual("WEBP"u8)
-                };
-                if (!valid) throw new RecipeSourceException("The source photo did not contain a supported image.");
+                if (!IsSupportedImage(bytes, mediaType))
+                    throw new RecipeSourceException("The source photo did not contain a supported image.");
                 return (response.StatusCode, "", null, bytes);
             }
             var limit = target.AbsolutePath == "/robots.txt" ? 1_000_000 : BodyLimit;
             var body = await ReadBodyAsync(response, limit, deadline.Token);
             if (response.IsSuccessStatusCode && target.AbsolutePath != "/robots.txt" &&
-                !(content is null ? mediaType is "text/html" or "application/xhtml+xml" :
-                  mediaType is "application/json" or "text/javascript"))
+                mediaType is not ("text/html" or "application/xhtml+xml"))
                 throw new RecipeSourceException("The source returned an unsupported response. Paste the recipe text instead.");
             return (response.StatusCode, body, null, null);
         }
@@ -209,41 +192,6 @@ public sealed class RecipeSourceService
         }
         try
         {
-            if (IsInstagram(url))
-            {
-                var shortcode = InstagramCode(url)!;
-                // Only anonymous public-session tokens; never import an account session.
-                var home = await Send(new Uri("https://www.instagram.com/"));
-                if (home.Status != HttpStatusCode.OK || home.Redirect is not null)
-                    throw new RecipeSourceException("Instagram requires access that is unavailable anonymously. Paste the caption instead.");
-                string Token(string pattern)
-                {
-                    var match = Regex.Match(home.Body, pattern, RegexOptions.None, RegexTimeout);
-                    if (!match.Success)
-                        throw new RecipeSourceException("Instagram's public caption endpoint is unavailable. Paste the expanded caption instead.");
-                    return match.Groups[1].Value;
-                }
-                var lsd = Token(@"""LSD"",\[\],\{[^{}]*""token"":""([^""]+)""");
-                var viewer = Token(@"""IG_USER_EIMU"":""?(\d+)");
-                using var form = new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    ["doc_id"] = "27128499623469141",
-                    ["variables"] = JsonSerializer.Serialize(new Dictionary<string, object>
-                    {
-                        ["shortcode"] = shortcode,
-                        ["__relay_internal__pv__PolarisAIGMMediaWebLabelEnabledrelayprovider"] = false
-                    }),
-                    ["server_timestamps"] = "true",
-                    ["lsd"] = lsd,
-                    ["av"] = viewer
-                });
-                var result = await Send(new Uri("https://www.instagram.com/api/graphql"), form, lsd);
-                if (result.Status != HttpStatusCode.OK || result.Redirect is not null)
-                    throw new RecipeSourceException("Instagram did not return a public caption. Paste the expanded caption instead.");
-                return await WithImage(RecipeSourceParser.Instagram(result.Body, shortcode), url);
-            }
-            var tiktok = TikTokHosts.Contains(url.IdnHost);
-            var expectedVideo = tiktok ? TikTokVideoId(url) : null;
             for (var redirect = 0; redirect < 4; redirect++)
             {
                 await Robots(url);
@@ -252,24 +200,14 @@ public sealed class RecipeSourceService
                 {
                     if (!TrySourceUrl(target.AbsoluteUri, out target))
                         throw new RecipeSourceException("The source redirected to an unsupported address.");
-                    if (tiktok)
-                    {
-                        var actual = TikTokVideoId(target);
-                        if (!TikTokHosts.Contains(target.IdnHost) || !IsTikTokUrl(target) ||
-                            (expectedVideo is not null && actual != expectedVideo))
-                            throw new RecipeSourceException("The redirect changed or lost the requested TikTok video. Paste a direct post link or description.");
-                        expectedVideo ??= actual;
-                    }
-                    else if (IsInstagram(target) || TikTokHosts.Contains(target.IdnHost))
+                    if (IsInstagram(target) || TikTokHosts.Contains(target.IdnHost))
                         throw new RecipeSourceException("This page redirects to a social post. Use its direct post URL.");
                     url = target;
                     continue;
                 }
                 if (response.Status != HttpStatusCode.OK)
                     throw new RecipeSourceException($"The source returned HTTP {(int)response.Status}. Paste its text instead.");
-                if (tiktok && expectedVideo is null)
-                    throw new RecipeSourceException("The TikTok short link did not resolve to a video. Paste its direct post link or description.");
-                var draft = tiktok ? RecipeSourceParser.TikTok(response.Body, expectedVideo!) : RecipeSourceParser.Website(response.Body);
+                var draft = RecipeSourceParser.Website(response.Body);
                 return await WithImage(draft, url);
             }
             throw new RecipeSourceException("The source redirected too many times. Paste the recipe text instead.");
@@ -288,15 +226,15 @@ public sealed class RecipeSourceService
         }
     }
 
-    private static bool IsInstagram(Uri uri) =>
+    internal static bool IsInstagram(Uri uri) =>
         uri.IdnHost.Equals("instagram.com", StringComparison.OrdinalIgnoreCase) ||
         uri.IdnHost.Equals("www.instagram.com", StringComparison.OrdinalIgnoreCase);
-    private static string? InstagramCode(Uri uri)
+    internal static string? InstagramCode(Uri uri)
     {
         var match = Regex.Match(uri.AbsolutePath, @"^/(?:p|reel)/([A-Za-z0-9_-]+)/?$", RegexOptions.None, RegexTimeout);
         return match.Success ? match.Groups[1].Value : null;
     }
-    private static string? TikTokVideoId(Uri uri)
+    internal static string? TikTokVideoId(Uri uri)
     {
         var match = Regex.Match(uri.AbsolutePath, @"^/(?:@[^/]*/)?video/(\d+)/?$", RegexOptions.None, RegexTimeout);
         return match.Success ? match.Groups[1].Value : null;
@@ -362,7 +300,16 @@ public sealed class RecipeSourceService
         catch (ArgumentException exception) { throw new RecipeSourceException("The source text encoding is unsupported.", exception); }
     }
 
-    private static async Task<byte[]> ReadResponseBytesAsync(HttpResponseMessage response, int limit, CancellationToken token)
+    internal static bool IsSupportedImage(byte[] bytes, string? mediaType) => mediaType switch
+    {
+        "image/jpeg" => bytes.Length >= 3 && bytes[0] == 0xff && bytes[1] == 0xd8 && bytes[2] == 0xff,
+        "image/png" => bytes.AsSpan().StartsWith(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }),
+        "image/webp" => bytes.Length >= 12 && bytes.AsSpan(0, 4).SequenceEqual("RIFF"u8) &&
+            bytes.AsSpan(8, 4).SequenceEqual("WEBP"u8),
+        _ => false
+    };
+
+    internal static async Task<byte[]> ReadResponseBytesAsync(HttpResponseMessage response, int limit, CancellationToken token)
     {
         if (response.Content.Headers.ContentLength > limit)
             throw new RecipeSourceException("The source response exceeded the size limit.");

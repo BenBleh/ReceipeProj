@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.Maui.Controls.Shapes;
 using Nibbles.Models;
+using Nibbles.Components;
 using iOSPage = Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page;
 using UIModalPresentationStyle = Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.UIModalPresentationStyle;
 
@@ -137,8 +138,8 @@ public static class AppDialogs
                 submitButton = confirm;
                 if (destructive)
                 {
-                    confirm.SetAppThemeColor(Button.BackgroundColorProperty, Color.FromArgb("#A43632"), Color.FromArgb("#723A35"));
-                    confirm.TextColor = Colors.White;
+                    confirm.Style = Resource<Style>("DangerButton");
+                    ButtonIcon.SetGlyph(confirm, IconFont.Trash2);
                 }
                 confirm.Clicked += async (_, _) => await Submit(accept);
                 buttons.Add(confirm);
@@ -153,6 +154,7 @@ public static class AppDialogs
             body.Add(new Label { Text = "Choose a destination", Style = Resource<Style>("MutedLabel") });
             string? destination = null;
             var move = MakeButton($"Move {ingredients.Count} {(ingredients.Count == 1 ? "ingredient" : "ingredients")}");
+            ButtonIcon.SetGlyph(move, IconFont.Move);
             move.IsEnabled = false;
             move.AutomationId = "MoveSelectedIngredients";
             var radioGroup = Guid.NewGuid().ToString();
@@ -190,7 +192,7 @@ public static class AppDialogs
                 destinationCard.GestureRecognizers.Add(tap);
                 body.Add(destinationCard);
             }
-            var create = MakeButton("+ New group", "QuietButton");
+            var create = MakeButton("New group", "SheetButton");
             create.Clicked += async (_, _) => await Close("new");
             body.Add(create);
             move.Clicked += async (_, _) =>
@@ -207,10 +209,15 @@ public static class AppDialogs
         {
             foreach (var action in actions)
             {
-                var button = MakeButton(action, "QuietButton");
+                var button = MakeButton(action, "SheetButton");
                 button.HorizontalOptions = LayoutOptions.Fill;
                 if (destructiveActions.Contains(action, StringComparer.Ordinal))
-                    button.SetAppThemeColor(Button.TextColorProperty, Resource<Color>("Error"), Resource<Color>("DarkError"));
+                {
+                    button.Style = Resource<Style>("DangerButton");
+                    ButtonIcon.SetGlyph(button, IconFont.Trash2);
+                    button.Margin = new Thickness(0, 8, 0, 0);
+                    buttons.Margin = new Thickness(0, 8, 0, 0);
+                }
                 button.Clicked += async (_, _) => await Close(action);
                 body.Add(button);
             }
@@ -253,6 +260,7 @@ public static class AppDialogs
             }
             if (groupReference is not null) body.Add(IngredientCard(groupRows));
             var show = MakeButton(groupReference is not null || ingredients.Count == 1 ? "Show in ingredients" : "Show both in ingredients");
+            ButtonIcon.SetGlyph(show, IconFont.List);
             if (groupReference is null && ingredients.Count > 2) show.Text = "Show all in ingredients";
             show.Clicked += async (_, _) => await Close("show");
             buttons.Add(show);
@@ -272,6 +280,7 @@ public static class AppDialogs
         private DialogPage(string title, bool sheet)
         {
             this.sheet = sheet;
+            if (sheet) body.Spacing = 12;
             error.Style = Resource<Style>("ErrorLabel");
             Title = title;
             SafeAreaEdges = SafeAreaEdges.All;
@@ -279,12 +288,13 @@ public static class AppDialogs
             Shell.SetPresentationMode(this, PresentationMode.ModalNotAnimated);
             iOSPage.SetModalPresentationStyle(On<iOS>(), UIModalPresentationStyle.OverFullScreen);
             heading = new Label { Text = title, Style = Resource<Style>("PageHeading"), FontSize = 25 };
+            if (sheet) heading.Margin = new Thickness(0, 0, 0, 12);
             SemanticProperties.SetHeadingLevel(heading, SemanticHeadingLevel.Level1);
             scroll = new ScrollView { Content = body };
             var content = new Grid
             {
                 RowDefinitions = [new(GridLength.Auto), new(GridLength.Auto), new(GridLength.Auto)],
-                RowSpacing = 24
+                RowSpacing = sheet ? 12 : 24
             };
             content.Add(heading);
             content.Add(scroll, 0, 1);
@@ -338,11 +348,27 @@ public static class AppDialogs
         }
 
         private static T Resource<T>(string key) => (T)Application.Current!.Resources[key];
-        private static Button MakeButton(string text, string? style = null) => new()
+        private static Button MakeButton(string text, string? style = null)
         {
-            Text = text, MinimumHeightRequest = 48,
-            Style = Resource<Style>(style ?? "BaseButton")
-        };
+            var button = new Button
+            {
+                Text = text, MinimumHeightRequest = 48,
+                Style = Resource<Style>(style ?? "BaseButton")
+            };
+            var glyph = text switch
+            {
+                "Move up" => IconFont.ArrowUp,
+                "Move down" => IconFont.ArrowDown,
+                "Move to group" or "Create & move" => IconFont.Move,
+                "Rename" => IconFont.Pencil,
+                "Save name" => IconFont.Save,
+                "New group" or "Add group" => IconFont.FolderPlus,
+                "Back to method" or "Back to recipe" => IconFont.ArrowLeft,
+                _ => null
+            };
+            if (glyph is not null) ButtonIcon.SetGlyph(button, glyph);
+            return button;
+        }
 
         private void UpdateSize()
         {
@@ -354,7 +380,7 @@ public static class AppDialogs
             card.VerticalOptions = sheet && phone ? LayoutOptions.End : LayoutOptions.Center;
             var width = Math.Max(1, card.WidthRequest - card.Padding.HorizontalThickness);
             var fixedHeight = heading.Measure(width, double.PositiveInfinity).Height +
-                buttons.Measure(width, double.PositiveInfinity).Height + 96;
+                buttons.Measure(width, double.PositiveInfinity).Height + (sheet ? 84 : 96);
             scroll.MaximumHeightRequest = Math.Max(48, layout.Height - card.Margin.VerticalThickness - fixedHeight);
         }
 

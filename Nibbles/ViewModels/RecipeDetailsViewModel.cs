@@ -44,7 +44,7 @@ public partial class RecipeDetailsViewModel(ReceipeAPIService service) : Observa
 
     public bool IsFresh => !HasResume;
     public bool IsScaled => Multiplier != 1;
-    public string ScaleLabel => $"Scale ingredients · {Multiplier:0.###}×";
+    public string ScaleLabel => $"Scale: {Multiplier:0.###}×";
     public bool HasSourceLink => Uri.TryCreate(Recipe?.Source, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https";
     public bool HasNotes => !string.IsNullOrWhiteSpace(Recipe?.Notes);
     public string CopyLabel => $"Copy checked ({CheckedCount})";

@@ -13,7 +13,7 @@
     <span class="badge">Local review / optional live lookup</span>
   </header>
   <p class="intro">Fetch a new website, Instagram or TikTok URL, replay a research capture, or paste recipe text.
-    Live lookups use anonymous access only. Nothing is saved to Nibbles or rfiles; no AI or images are downloaded.</p>
+    Live lookups use anonymous access only. Nothing is saved to Nibbles or rfiles; no AI is used.</p>
   <section class="card inputs" aria-labelledby="input-heading">
     <h2 id="input-heading">1. Choose your source</h2>
     <label for="sample">Existing research captures <span>(labels identify samples, not parser input)</span></label>
@@ -22,6 +22,8 @@
     <div class="source-row"><input id="source" type="url" placeholder="https://..." autocomplete="off">
       <button id="live" type="button">Fetch live URL</button>
       <button id="capture" type="button" class="secondary">Build from capture</button></div>
+    <label class="check"><input id="fetch-image" type="checkbox">
+      Try the social post's thumbnail (live lookup only)</label>
     <p class="hint">Fetch live URL contacts the source now, even for an existing sample.
       Website lookups check robots rules. Instagram uses anonymous Instaloader metadata;
       social lookups may fail or return incomplete captions. No login or restriction bypass.</p>
@@ -39,6 +41,14 @@
     <section class="card" aria-labelledby="draft-heading">
       <div class="section-head"><h2 id="draft-heading">2. Review and edit</h2><span id="counts" class="badge"></span></div>
       <p class="hint">A draft, not a verified recipe. Missing instructions stay missing.</p>
+      <section id="thumbnail-panel" hidden aria-labelledby="thumbnail-heading">
+        <h3 id="thumbnail-heading">Source thumbnail diagnostic</h3>
+        <img id="thumbnail" hidden alt="Thumbnail from the matched social post">
+        <p id="thumbnail-status" class="hint" role="status"></p>
+        <details><summary>Thumbnail request evidence</summary><pre id="thumbnail-evidence"></pre></details>
+        <p class="hint">Preview only: the image is not saved or included in exported recipe JSON.
+          Signed image URLs are not exposed to the browser.</p>
+      </section>
       <div id="editor">
         <label for="title">Recipe title</label><input id="title" placeholder="Add a title">
         <label for="time">Time <span>(source value; editable)</span></label><input id="time" placeholder="Optional">

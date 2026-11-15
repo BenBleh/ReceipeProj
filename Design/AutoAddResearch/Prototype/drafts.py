@@ -145,7 +145,7 @@ def website_draft(html, source):
     }
 
 
-def tiktok_draft(content, source, video_id):
+def matched_tiktok_item(content, video_id):
     match = re.search(r'<script[^>]+id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>'
                       r"(.*?)</script>", content, re.S)
     if not match:
@@ -161,6 +161,11 @@ def tiktok_draft(content, source, video_id):
     if (not isinstance(detail, dict) or not isinstance(item, dict)
             or detail.get("statusCode") != 0 or item.get("id") != video_id):
         raise DraftError("The video identity/status does not match the requested source.")
+    return item
+
+
+def tiktok_draft(content, source, video_id):
+    item = matched_tiktok_item(content, video_id)
     caption = item.get("desc")
     if not isinstance(caption, str) or not caption.strip():
         raise DraftError("The requested video has no caption. Paste source text instead.")

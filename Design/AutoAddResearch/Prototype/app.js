@@ -101,6 +101,20 @@ function render(result) {
   el("raw").textContent = result.raw;
   el("unassigned").textContent = result.unassigned || "None identified by these rules. Still check the original.";
   el("provenance").textContent = JSON.stringify(result.evidence, null, 2);
+  el("thumbnail-panel").hidden = !result.image;
+  el("thumbnail").hidden = true;
+  el("thumbnail").removeAttribute("src");
+  if (result.image) {
+    const { preview, ...evidence } = result.image;
+    el("thumbnail-evidence").textContent = JSON.stringify(evidence, null, 2);
+    el("thumbnail-status").textContent = preview
+      ? `Downloaded and decoded: ${evidence.width} x ${evidence.height}.`
+      : evidence.reason || "No thumbnail was obtained. Recipe text is unchanged.";
+    if (preview) {
+      el("thumbnail").src = preview;
+      el("thumbnail").hidden = false;
+    }
+  }
   el("workspace").hidden = false;
   dirty = false;
   el("reviewed").checked = false;
@@ -111,7 +125,7 @@ function render(result) {
 
 async function build(mode) {
   if (dirty && !window.confirm("Replace your current draft and discard its unexported edits?")) return;
-  const controls = ["live", "capture", "paste", "source", "sample", "caption"];
+  const controls = ["live", "capture", "paste", "source", "sample", "caption", "fetch-image"];
   for (const id of controls) el(id).disabled = true;
   el("workspace").inert = true;
   el("fallback-hint").hidden = true;
@@ -120,7 +134,8 @@ async function build(mode) {
   el("status").dataset.state = "loading";
   try {
     const result = await api("/api/draft", {
-      mode, source: el("source").value.trim(), caption: el("caption").value
+      mode, source: el("source").value.trim(), caption: el("caption").value,
+      include_image: el("fetch-image").checked
     });
     render(result);
     status("Draft ready. Compare it with the original source and review the flags.");

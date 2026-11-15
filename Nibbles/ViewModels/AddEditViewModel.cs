@@ -178,7 +178,9 @@ public partial class AddEditViewModel : ObservableObject
         var request = new CancellationTokenSource();
         sourceRequest = request;
         var source = Recipe.Source!;
-        SourceStatus = "Reading the source... Your recipe stays unchanged while we fetch.";
+        SourceStatus = RecipeSourceService.IsSocialSource(source)
+            ? "Reading the social post with Apify... Your recipe stays unchanged while we fetch."
+            : "Reading the source... Your recipe stays unchanged while we fetch.";
         IsFetchingSource = true;
         try
         {

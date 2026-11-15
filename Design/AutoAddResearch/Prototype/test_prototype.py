@@ -7,17 +7,20 @@ import json
 from pathlib import Path
 import tempfile
 import threading
+import time
 import unittest
 from unittest.mock import patch
 
 import requests
 from requests.adapters import HTTPAdapter
+from PIL import Image
 
 from drafts import (Capture, Catalog, DraftError, caption_draft, source_key,
                     validate_export, website_draft)
 from live_sources import (InstagramContext, LiveImporter, PublicAdapter,
                           public_address, public_url, tiktok_identity)
 from server import Handler, ThreadingHTTPServer
+from source_images import preview_jpeg, probe_thumbnail
 
 
 SOURCE = "https://example.com/recipe"
@@ -251,6 +254,19 @@ class HttpTests(unittest.TestCase):
         self.assertIn("paste text", result["error"])
         self.assertNotIn("draft", result)
 
+    def test_thumbnail_is_explicitly_requested_and_requires_a_boolean(self):
+        result = caption_draft(CAPTION, SOURCE)
+        result["image"] = {"status": "unavailable", "reason": "Policy exclusion"}
+        with patch.object(self.server.live_importer, "build", return_value=result) as build:
+            status, received = self.request("POST", "/api/draft",
+                                            {"mode": "live", "source": SOURCE, "include_image": True})
+        self.assertEqual(200, status)
+        self.assertEqual(result["image"], received["image"])
+        build.assert_called_once_with(SOURCE, include_image=True)
+        status, _ = self.request("POST", "/api/draft",
+                                {"mode": "live", "source": SOURCE, "include_image": "true"})
+        self.assertEqual(422, status)
+
 
 def response(status=200, body="", **headers):
     value = requests.Response()
@@ -410,6 +426,190 @@ class LiveTests(unittest.TestCase):
                     with self.assertRaisesRegex(DraftError, "size limit"):
                         adapter.send(request)
                 adapter.close()
+
+
+class ImageTests(unittest.TestCase):
+    cover = "https://images.example/private-looking-cover?signature=do-not-log"
+
+    def setUp(self):
+        self.sleep = patch("live_sources.time.sleep")
+        self.sleep.start()
+        self.addCleanup(self.sleep.stop)
+        with Image.new("RGB", (40, 60), "green") as image, io.BytesIO() as output:
+            image.save(output, "PNG")
+            self.png = output.getvalue()
+
+    @staticmethod
+    def upstream(status=200, body=b"", content_type="text/plain", **headers):
+        class Raw:
+            def __init__(self, value):
+                self.stream = io.BytesIO(value)
+
+            def read1(self, size, decode_content=False):
+                return self.stream.read(size)
+
+            def close(self):
+                self.stream.close()
+
+        value = response(status, body, **{"Content-Type": content_type, **headers})
+        value.raw = Raw(body.encode() if isinstance(body, str) else body)
+        value._content = False
+        value._content_consumed = False
+        return value
+
+    def probe(self, importer=None, candidates=None):
+        return probe_thumbnail(importer or LiveImporter(),
+                               [self.cover] if candidates is None else candidates,
+                               SOURCE, time.monotonic() + 60, 10)
+
+    def test_robots_403_404_and_410_are_not_image_403(self):
+        for policy_status in (403, 404, 410):
+            with self.subTest(policy_status=policy_status), patch.object(HTTPAdapter, "send", side_effect=[
+                    self.upstream(policy_status), self.upstream(body=self.png, content_type="image/png")]) as send:
+                result = self.probe()
+            self.assertEqual("downloaded", result["status"])
+            self.assertEqual([policy_status, 200], [event["status"] for event in result["http"]])
+            self.assertEqual(["policy", "image"], [event["role"] for event in result["http"]])
+            self.assertNotIn("signature", json.dumps(result))
+            self.assertNotIn("private-looking", json.dumps(result))
+            self.assertTrue(result["preview"].startswith("data:image/jpeg;base64,"))
+            self.assertEqual(2, send.call_count)
+
+    def test_explicit_robots_exclusion_never_requests_image(self):
+        with patch.object(HTTPAdapter, "send", return_value=self.upstream(
+                body="User-agent: *\nDisallow: /")) as send:
+            result = self.probe()
+        self.assertEqual("policy", result["failed_stage"])
+        self.assertIn("excludes", result["reason"])
+        self.assertEqual(1, send.call_count)
+
+    def test_unsupported_robots_patterns_fail_closed(self):
+        with patch.object(HTTPAdapter, "send", return_value=self.upstream(
+                body="User-agent: *\nDisallow: /*")) as send:
+            result = self.probe()
+        self.assertEqual("policy", result["failed_stage"])
+        self.assertIn("pattern rules", result["reason"])
+        self.assertEqual(1, send.call_count)
+
+    def test_actual_image_refusal_stops_host_and_does_not_try_another_cover(self):
+        importer = LiveImporter()
+        with patch.object(HTTPAdapter, "send", side_effect=[
+                self.upstream(404), self.upstream(403)]) as send:
+            result = self.probe(importer, [self.cover, "https://other.example/cover"])
+        self.assertEqual("image_request", result["failed_stage"])
+        self.assertIn("HTTP 403", result["reason"])
+        self.assertIn("images.example", importer.stopped)
+        self.assertEqual(2, send.call_count)
+
+    def test_an_image_named_robots_is_still_a_resource_not_a_policy(self):
+        importer = LiveImporter()
+        with patch.object(HTTPAdapter, "send", side_effect=[self.upstream(404), self.upstream(403)]):
+            result = self.probe(importer, ["https://images.example/robots.txt"])
+        self.assertEqual("image_request", result["failed_stage"])
+        self.assertIn("images.example", importer.stopped)
+        self.assertEqual("image", result["http"][-1]["role"])
+
+    def test_unreachable_authenticated_and_rate_limited_policy_still_stops(self):
+        for status in (401, 429, 503):
+            with self.subTest(status=status), patch.object(
+                    HTTPAdapter, "send", return_value=self.upstream(status)) as send:
+                result = self.probe()
+            self.assertEqual("policy", result["failed_stage"])
+            self.assertEqual(1, send.call_count)
+
+    def test_image_policy_exception_is_not_reused_for_website_policy(self):
+        importer = LiveImporter()
+        with patch.object(HTTPAdapter, "send", side_effect=[
+                self.upstream(403), self.upstream(body=self.png, content_type="image/png")]):
+            self.assertEqual("downloaded", self.probe(importer)["status"])
+        adapter = PublicAdapter(importer)
+        self.addCleanup(adapter.close)
+        with patch.object(HTTPAdapter, "send", return_value=self.upstream(403)) as send:
+            with requests.Session() as session:
+                session.mount("https://", adapter)
+                with self.assertRaisesRegex(DraftError, "HTTP 403"):
+                    importer.robots_for(self.cover, session, adapter)
+        self.assertEqual(1, send.call_count)
+
+    def test_policy_redirect_remains_a_policy_request(self):
+        with patch.object(HTTPAdapter, "send", side_effect=[
+                self.upstream(302, Location="/policy/current"),
+                self.upstream(403), self.upstream(body=self.png, content_type="image/png")]):
+            result = self.probe()
+        self.assertEqual("downloaded", result["status"])
+        self.assertEqual(["policy", "policy", "image"], [event["role"] for event in result["http"]])
+        self.assertEqual("/[policy]", result["http"][1]["path"])
+
+    def test_missing_metadata_and_exhausted_budget_never_make_image_requests(self):
+        with patch.object(HTTPAdapter, "send") as send:
+            self.assertEqual("missing", self.probe(candidates=[])["status"])
+            result = probe_thumbnail(LiveImporter(), [self.cover], SOURCE, time.monotonic() + 60, 0)
+        self.assertEqual("unavailable", result["status"])
+        send.assert_not_called()
+
+    def test_corrupt_mislabeled_and_oversized_images_are_rejected(self):
+        for body, media in [(b"not an image", "image/jpeg"), (self.png, "text/html"),
+                            (b"x" * 6_000_001, "image/jpeg")]:
+            with self.subTest(media=media, size=len(body)), patch.object(HTTPAdapter, "send", side_effect=[
+                    self.upstream(404), self.upstream(body=body, content_type=media)]):
+                result = self.probe()
+            self.assertEqual("unavailable", result["status"])
+            self.assertNotIn("preview", result)
+
+    def test_image_is_decoded_scaled_and_reencoded_without_source_metadata(self):
+        with Image.new("RGB", (1800, 900)) as image, io.BytesIO() as output:
+            image.save(output, "PNG")
+            jpeg, width, height = preview_jpeg(output.getvalue())
+        self.assertEqual((1600, 800), (width, height))
+        with Image.open(io.BytesIO(jpeg)) as image:
+            self.assertEqual("JPEG", image.format)
+            self.assertEqual({}, image.getexif())
+
+    def test_excessive_dimensions_are_rejected_before_full_decode(self):
+        with Image.new("RGB", (8193, 1)) as image, io.BytesIO() as output:
+            image.save(output, "PNG")
+            with self.assertRaisesRegex(DraftError, "dimensions"):
+                preview_jpeg(output.getvalue())
+
+    def test_network_errors_do_not_expose_signed_image_urls(self):
+        with patch("requests.Session.get", side_effect=requests.ConnectionError(self.cover)):
+            result = self.probe()
+        self.assertEqual("unavailable", result["status"])
+        self.assertNotIn("do-not-log", json.dumps(result))
+
+    def test_invalid_optional_image_metadata_is_reported_as_a_photo_failure(self):
+        with patch.object(HTTPAdapter, "send", side_effect=[
+                self.upstream(404), self.upstream(body=self.png, content_type="image/png")]), \
+                patch("source_images.preview_jpeg", side_effect=ValueError("Invalid image metadata")):
+            result = self.probe()
+        self.assertEqual("decode", result["failed_stage"])
+        self.assertEqual("unavailable", result["status"])
+
+    def test_photo_metadata_failure_keeps_successful_instagram_caption(self):
+        class Post:
+            shortcode = "NEW_123"
+            caption = CAPTION
+
+            @property
+            def url(self):
+                raise DraftError("HTTP 429")
+
+        with patch("instaloader.Post.from_shortcode", return_value=Post()):
+            result = LiveImporter().build("https://www.instagram.com/reel/NEW_123/", include_image=True)
+        self.assertEqual(2, len(result["draft"]["Ingredients"]))
+        self.assertEqual("metadata", result["image"]["failed_stage"])
+
+    def test_matched_social_metadata_is_forwarded_without_exposing_signed_urls(self):
+        url = "https://www.tiktok.com/@creator/video/123"
+        item = {"id": "123", "desc": CAPTION, "video": {"cover": self.cover, "originCover": "bad"}}
+        data = {"__DEFAULT_SCOPE__": {"webapp.video-detail": {
+            "statusCode": 0, "itemInfo": {"itemStruct": item}}}}
+        html = '<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__">' + json.dumps(data) + "</script>"
+        with patch.object(PublicAdapter, "send", side_effect=[response(404), response(body=html)]), \
+                patch("source_images.probe_thumbnail", return_value={"status": "missing"}) as probe:
+            result = LiveImporter().build(url, include_image=True)
+        self.assertEqual([self.cover, "bad"], probe.call_args.args[1])
+        self.assertNotIn("do-not-log", json.dumps(result))
 
 
 if __name__ == "__main__":

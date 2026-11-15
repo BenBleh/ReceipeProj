@@ -35,6 +35,7 @@
     <Compile Include="..\Nibbles\Services\RecipeSourceDraft.cs" Link="App\RecipeSourceDraft.cs" />
     <Compile Include="..\Nibbles\Services\RecipeSourceParser.cs" Link="App\RecipeSourceParser.cs" />
     <Compile Include="..\Nibbles\Services\RecipeSourceService.cs" Link="App\RecipeSourceService.cs" />
+    <Compile Include="..\Nibbles\Services\ApifyRecipeSourceService.cs" Link="App\ApifyRecipeSourceService.cs" />
   </ItemGroup>
 
 </Project>

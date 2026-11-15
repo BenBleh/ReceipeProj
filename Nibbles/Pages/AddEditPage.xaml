@@ -4,6 +4,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:Nibbles.Models"
              xmlns:vm="clr-namespace:Nibbles.ViewModels"
+             xmlns:local="clr-namespace:Nibbles"
+             xmlns:components="clr-namespace:Nibbles.Components"
              x:DataType="vm:AddEditViewModel" Shell.NavBarIsVisible="False"
              Title="{Binding EditorTitle}" SizeChanged="Page_SizeChanged">
     <ContentPage.Resources>
@@ -30,7 +32,7 @@
                 <Label Text="Nibbles" FontSize="23" FontFamily="OpenSansSemibold" TextColor="#F0F3EB" VerticalOptions="Center" />
             </HorizontalStackLayout>
             <VerticalStackLayout Grid.Row="1" Spacing="14">
-                <Button Text="← Recipe box" Clicked="Cancel_Clicked" BackgroundColor="#36584B" />
+                <Button Text="Recipe box" components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowLeft}" Clicked="Cancel_Clicked" BackgroundColor="#36584B" />
                 <Label Text="EDITING" FontSize="11" TextColor="#B1C0B7" Margin="8,10,0,0" />
                 <Label Text="{Binding Recipe.Title}" TextColor="#F0F3EB" Margin="8,0" MaxLines="3" />
             </VerticalStackLayout>
@@ -42,11 +44,12 @@
             <Label Grid.Row="3" Text="Your recipes, ready to cook." TextColor="#B1C0B7" FontSize="12" />
         </Grid>
         <Grid Grid.Column="1" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Padding="16,8,24,8" ColumnSpacing="8">
-            <Button Text="←" Style="{StaticResource QuietButton}" Clicked="Cancel_Clicked" SemanticProperties.Description="Cancel and return" IsEnabled="{Binding CanLeave}" />
+            <Button components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowLeft}" Padding="12" Style="{StaticResource QuietButton}"
+                    Clicked="Cancel_Clicked" SemanticProperties.Description="Cancel and return" ToolTipProperties.Text="Cancel and return" IsEnabled="{Binding CanLeave}" />
             <Label Grid.Column="1" Text="{Binding EditorTitle}" VerticalOptions="Center" FontSize="18" />
             <HorizontalStackLayout Grid.Column="2" Spacing="8">
                 <ActivityIndicator IsRunning="{Binding IsSaving}" IsVisible="{Binding IsSaving}" />
-                <Button Text="{Binding SaveLabel}" Command="{Binding SaveCommand}" />
+                <Button Text="{Binding SaveLabel}" components:ButtonIcon.Glyph="{x:Static local:IconFont.Save}" Command="{Binding SaveCommand}" />
             </HorizontalStackLayout>
         </Grid>
         <Grid Grid.Column="1" Grid.Row="1" RowDefinitions="Auto,*,Auto" Padding="24,8,24,16" RowSpacing="16">
@@ -58,6 +61,7 @@
                 </Grid>
                 <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}" IsVisible="{Binding HasError}" />
                 <Button Text="Reconnect" Command="{Binding ReconnectCommand}" IsVisible="{Binding NeedsReconnect}"
+                        components:ButtonIcon.Glyph="{x:Static local:IconFont.RefreshCw}"
                         Style="{StaticResource SecondaryButton}" />
             </VerticalStackLayout>
             <ScrollView Grid.Row="1" x:Name="FormScroll">
@@ -82,9 +86,10 @@
                                        AutomationId="RecipeSource" />
                             </Border>
                             <Button Grid.Column="1" Text="Fetch" Command="{Binding FetchSourceCommand}" VerticalOptions="Start"
+                                    components:ButtonIcon.Glyph="{x:Static local:IconFont.Download}"
                                     MinimumWidthRequest="84" AutomationId="FetchSource" />
                         </Grid>
-                        <Button Text="Paste source text" Command="{Binding PasteSourceTextCommand}" Style="{StaticResource QuietButton}" HorizontalOptions="Start" />
+                        <Button Text="Paste source text" components:ButtonIcon.Glyph="{x:Static local:IconFont.ClipboardPaste}" Command="{Binding PasteSourceTextCommand}" Style="{StaticResource QuietButton}" HorizontalOptions="Start" />
                         <VerticalStackLayout IsVisible="{Binding IsPastingSource}" Spacing="12">
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Paste caption or recipe text" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
@@ -95,21 +100,32 @@
                                         MinimumHeightRequest="160" MaximumHeightRequest="260" MaxLength="100000"
                                         SemanticProperties.Description="Source text to turn into editable recipe fields" AutomationId="PastedSource" />
                             </Border>
-                            <Button Text="Use pasted text" Command="{Binding UsePastedSourceCommand}" AutomationId="UsePastedSource" />
+                            <Button Text="Use pasted text" components:ButtonIcon.Glyph="{x:Static local:IconFont.ClipboardPaste}" Command="{Binding UsePastedSourceCommand}" AutomationId="UsePastedSource" />
                         </VerticalStackLayout>
                         <Label Text="Cover photo" FontFamily="OpenSansSemibold" />
-                        <Border StrokeThickness="0"><Image Source="{Binding Recipe.ImagePath}" HeightRequest="200" Aspect="AspectFill" /></Border>
-                        <Button Text="Choose photo" Style="{StaticResource SecondaryButton}" Command="{Binding GetImageCommand}" HorizontalOptions="Start" />
+                        <Border StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkCanvas}}">
+                            <Grid HeightRequest="200">
+                                <Image Source="{Binding Recipe.ImagePath}" Aspect="AspectFit" SemanticProperties.Description="Recipe cover preview" />
+                                <Button components:ButtonIcon.Glyph="{x:Static local:IconFont.Maximize2}" Clicked="ViewPhoto_Clicked"
+                                        Style="{StaticResource SecondaryButton}" Padding="12" Margin="12" HorizontalOptions="End" VerticalOptions="End"
+                                        SemanticProperties.Description="View full photo" ToolTipProperties.Text="View full photo">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding Recipe.ImagePath}" Value="{x:Null}"><Setter Property="IsVisible" Value="False" /></DataTrigger>
+                                        <DataTrigger TargetType="Button" Binding="{Binding Recipe.ImagePath}" Value=""><Setter Property="IsVisible" Value="False" /></DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </Grid>
+                        </Border>
+                        <Button Text="Choose photo" components:ButtonIcon.Glyph="{x:Static local:IconFont.ImagePlus}" Style="{StaticResource SecondaryButton}" Command="{Binding GetImageCommand}" HorizontalOptions="Start" />
                         <Label Text="Your notes" FontFamily="OpenSansSemibold" />
                         <Border Style="{StaticResource Field}"><Editor Text="{Binding Recipe.Notes}" Placeholder="Family favourites, substitutions, or a tip for next time…" MinimumHeightRequest="100" /></Border>
-                        <Button Text="Next: Ingredients →" Command="{Binding SelectSectionCommand}" CommandParameter="1" />
+                        <Button Text="Next: Ingredients" components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowRight}" Command="{Binding SelectSectionCommand}" CommandParameter="1" />
                     </VerticalStackLayout>
                     <VerticalStackLayout IsVisible="{Binding IsIngredients}" Spacing="18">
                         <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
                         <Grid ColumnDefinitions="*,Auto">
                             <VerticalStackLayout Spacing="4" IsVisible="{Binding IsNormalIngredientEditing}">
                                 <Label Text="Ingredient groups" Style="{StaticResource SectionHeading}" />
-                                <Label Text="{Binding RecipeSummary}" Style="{StaticResource MutedLabel}" />
                             </VerticalStackLayout>
                             <Button Grid.Column="1" Text="Select" Style="{StaticResource QuietButton}" Command="{Binding BeginIngredientSelectionCommand}"
                                     IsVisible="{Binding IsNormalIngredientEditing}" AutomationId="SelectIngredients" />
@@ -129,8 +145,9 @@
                                         <VerticalStackLayout Spacing="12">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
-                                                <Button Grid.Column="1" Text="⋯" FontSize="24" Style="{StaticResource QuietButton}" IsVisible="{Binding IsNamed}"
+                                                <Button Grid.Column="1" components:ButtonIcon.Glyph="{x:Static local:IconFont.Ellipsis}" Padding="12" Style="{StaticResource QuietButton}" IsVisible="{Binding IsNamed}"
                                                         SemanticProperties.Description="Manage ingredient group"
+                                                        ToolTipProperties.Text="Manage ingredient group"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=GroupOptionsCommand}"
                                                         CommandParameter="{Binding .}">
                                                     <Button.Triggers>
@@ -153,8 +170,9 @@
                                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
                                                                 <Editor Text="{Binding FQIngrediantDescription}" Placeholder="e.g. 2 cloves garlic, crushed" SemanticProperties.Description="Ingredient description"
                                                                         IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsNormalIngredientEditing}" />
-                                                                <Button Grid.Column="1" Text="⋯" FontSize="22" Style="{StaticResource QuietButton}" VerticalOptions="Start"
+                                                                <Button Grid.Column="1" components:ButtonIcon.Glyph="{x:Static local:IconFont.Ellipsis}" Padding="12" Style="{StaticResource QuietButton}" VerticalOptions="Start"
                                                                         SemanticProperties.Description="Move or remove ingredient"
+                                                                        ToolTipProperties.Text="Move or remove ingredient"
                                                                         IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsNormalIngredientEditing}"
                                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IngredientOptionsCommand}" CommandParameter="{Binding .}" />
                                                                 <Grid Grid.ColumnSpan="2" ColumnDefinitions="48,*" MinimumHeightRequest="48" IsEnabled="{Binding CanSelectForEditing}"
@@ -176,9 +194,9 @@
                                             </VerticalStackLayout>
                                             <Grid ColumnDefinitions="*,Auto"
                                                   IsVisible="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=IsNormalIngredientEditing}">
-                                                <Button Text="+ Ingredient" Style="{StaticResource QuietButton}" HorizontalOptions="Start"
+                                                <Button Text="Ingredient" components:ButtonIcon.Glyph="{x:Static local:IconFont.Plus}" Style="{StaticResource QuietButton}" HorizontalOptions="Start"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=AddIngredientCommand}" CommandParameter="{Binding .}" />
-                                                <Button Grid.Column="1" Text="Paste list" Style="{StaticResource QuietButton}"
+                                                <Button Grid.Column="1" Text="Paste list" components:ButtonIcon.Glyph="{x:Static local:IconFont.ClipboardPaste}" Style="{StaticResource QuietButton}"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=PasteListCommand}" CommandParameter="{Binding .}" />
                                             </Grid>
                                         </VerticalStackLayout>
@@ -186,9 +204,9 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                        <Button Text="+ Add ingredient group" Style="{StaticResource SecondaryButton}" Command="{Binding AddGroupCommand}"
+                        <Button Text="Add ingredient group" components:ButtonIcon.Glyph="{x:Static local:IconFont.FolderPlus}" Style="{StaticResource SecondaryButton}" Command="{Binding AddGroupCommand}"
                                 IsVisible="{Binding IsNormalIngredientEditing}" IsEnabled="{Binding IsEditingEnabled}" />
-                        <Button Text="Next: Method →" Command="{Binding SelectSectionCommand}" CommandParameter="2"
+                        <Button Text="Next: Method" components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowRight}" Command="{Binding SelectSectionCommand}" CommandParameter="2"
                                 IsVisible="{Binding IsNormalIngredientEditing}" />
                     </VerticalStackLayout>
                     <VerticalStackLayout IsVisible="{Binding IsMethod}" IsEnabled="{Binding IsEditingEnabled}" Spacing="16">
@@ -200,7 +218,8 @@
                                         <VerticalStackLayout Spacing="10">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <Label Text="{Binding StepNumberDisplay}" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
-                                                <Button Grid.Column="1" Text="⋯" Style="{StaticResource QuietButton}" FontSize="24" SemanticProperties.Description="Move or remove step"
+                                                <Button Grid.Column="1" components:ButtonIcon.Glyph="{x:Static local:IconFont.Ellipsis}" Padding="12" Style="{StaticResource QuietButton}"
+                                                        SemanticProperties.Description="Move or remove step" ToolTipProperties.Text="Move or remove step"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AddEditViewModel}}, Path=StepOptionsCommand}" CommandParameter="{Binding .}" />
                                             </Grid>
                                             <Editor Text="{Binding Instructions}" Placeholder="What happens in this step?" MinimumHeightRequest="100" />
@@ -209,19 +228,19 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                        <Button Text="+ Add step" Style="{StaticResource SecondaryButton}" Command="{Binding AddStepCommand}" />
+                        <Button Text="Add step" components:ButtonIcon.Glyph="{x:Static local:IconFont.Plus}" Style="{StaticResource SecondaryButton}" Command="{Binding AddStepCommand}" />
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>
             <Border Grid.Row="2" IsVisible="{Binding IsSelectingIngredients}" Padding="0,12,0,0" StrokeThickness="0">
-                <Button Text="Move to group" Command="{Binding MoveSelectedIngredientsCommand}" AutomationId="MoveIngredientsToGroup" />
+                <Button Text="Move to group" components:ButtonIcon.Glyph="{x:Static local:IconFont.Move}" Command="{Binding MoveSelectedIngredientsCommand}" AutomationId="MoveIngredientsToGroup" />
             </Border>
         </Grid>
         <Border x:Name="PreviewRail" Grid.Column="2" Grid.Row="1" IsVisible="False" Margin="0,8,24,24" Padding="24" StrokeThickness="0">
             <ScrollView>
                 <VerticalStackLayout Spacing="20">
                     <Label Text="COOKING PREVIEW" Style="{StaticResource MutedLabel}" FontFamily="OpenSansSemibold" CharacterSpacing="2" FontSize="11" />
-                    <Border StrokeThickness="0"><Image Source="{Binding Recipe.ImagePath}" Aspect="AspectFill" HeightRequest="180" /></Border>
+                    <Border StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkCanvas}}"><Image Source="{Binding Recipe.ImagePath}" Aspect="AspectFit" HeightRequest="180" /></Border>
                     <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
                     <Label Text="{Binding Recipe.Notes}" Style="{StaticResource MutedLabel}" />
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding IngredientSections}" Spacing="20">

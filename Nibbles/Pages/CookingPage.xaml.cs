@@ -158,7 +158,6 @@ public partial class CookingPage : ContentPage
         MethodScroll.IsVisible = wide || model.IsMethod;
         TabBar.IsVisible = !wide;
         references?.UpdateReturnVisibility();
-        MethodButton.IsVisible = !wide && model.IsIngredients && !ReferenceReturnButton.IsVisible;
     }
 
     private async Task RestoreScroll()

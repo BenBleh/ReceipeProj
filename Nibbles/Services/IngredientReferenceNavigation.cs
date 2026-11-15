@@ -47,7 +47,7 @@ public sealed class IngredientReferenceNavigation(Page owner, RecipeDetailsViewM
                 return;
             returnPosition = position;
             HasReturn = true;
-            returnButton.Text = $"Back to step {args.Step.Num + 1} →";
+            returnButton.Text = $"Back to step {args.Step.Num + 1}";
             SemanticProperties.SetDescription(returnButton, $"Back to method step {args.Step.Num + 1}");
             model.IsIngredients = true;
             UpdateReturnVisibility();

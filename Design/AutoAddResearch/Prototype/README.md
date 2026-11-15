@@ -13,10 +13,17 @@ even for a URL in that catalog. New live results are not added to the capture
 catalog or written to disk. Pasted text also works without any live requests;
 its attribution URL is optional.
 
+For social-image research, tick **Try the social post's thumbnail** before a live
+lookup. A successful download appears above the editor; request evidence explains
+whether failure happened in metadata, policy lookup, the image request or decoding.
+An image failure keeps the recipe draft. The preview is held in memory only and
+is deliberately excluded from exported JSON. Websites/captures/pasted text do not
+gain image extraction in this prototype.
+
 ## Boundaries
 
 - No Nibbles application changes, rfiles writes, GitHub credentials, NAS
-  deployment, source login, image downloads or paid/local AI.
+  deployment, source login, video downloads or paid/local AI.
 - Extraction reads source evidence, not saved recipe ingredients or
   steps. Saved titles label the sample picker only; they do not supply draft
   titles.
@@ -53,15 +60,28 @@ responses, rate limits and unsupported endpoints stop the attempt; no alternate
 endpoint or login workaround is tried after a restriction.
 
 There is one live lookup at a time, request pacing, no transport/tool retries,
-at most 10 website/TikTok requests or 4 Instagram requests, bounded redirects,
-8 MB response limits (1 MB for robots) and decoded-size checks for compression.
+at most 10 requests in total (Instagram metadata is separately capped at four),
+bounded redirects, 8 MB page limits (1 MB for robots, 6 MB for images) and
+decoded-size checks for compression.
 Connect/read timeouts are at most 10 seconds, with a 60-second request/read
 deadline; OS DNS lookup time is not a hard-capped operation. Longer crawler
 delays, missing policies other than HTTP 404, or policy exclusions produce a
-paste fallback.
+paste fallback for source text. The optional image phase shares the overall
+deadline and remaining request budget, with its own maximum of six requests and
+25 seconds. Pillow validates JPEG/PNG/WebP before making a JPEG preview at most
+1600 pixels on either side; source dimensions over 8192 per side or 16 million
+pixels are rejected. Image-host requests use a separate anonymous session without
+forwarding Instagram cookies. Signed image URLs are not returned to the browser
+or recorded in traces; images are not hotlinked by the browser.
 
-HTTP 401/403/429 and network failures stop further requests to that host for the
-server session. Instagram also stops on any HTTP error or redirect. The prior
+HTTP 401/403/429 **on the actual resource**, and network failures, stop further
+requests to that host for the server session. Instagram metadata also stops on
+any HTTP error or redirect. For image-policy retrieval only, robots HTTP
+403/404/410 mean the policy file is unavailable, rather than that the image was
+refused, following [RFC 9309 section 2.3.1.3](https://www.rfc-editor.org/rfc/rfc9309.html#section-2.3.1.3).
+Explicit exclusions, policy HTTP 401/429, server/network failures and unsupported
+pattern rules still prevent image retrieval. Image-policy cache entries are
+isolated from the stricter website-policy lookup. The prior
 Simple Home Edit HTTP 403 stop is retained. These safeguards are not a guarantee
 of access or permission to reuse a creator's content. The social endpoints remain
 unsupported dependencies; the earlier research's terms/retention caveats still
@@ -85,13 +105,38 @@ Stop a foreground instance with Ctrl+C. If port 8765 is already occupied, use
 `--port 8766` and the corresponding browser URL rather than stopping an unrelated
 process. `/api/health` identifies this service as `nibbles-draft-prototype`.
 
-Python 3.13 was used. `requirements.txt` pins the direct extraction dependency;
+Python 3.13 was used. `requirements.txt` pins the extraction, transport and image dependencies;
 the prototype also imports parsing helpers from the parent `probe_sources.py`
 without running its network-probe entry point. Keep the parent research JSON/CSV
 manifests, HTML cache and three caption files available. This directory alone is
 not a self-contained portable capture bundle.
 
 ## What this experiment shows
+
+### Social thumbnail checks, 15 November 2026
+
+[social-image-validation.json](social-image-validation.json) records the sanitized
+observations. Three TikTok videos returned usable covers that were downloaded,
+decoded and converted to JPEG. Two were also visually checked against their
+visible recipe titles. Their CDN returned **403 for `/robots.txt` but 200 for the
+image**; the third cover reused the same-session policy cache. Nibbles 1.8.0
+currently stops at that policy response, before asking for the image. This is a
+demonstrated fix candidate, not an expired-link or missing-cover-metadata issue
+for those samples.
+
+The fresh Instagram attempt returned **429 during anonymous metadata retrieval**.
+No image request or further Instagram attempt was made. This does not resolve
+the earlier image-policy exclusion, prove that all Instagram thumbnails are
+unavailable, or justify bypassing it. Manual photo selection remains the reliable
+fallback when source access is restricted. No production Nibbles code or
+installer has been changed by this experiment.
+
+The subsequent user-authorized **Peekalink Free API trial** also did not
+establish usable covers: two Reels returned generic `PAGE` results, including
+an inspected all-white screenshot, and a standard `/p/` link returned HTTP 400.
+The key stayed outside the app/repository. See the authenticated trial in
+[the Instagram research](../instagram-caption-research.md) and the evidence JSON;
+the provider has not been integrated into the prototype or production app.
 
 ### Fresh URL checks
 

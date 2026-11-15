@@ -4,14 +4,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:Nibbles.Models"
              xmlns:components="clr-namespace:Nibbles.Components"
+             xmlns:local="clr-namespace:Nibbles"
              xmlns:vm="clr-namespace:Nibbles.ViewModels"
              x:DataType="vm:RecipeDetailsViewModel"
              Shell.NavBarIsVisible="False" Title="Recipe">
     <Grid Padding="24,8,24,12" RowDefinitions="Auto,*,Auto" RowSpacing="12" MaximumWidthRequest="1000" HorizontalOptions="Fill">
         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-            <Button Text="←" Style="{StaticResource QuietButton}" Clicked="Back_Clicked" SemanticProperties.Description="Back to recipe box" />
+            <Button components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowLeft}" Padding="12" Style="{StaticResource QuietButton}" Clicked="Back_Clicked" SemanticProperties.Description="Back to recipe box" ToolTipProperties.Text="Back to recipe box" />
             <Label Grid.Column="1" Text="Recipe" FontSize="18" VerticalOptions="Center" />
-            <Button Grid.Column="2" Text="Edit" Style="{StaticResource QuietButton}" Command="{Binding EditRecipeCommand}" IsVisible="{Binding CanAdd}" />
+            <Button Grid.Column="2" Text="Edit" components:ButtonIcon.Glyph="{x:Static local:IconFont.Pencil}" Style="{StaticResource QuietButton}" Command="{Binding EditRecipeCommand}" IsVisible="{Binding CanAdd}" />
         </Grid>
         <ScrollView x:Name="DetailsScroll" Grid.Row="1">
             <VerticalStackLayout Spacing="20" Padding="0,0,0,16">
@@ -22,17 +23,19 @@
                     <Image Source="{Binding Recipe.ImagePath}" HeightRequest="{OnIdiom Phone=220, Tablet=300, Desktop=340}" Aspect="AspectFill" />
                 </Border>
                 <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
-                <HorizontalStackLayout Spacing="12">
-                    <Button Text="↗  Original recipe" Style="{StaticResource SecondaryButton}" Command="{Binding OpenLinkCommand}" IsVisible="{Binding HasSourceLink}" />
-                </HorizontalStackLayout>
                 <Label x:Name="NotesLabel" Text="{Binding Recipe.Notes}" IsVisible="{Binding HasNotes}" Style="{StaticResource MutedLabel}" FontSize="15" />
                 <VerticalStackLayout Spacing="12" IsVisible="{Binding HasResume}">
                     <Label Text="Continue from earlier today" Style="{StaticResource SectionHeading}" />
-                    <Button Text="Resume cooking" Clicked="Resume_Clicked" />
                     <Button Text="Start fresh…" Style="{StaticResource QuietButton}" Clicked="StartFresh_Clicked" />
                 </VerticalStackLayout>
-                <Button Text="Start cooking" IsVisible="{Binding IsFresh}" Clicked="StartCooking_Clicked" />
-                <Button Text="{Binding ScaleLabel}" Style="{StaticResource SecondaryButton}" Clicked="Scale_Clicked" />
+                <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="Start">
+                    <Button components:ButtonIcon.Glyph="{x:Static local:IconFont.ExternalLink}" Padding="12"
+                            Style="{StaticResource SecondaryButton}" Command="{Binding OpenLinkCommand}" IsVisible="{Binding HasSourceLink}"
+                            SemanticProperties.Description="Original recipe" ToolTipProperties.Text="Original recipe" Margin="0,0,8,8" />
+                    <Button Text="Start cooking" IsVisible="{Binding IsFresh}" Clicked="StartCooking_Clicked" Margin="0,0,8,8" />
+                    <Button Text="Resume cooking" IsVisible="{Binding HasResume}" Clicked="Resume_Clicked" Margin="0,0,8,8" />
+                    <Button Text="{Binding ScaleLabel}" Style="{StaticResource SecondaryButton}" Clicked="Scale_Clicked" Margin="0,0,0,8" />
+                </FlexLayout>
                 <Label Text="Method amounts, temperatures and durations remain original." IsVisible="{Binding IsScaled}" Style="{StaticResource MutedLabel}" FontSize="13" />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                     <Button Text="Ingredients" Style="{StaticResource QuietButton}" Command="{Binding ShowIngredientsCommand}">
@@ -83,12 +86,10 @@
             </VerticalStackLayout>
         </ScrollView>
         <VerticalStackLayout Grid.Row="2" Spacing="8" IsVisible="{Binding IsIngredients}">
-        <Button x:Name="ReferenceReturnButton" IsVisible="False" Clicked="ReferenceReturn_Clicked" />
-        <Button Text="Clear checked" Style="{StaticResource QuietButton}" Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
-        <Grid ColumnDefinitions="1.6*,*" ColumnSpacing="10">
-            <Button Text="{Binding CopyLabel}" Style="{StaticResource SecondaryButton}" Command="{Binding CopyIngredientsCommand}" />
-            <Button Grid.Column="1" Text="Method →" Command="{Binding ShowMethodCommand}" />
-        </Grid>
+        <Button x:Name="ReferenceReturnButton" components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowLeft}" IsVisible="False" Clicked="ReferenceReturn_Clicked" />
+        <Button Text="Clear checked" components:ButtonIcon.Glyph="{x:Static local:IconFont.RotateCcw}" Style="{StaticResource QuietButton}" Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
+        <Button Text="{Binding CopyLabel}" components:ButtonIcon.Glyph="{x:Static local:IconFont.Copy}" HorizontalOptions="End"
+                Style="{StaticResource SecondaryButton}" Command="{Binding CopyIngredientsCommand}" />
         </VerticalStackLayout>
     </Grid>
 </ContentPage>

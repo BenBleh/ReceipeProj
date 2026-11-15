@@ -1,7 +1,7 @@
 # Nibbles redesign
 
 `Nibbles-redesign.fig` is the editable OpenPencil design, containing the approved
-1.2.0 screens and the approved revisions below, updated through 1.6.0. Open it in OpenPencil to
+1.2.0 screens and the approved revisions below, updated through 1.9.0. Open it in OpenPencil to
 continue designing. `Nibbles-overview.png`, the screen overviews,
 and `previews` provide quick references; `assets` contains the approved mascot,
 recipe-photo references, app icon, and launch artwork.
@@ -18,6 +18,131 @@ links are available on recipe details. The original pink paws are retained in
 dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
+
+## UI polish - approved and implemented in 1.9.0
+
+Page **14 - UI polish - Icons and image presentation** records the approved UI
+changes, included in the private Windows/Android 1.9.0 packages. Earlier pages
+remain historical references. These are editable static
+states, not a clickable prototype; recipe counts and preview wording are
+illustrative. Final decisions below supersede earlier alternatives on the boards.
+
+**Review update (sections 01-04):** Lucide is approved. The library tagline is
+removed, details keep their current centred crop, and the editor keeps its
+uncropped preview without the Apify/draft informational labels. Cooking omits
+the overall ingredient/group count. Sections 05-07 now annotate the final crop
+decision; the contained-details comparison is a rejected alternative, not a
+future implementation requirement.
+Section 04 also removes the bottom Back to method button: the existing tabs
+handle navigation, and the checklist viewport uses the recovered footer space.
+
+**Library:** remove the routine GitHub connection label and its footer row,
+and remove "Your recipes, ready to cook." Move Search and the recipe section
+up rather than leaving a gap; give the reclaimed space to the recipe viewport.
+Keep Refresh and Add recipe.
+Phone and Windows use a content-sized Add recipe button with a 48 px minimum
+target and 12 px footer spacing; the reclaimed space goes to the recipe viewport.
+Do not hide actionable offline/read-only, refresh or search-index failures:
+show conditional feedback below Search, with an appropriate retry action and
+the actual failure message. Remove that feedback after recovery, reserving no
+space in the healthy state. Retain transient search-indexing feedback.
+
+**Icons:** use the already bundled **Lucide** font, approved in section 01,
+rather than adding Material Symbols. The comparison board retains real vectors
+from both families; Material is not selected.
+Use the existing `IconFont` constants consistently instead of Unicode arrows,
+plus signs and ellipses; do not mix families. Use 24 px navigation icons,
+20 px inline icons, an 8 px label gap and at least 48 px touch targets.
+Keep text on important, ambiguous and destructive actions, including Refresh,
+Choose photo, Copy and Delete. Original recipe, Back, Close and More need
+accessible names, keyboard focus and desktop tooltips; decorative glyphs must
+not duplicate the spoken action label. Save uses the Lucide Save icon alongside
+its text label on phone and Windows. Cancel and tabs need no added icon.
+All buttons, including bottom-sheet actions, centre their contents horizontally
+and vertically: centre an icon-and-label pair as a single unit with an 8 px gap,
+not the label alone. Icon-only and text-only buttons are centred too. Search
+fields, recipe text and choice lists are not buttons and retain their alignment.
+
+**Section 03 controls:** make Original recipe an icon-only action beside
+Start cooking and a compact Scale control, all on one row at normal text sizes.
+Keep its 48 px target, accessible name and desktop tooltip. Move the tabs and
+ingredients up, remove the redundant bottom Method button, and retain a compact
+Copy ingredients footer with reduced padding. Method remains available through
+the existing tabs. Preserve conditional Clear checked and dynamic Copy wording;
+let actions reflow on narrow screens or with enlarged text instead of clipping.
+
+**The paw checkbox is excluded from all icon changes.** The cooking mockup
+copies the original checked/unchecked paw groups without redrawing or changing
+their geometry, colours or contents. Preserve the existing light/dark paw
+assets, interaction and accessibility semantics unchanged.
+
+| Image location | Recommendation |
+| --- | --- |
+| Library cards | Keep `AspectFill` for quick scanning, with responsive 4:3 photo slots instead of idiom-specific fixed heights; retain two-line recipe titles and search matches/excerpts. |
+| Recipe details | Retain the current centred `AspectFill` and existing heights: 220 px phone / 300 px tablet / 340 px desktop. Do not introduce the taller contained hero or the details full-photo viewer. |
+| Editor photo | Use `AspectFit` within the existing 200 px bound, Choose photo and an editor-only local full-photo view. Remove the Apify and draft-change informational labels; draft-only persistence is unchanged. |
+| Windows live preview | Use `AspectFit` within the existing 180 px image bound. |
+| Cooking mode | Keep image-free and remove the overall "11 ingredients in 3 groups" summary. Individual group progress and the original paws remain unchanged. The editor's existing live preview is separate from the actual cooking page. |
+
+Social covers often contain text near the edges. The review decision favours
+the current compact, centred crop on details, while showing the whole image
+in the editor. Website photos have no guaranteed ratio. The
+section 05 crop comparison uses an existing approved portrait reference; the
+separate 9:16 and 16:9 diagrams illustrate geometry, not additional imported assets.
+
+Library cards retain stable slots and readable titles, with a neutral image
+glyph behind the photo rather than a stretched mascot. The explicit loading/
+failure copy in section 07 is illustrative; no new native decoder-state
+tracking or provider retries were introduced. Preserve normalization, caching, import choices,
+replacement confirmation, Save-only publishing and cooking/grouping behaviour.
+Layouts must reflow for enlarged text, safe areas and keyboard navigation;
+mockup coordinates are not fixed implementation constraints.
+
+Review previews:
+
+- [Lucide and Material Symbols comparison](previews/ui-polish-icons.png)
+- [Library, light and dark](previews/ui-polish-library.png)
+- [Details: retained centred crop](previews/ui-polish-details.png)
+- [Editor, original paw checklist and crop comparison](previews/ui-polish-editor-images.png)
+- [Windows library and editor](previews/ui-polish-windows.png)
+- [Conditional feedback, image states and handoff](previews/ui-polish-handoff.png)
+
+### Bottom-sheet actions - section 08, approved and implemented
+
+The current `AppDialogs` sheets offer ingredient, group and method-step menus,
+ingredient destinations and method-to-ingredient references. Section 08 adds
+labelled Lucide examples without changing their actions or ordering:
+
+| Action | Icon |
+| --- | --- |
+| Move up / Move down | `ArrowUp` / `ArrowDown` |
+| Rename / Save name | `Pencil` / `Save` |
+| Move to group / Move N ingredients / Create & move | `Move` |
+| New group | `FolderPlus`, replacing the textual plus |
+| Remove ingredient / Remove step / Remove heading | `Trash2`, with the existing explicit destructive label and confirmation behaviour |
+| Show in ingredients (including both/all variants) | `List` |
+| Back to method within the reference sheet | `ArrowLeft`; this dismisses the overlay and is not the redundant page-level button removed from section 04 |
+
+Keep Cancel, OK, group/radio choices and ambiguous-reference choices text-only.
+Scaling is a separate modal page, not an action sheet; its Half/Original/Double
+presets need no decorative icons. Use 20 px glyphs, centred icon-and-label pairs,
+an 8 px gap and at least 48 px rows. Retain labels, dynamic counts, unavailable
+action filtering, keyboard/focus behaviour, scrolling,
+safe areas and centred Windows presentation. Group-removal wording must remain
+clear that ingredients are retained. The destination example illustrates icon
+treatment only, not a replacement for the approved page 13 flow. No new ticks,
+selection controls, duplicate Cancel buttons or paw changes are proposed.
+Action rows have filled, 14 px rounded secondary-button surfaces (white in
+light mode, dark canvas in dark mode), rather than bare label styling.
+Remove actions use danger-red fills (`#A43632` light / `#723A35` dark) and white
+icons and labels, separated from ordinary actions. Keep explicit wording:
+Remove heading removes the heading, not its ingredients.
+Use 12 px vertical gaps between related buttons, increasing to 20 px before
+Remove and between Remove and Cancel. Keep 24 px side/bottom insets plus device
+safe-area space; size sheets to content rather than leaving an oversized footer.
+Reference and destination actions use the same 12 px related-action spacing.
+
+[Bottom-sheet examples and action map](previews/ui-polish-bottom-sheets.png)
 
 ## Select and group ingredients - 1.8.0 test builds
 

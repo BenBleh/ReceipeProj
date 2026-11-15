@@ -8,6 +8,7 @@ public partial class AddEditPage : ContentPage
 {
     private bool loaded;
     private bool leaving;
+    private bool viewingPhoto;
     public string RecipeId { get; set; } = string.Empty;
 
     public AddEditPage(ReceipeAPIService service, RecipeSourceService sourceService)
@@ -68,6 +69,22 @@ public partial class AddEditPage : ContentPage
 
     private async void Cancel_Clicked(object sender, EventArgs args) => await Shell.Current.GoToAsync("..");
 
+    private async void ViewPhoto_Clicked(object sender, EventArgs args)
+    {
+        if (viewingPhoto) return;
+        viewingPhoto = true;
+        var model = (AddEditViewModel)BindingContext;
+        try
+        {
+            await Navigation.PushModalAsync(new RecipePhotoPage(model.Recipe.ImagePath ?? "", model.Recipe.Title ?? "Recipe"));
+        }
+        catch (Exception exception)
+        {
+            model.ErrorMessage = $"Could not show the photo. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+        finally { viewingPhoto = false; }
+    }
     protected override bool OnBackButtonPressed()
     {
         var viewModel = (AddEditViewModel)BindingContext;

@@ -36,7 +36,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("Content-Security-Policy",
                          "default-src 'self'; script-src 'self'; style-src 'self'; "
-                         "img-src 'none'; connect-src 'self'; base-uri 'none'; "
+                         "img-src data:; connect-src 'self'; base-uri 'none'; "
                          "form-action 'none'; frame-ancestors 'none'")
         self.end_headers()
         self.wfile.write(raw)
@@ -97,7 +97,11 @@ class Handler(BaseHTTPRequestHandler):
             elif data.get("mode") == "capture":
                 result = self.server.catalog.build(source)
             elif data.get("mode") == "live":
-                result = self.server.live_importer.build(source)
+                include_image = data.get("include_image", False)
+                if not isinstance(include_image, bool):
+                    raise DraftError("The thumbnail option must be true or false.")
+                result = (self.server.live_importer.build(source, include_image=True) if include_image
+                          else self.server.live_importer.build(source))
             else:
                 raise DraftError("Choose a live lookup, local capture or pasted text.")
             self.respond(200, result)

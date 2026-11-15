@@ -25,8 +25,10 @@ public partial class MainPageViewModel : ObservableObject
     public partial bool CanAdd { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
     public partial string StatusMessage { get; set; } = "Connecting to your recipe box…";
 
+    public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage);
     [ObservableProperty]
     public partial string SearchQuery { get; set; } = string.Empty;
 
@@ -84,7 +86,7 @@ public partial class MainPageViewModel : ObservableObject
             var master = await service.GetMasterList();
             recipes = master.Recipes ?? [];
             CanAdd = master.LoadedFromServer;
-            StatusMessage = service.StatusMessage;
+            StatusMessage = CanAdd ? "" : service.StatusMessage;
             IsIndexing = true;
             try { searchIndex = await service.BuildSearchIndex(recipes); }
             catch (Exception exception)

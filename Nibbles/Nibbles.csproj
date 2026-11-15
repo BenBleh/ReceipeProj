@@ -25,9 +25,10 @@
 		<ApplicationId>com.companyname.nibbles</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
-		<ApplicationVersion>13</ApplicationVersion>
+		<ApplicationDisplayVersion>1.9.0</ApplicationDisplayVersion>
+		<ApplicationVersion>14</ApplicationVersion>
 		<NibblesGitHubTokenFile Condition="'$(NibblesGitHubTokenFile)' == ''">$(NIBBLES_GITHUB_TOKEN_FILE)</NibblesGitHubTokenFile>
+		<NibblesApifyTokenFile Condition="'$(NibblesApifyTokenFile)' == ''">$(NIBBLES_APIFY_TOKEN_FILE)</NibblesApifyTokenFile>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
@@ -46,6 +47,8 @@
 	<ItemGroup>
 	  <EmbeddedResource Include="$(NibblesGitHubTokenFile)" LogicalName="Nibbles.GitHubToken"
 	                    Condition="'$(NibblesGitHubTokenFile)' != '' and Exists('$(NibblesGitHubTokenFile)')" />
+	  <EmbeddedResource Include="$(NibblesApifyTokenFile)" LogicalName="Nibbles.ApifyToken"
+	                    Condition="'$(NibblesApifyTokenFile)' != '' and Exists('$(NibblesApifyTokenFile)')" />
     
     <!-- App Icon -->
     <MauiIcon Include="Resources\AppIcon\appicon.png" />
@@ -115,5 +118,32 @@
     <Error Condition="'$(NibblesGitHubTokenFile)' == '' or !Exists('$(NibblesGitHubTokenFile)')"
            Text="Set NIBBLES_GITHUB_TOKEN_FILE to a private file containing the non-expiring repository-scoped token. Never commit this file or share installers publicly." />
     <ValidateNibblesGitHubToken TokenFile="$(NibblesGitHubTokenFile)" />
+  </Target>
+  <UsingTask TaskName="ValidateNibblesApifyToken" TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <TokenFile ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var matches = Regex.Matches(File.ReadAllText(TokenFile), @"apify_api_[A-Za-z0-9_-]+",
+            RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)).Cast<Match>()
+            .Select(match => match.Value).Distinct().Count();
+        if (matches != 1)
+        {
+            Log.LogError("The private Apify token file must contain exactly one distinct Apify API token. Its contents will not be logged.");
+            return false;
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="RequirePrivateApifyToken" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(NibblesApifyTokenFile)' == '' or !Exists('$(NibblesApifyTokenFile)')"
+           Text="Set NIBBLES_APIFY_TOKEN_FILE to the private Apify token file. Never commit it or share installers publicly." />
+    <ValidateNibblesApifyToken TokenFile="$(NibblesApifyTokenFile)" />
   </Target>
 </Project>

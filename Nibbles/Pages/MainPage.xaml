@@ -5,29 +5,38 @@
              xmlns:models="clr-namespace:Nibbles.Models"
              xmlns:vm="clr-namespace:Nibbles.ViewModels"
              xmlns:local="clr-namespace:Nibbles"
+             xmlns:components="clr-namespace:Nibbles.Components"
              x:DataType="vm:MainPageViewModel"
              Shell.NavBarIsVisible="False" Title="Nibbles"
              SizeChanged="Page_SizeChanged">
     <Grid Padding="24,12,24,12" RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="16"
           MaximumWidthRequest="1440" HorizontalOptions="Fill">
-        <VerticalStackLayout Spacing="12">
-            <HorizontalStackLayout Spacing="10">
+        <HorizontalStackLayout Spacing="10">
                 <Image Source="nibbles_chef.png" HeightRequest="48" WidthRequest="40" SemanticProperties.Description="Nibbles chef cat" />
                 <Label Text="Nibbles" FontSize="28" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
-            </HorizontalStackLayout>
-            <Label Text="Your recipes, ready to cook." Style="{StaticResource MutedLabel}" FontSize="15" />
-        </VerticalStackLayout>
-        <Border Grid.Row="1" Style="{StaticResource Field}">
+        </HorizontalStackLayout>
+        <VerticalStackLayout Grid.Row="1" Spacing="12">
+        <Border Style="{StaticResource Field}">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                 <Label Text="{x:Static local:IconFont.Search}" FontFamily="IconFonts" FontSize="22" VerticalOptions="Center" />
                 <Entry Grid.Column="1" Text="{Binding SearchQuery}" Placeholder="Titles, ingredients, notes and method" FontSize="14"
                        ClearButtonVisibility="WhileEditing" ReturnType="Search" SemanticProperties.Description="Search titles, ingredients, notes and method" />
             </Grid>
         </Border>
+        <Border IsVisible="{Binding HasStatusMessage}" Padding="12" StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label Text="{Binding StatusMessage}" VerticalOptions="Center" FontSize="13" />
+                <Button Grid.Column="1" Text="Retry" components:ButtonIcon.Glyph="{x:Static local:IconFont.RefreshCw}"
+                        Command="{Binding RefreshCommand}" Style="{StaticResource QuietButton}" />
+            </Grid>
+        </Border>
+        </VerticalStackLayout>
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
             <Label Text="Your recipe box" FontSize="19" VerticalOptions="Center" />
             <Label Grid.Column="1" Text="{Binding RecipeCount}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
             <Button Grid.Column="2" Text="Refresh" Style="{StaticResource QuietButton}" Command="{Binding RefreshCommand}"
+                    components:ButtonIcon.Glyph="{x:Static local:IconFont.RefreshCw}"
                     SemanticProperties.Description="Refresh recipes from GitHub" />
         </Grid>
         <RefreshView Grid.Row="3" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
@@ -49,8 +58,13 @@
                     <DataTemplate x:DataType="models:RecipeListItem">
                         <Border StrokeThickness="0">
                             <Grid RowDefinitions="Auto,Auto,Auto,Auto">
-                                <Image Source="{Binding ImageData}" Aspect="AspectFill" HeightRequest="{OnIdiom Phone=152, Tablet=180, Desktop=210}"
-                                       SemanticProperties.Description="{Binding Title, StringFormat='Recipe image for {0}'}" />
+                                <Grid>
+                                    <Label Text="{x:Static local:IconFont.Image}" FontFamily="IconFonts" FontSize="32"
+                                           HorizontalOptions="Center" VerticalOptions="Center" Style="{StaticResource MutedLabel}"
+                                           AutomationProperties.IsInAccessibleTree="False" />
+                                    <Image Source="{Binding ImageData}" Aspect="AspectFill" HeightRequest="132" SizeChanged="RecipeImage_SizeChanged"
+                                           SemanticProperties.Description="{Binding Title, StringFormat='Recipe image for {0}'}" />
+                                </Grid>
                                 <Label Grid.Row="1" Text="{Binding Title}" Margin="12,12,12,14"
                                        FontSize="14" MaxLines="2" MinimumHeightRequest="40" LineBreakMode="TailTruncation" />
                                 <Label Grid.Row="2" Text="{Binding MatchLabel}" IsVisible="{Binding HasMatch}" Margin="12,0,12,8"
@@ -65,8 +79,8 @@
         </RefreshView>
         <VerticalStackLayout Grid.Row="4" Spacing="8">
             <Label Text="Updating recipe search…" IsVisible="{Binding IsIndexing}" Style="{StaticResource MutedLabel}" FontSize="12" />
-            <Button Text="+  Add recipe" HorizontalOptions="End" Clicked="AddButton_Clicked" IsEnabled="{Binding CanAdd}" />
-            <Label Text="{Binding StatusMessage}" Style="{StaticResource MutedLabel}" FontSize="11" HorizontalTextAlignment="Center" />
+            <Button Text="Add recipe" components:ButtonIcon.Glyph="{x:Static local:IconFont.Plus}"
+                    Padding="12,10" HorizontalOptions="End" Clicked="AddButton_Clicked" IsEnabled="{Binding CanAdd}" />
         </VerticalStackLayout>
         <Border Grid.RowSpan="5" IsVisible="{Binding IsBusy}" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light=#E6F7F5F0, Dark=#E6172320}">
             <VerticalStackLayout VerticalOptions="Center" Spacing="12">

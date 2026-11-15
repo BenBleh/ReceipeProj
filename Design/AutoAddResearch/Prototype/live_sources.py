@@ -1,4 +1,4 @@
-"""Explicit, bounded public-source lookups. No login, media or recipe storage."""
+"""Explicit, bounded public-source lookups. No login or recipe storage."""
 
 import contextlib
 import datetime
@@ -17,7 +17,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.exceptions import HTTPError as ResponseError
 
-from drafts import DraftError, caption_draft, source_key, tiktok_draft, website_draft
+from drafts import DraftError, caption_draft, matched_tiktok_item, source_key, tiktok_draft, website_draft
 from probe_sources import AGENT
 
 
@@ -53,9 +53,12 @@ def host_key(host):
 
 
 class PublicAdapter(HTTPAdapter):
-    def __init__(self, owner, instagram=False):
+    def __init__(self, owner, instagram=False, image_fetch=False):
         self.owner = owner
         self.instagram = instagram
+        self.image_fetch = image_fetch
+        self.policy_request = False
+        self.request_limit = 4 if instagram else 10
         self.trace = []
         self.deadline = time.monotonic() + 60
         super().__init__(max_retries=0)
@@ -78,8 +81,7 @@ class PublicAdapter(HTTPAdapter):
             raise DraftError("Unsupported source request method.")
         if key in self.owner.stopped:
             raise DraftError(self.owner.stopped[key])
-        budget = 4 if self.instagram else 10
-        if len(self.trace) >= budget:
+        if len(self.trace) >= self.request_limit:
             raise DraftError("The live lookup reached its request limit; paste the source text instead.")
         delay = max(0, self.owner.next_request.get(key, 0) - time.monotonic())
         if delay > 10:
@@ -93,21 +95,33 @@ class PublicAdapter(HTTPAdapter):
         request.headers["Accept-Encoding"] = "identity"
         kwargs.update(stream=True, timeout=(min(10, remaining), min(10, remaining)),
                       verify=True, cert=None, proxies={})
-        event = {"method": request.method, "host": host, "path": parsed.path}
+        policy_request = self.policy_request if self.image_fetch else parsed.path == "/robots.txt"
+        role = ("policy" if policy_request else "image" if self.image_fetch
+                else "metadata" if self.instagram else "source")
+        event = {"method": request.method, "host": host,
+                 "path": f"/[{role}]" if self.image_fetch and parsed.path != "/robots.txt" else parsed.path,
+                 "role": role}
         self.trace.append(event)
         self.owner.next_request[key] = time.monotonic() + 1
         try:
             response = super().send(request, **kwargs)
             event["status"] = response.status_code
+            event["content_type"] = response.headers.get("Content-Type", "").split(";", 1)[0]
             with response:
                 status = response.status_code
-                if status in {401, 403, 429} or (self.instagram and status >= 300):
+                unavailable_policy = (self.image_fetch and policy_request
+                                      and status in {403, 404, 410})
+                if unavailable_policy:
+                    event["policy_result"] = "unavailable-rfc9309-2.3.1.3"
+                if ((status in {401, 403, 429} and not unavailable_policy)
+                        or (self.instagram and status >= 300)):
                     reason = f"This host returned HTTP {status}; further lookups are stopped for this server session."
                     self.owner.stopped[key] = reason
                     raise DraftError(reason)
-                if status >= 400 and status != 404:
+                if status >= 400 and status != 404 and not unavailable_policy:
                     raise DraftError(f"The source returned HTTP {status}.")
-                limit = 1_000_000 if parsed.path.rstrip("/") == "/robots.txt" else BODY_LIMIT
+                limit = (1_000_000 if policy_request
+                         else 6_000_000 if self.image_fetch else BODY_LIMIT)
                 encoding = response.headers.get("Content-Encoding", "").lower()
                 if encoding not in {"", "identity", "gzip", "deflate"}:
                     raise DraftError("The source returned an unsupported content encoding.")
@@ -186,10 +200,11 @@ class LiveImporter:
         self.next_request = {}
         self.stopped = {"simplehomeedit.com": "This host returned HTTP 403 in the research trial; live requests remain stopped."}
 
-    def robots_for(self, url, session, adapter):
+    def robots_for(self, url, session, adapter, unavailable_statuses=(404,)):
         parsed, host = public_url(url)
         origin = "https://" + parsed.netloc
-        cached = self.robots.get(origin)
+        cache_key = (origin, unavailable_statuses)
+        cached = self.robots.get(cache_key)
         if cached and time.monotonic() - cached[0] < 3600:
             robot = cached[1]
         else:
@@ -205,17 +220,20 @@ class LiveImporter:
                     if attempt == 2:
                         raise DraftError("The robots policy redirected too many times; source not requested.")
                     continue
-                if response.status_code == 404:
+                if response.status_code in unavailable_statuses:
                     robot = None
                 elif response.status_code == 200:
                     if re.search(r"<(?:!doctype|html)\b", response.text[:1000], re.I):
                         raise DraftError("The robots policy returned HTML; source not requested.")
+                    if adapter.image_fetch and re.search(
+                            r"(?im)^\s*(?:allow|disallow)\s*:[^\r\n#]*[*$]", response.text):
+                        raise DraftError("The image robots policy has pattern rules this prototype cannot safely evaluate.")
                     robot = urllib.robotparser.RobotFileParser()
                     robot.parse(response.text.splitlines())
                 else:
                     raise DraftError("The robots policy is unavailable; source not requested.")
                 break
-            self.robots[origin] = (time.monotonic(), robot)
+            self.robots[cache_key] = (time.monotonic(), robot)
         if robot is not None:
             if not robot.can_fetch(AGENT, url):
                 raise DraftError("The site's robots policy excludes this URL; paste its recipe text instead.")
@@ -259,12 +277,14 @@ class LiveImporter:
                 return response, url
         raise DraftError("No source page was returned.")
 
-    def build(self, source):
+    def build(self, source, include_image=False):
         parsed, host = public_url(source)
         if not self.lock.acquire(blocking=False):
             raise DraftError("Another live lookup is running. Wait for it to finish before trying another URL.")
         instagram = host_key(host) == "instagram.com"
         adapter = PublicAdapter(self, instagram=instagram)
+        image_candidates = []
+        image_metadata_error = None
         try:
             if instagram:
                 key = source_key(source)
@@ -278,6 +298,14 @@ class LiveImporter:
                         if post.shortcode != shortcode:
                             raise DraftError("Instagram returned a different post identity.")
                         caption = post.caption
+                        if include_image:
+                            try:
+                                preview = getattr(post, "url", None)
+                                if isinstance(preview, str) and preview:
+                                    image_candidates.append(preview)
+                            except (DraftError, KeyError, instaloader.InstaloaderException):
+                                image_metadata_error = "Instagram cover metadata was unavailable; recipe text was kept."
+                                self.stopped.setdefault("instagram.com", image_metadata_error)
                 except instaloader.InstaloaderException as error:
                     self.stopped["instagram.com"] = "Anonymous Instagram lookup failed; further lookups are stopped for this server session."
                     raise DraftError(self.stopped["instagram.com"]) from error
@@ -293,6 +321,17 @@ class LiveImporter:
                 result = (tiktok_draft(response.text, url, tiktok_identity(url)) if tiktok
                           else website_draft(response.text, url))
                 platform = "tiktok" if tiktok else "website"
+                if include_image and tiktok:
+                    video = matched_tiktok_item(response.text, tiktok_identity(url)).get("video")
+                    if isinstance(video, dict):
+                        image_candidates = [video[name] for name in ("cover", "originCover")
+                                            if isinstance(video.get(name), str) and video[name]]
+            if include_image:
+                from source_images import probe_thumbnail
+                result["image"] = ({"status": "unavailable", "failed_stage": "metadata",
+                                    "reason": image_metadata_error} if image_metadata_error else
+                                   probe_thumbnail(self, image_candidates, url, adapter.deadline,
+                                                   max(0, 10 - len(adapter.trace))))
             result["evidence"].update(
                 platform=platform, captured_source=False, live_source=True,
                 requested_source=source, resolved_source=url,

@@ -91,6 +91,13 @@
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="Padding" Value="16,10" />
     </Style>
+    <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#A43632, Dark=#723A35}" />
+        <Setter Property="TextColor" Value="White" />
+    </Style>
+    <Style x:Key="SheetButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource DarkCanvas}}" />
+    </Style>
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource DarkInk}}" />
     </Style>

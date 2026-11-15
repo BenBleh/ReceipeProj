@@ -2,3 +2,4 @@ recipe-scrapers==15.13.0
 instaloader==4.16
 requests==2.34.2
 urllib3==2.8.0
+Pillow==13.0.0

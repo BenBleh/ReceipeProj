@@ -4,6 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:Nibbles.Models"
              xmlns:components="clr-namespace:Nibbles.Components"
+             xmlns:local="clr-namespace:Nibbles"
              xmlns:vm="clr-namespace:Nibbles.ViewModels"
              x:DataType="vm:RecipeDetailsViewModel"
              Shell.NavBarIsVisible="False" Title="Cooking mode" SizeChanged="Page_SizeChanged">
@@ -11,7 +12,7 @@
           MaximumWidthRequest="1440" HorizontalOptions="Fill">
         <Grid ColumnDefinitions="*,Auto">
             <Label Text="Cooking mode" FontSize="18" VerticalOptions="Center" />
-            <Button Grid.Column="1" Text="Exit" Style="{StaticResource QuietButton}" Clicked="Exit_Clicked" />
+            <Button Grid.Column="1" Text="Exit" components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowLeft}" Style="{StaticResource QuietButton}" Clicked="Exit_Clicked" />
         </Grid>
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
@@ -68,11 +69,9 @@
             </ScrollView>
         </Grid>
         <VerticalStackLayout Grid.Row="5" Spacing="10">
-            <Grid HeightRequest="48">
-                <Button Text="Clear checked" Style="{StaticResource SecondaryButton}" Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
-            </Grid>
-            <Button x:Name="MethodButton" Text="Back to method →" Command="{Binding ShowMethodCommand}" />
-            <Button x:Name="ReferenceReturnButton" IsVisible="False" Clicked="ReferenceReturn_Clicked" />
+            <Button Text="Clear checked" components:ButtonIcon.Glyph="{x:Static local:IconFont.RotateCcw}" Style="{StaticResource SecondaryButton}"
+                    Command="{Binding ClearChecksCommand}" IsVisible="{Binding HasChecks}" />
+            <Button x:Name="ReferenceReturnButton" components:ButtonIcon.Glyph="{x:Static local:IconFont.ArrowLeft}" IsVisible="False" Clicked="ReferenceReturn_Clicked" />
         </VerticalStackLayout>
     </Grid>
 </ContentPage>

@@ -41,6 +41,15 @@ public partial class MainPage : ContentPage
     private void Page_SizeChanged(object sender, EventArgs args)
         => UpdateGrid();
 
+    private void RecipeImage_SizeChanged(object sender, EventArgs args)
+    {
+        if (sender is Image image && image.Width > 0)
+        {
+            var height = image.Width * .75;
+            if (Math.Abs(image.HeightRequest - height) > 1)
+                image.HeightRequest = height;
+        }
+    }
     private void UpdateGrid()
     {
         if (RecipeGrid is not null && BindingContext is MainPageViewModel model)

@@ -4,6 +4,22 @@ Vehicle to practice API creation and Agular/Typescript sites!
 The approved Nibbles redesign, assets, ingredient-group schema, and deployment
 notes are in [Design](Design/README.md).
 
+## UI polish and social covers (1.9.0 private builds)
+
+Page 14's approved UI is implemented: bundled Lucide action icons, centred
+button contents, compact library/footer controls, and filled bottom-sheet
+buttons with separated danger-red removal actions. The routine connection label
+and library tagline are removed; actionable failures remain visible. Details
+retain their centred photo crop and use one source/cooking/scale row. Tabs
+replace redundant Method navigation. Editor previews show the full image and
+offer a local full-photo view. The original paw checkboxes are unchanged.
+
+The private Windows x64 installer and Android APK (version code 14, ARM64/x64)
+are under `artifacts\Nibbles\1.9.0`. They include the Apify-backed Instagram and
+TikTok importer below, with the existing Android signing identity retained.
+These outputs contain private credentials and must not be uploaded publicly.
+Older installer versions are retained.
+
 ## Ingredient selection (1.8.0 test builds)
 
 The Ingredients editor now supports selecting one or many existing rows and
@@ -50,16 +66,23 @@ Before any build or publish, set a local environment variable:
 
 ```powershell
 $env:NIBBLES_GITHUB_TOKEN_FILE = 'C:\private\NibblesAccessToken.txt'
+$env:NIBBLES_APIFY_TOKEN_FILE = 'C:\private\ApifyAccessToken.txt'
 ```
 
-The file must contain only a fine-grained personal access token: resource owner
+The GitHub file must contain only a fine-grained personal access token: resource owner
 `BenBleh`, selected repository `rfiles`, **Contents: Read and write**, and
 **No expiration**. Never commit this file. The build embeds it directly from
 the external input and rejects missing or malformed credentials without
 printing them; `-p:NibblesGitHubTokenFile=...` is also supported.
 Use private build machines and avoid publishing build outputs/logs.
 
-**The token can be extracted from the app. Keep APKs, Windows installers and
+The Apify input must contain exactly one distinct `apify_api_...` token (a label
+is allowed); `-p:NibblesApifyTokenFile=...` is also supported. Both inputs are
+required for new builds and remain outside the repository. Apify access is sent
+only in Authorization headers to `api.apify.com`, never to source websites,
+CDNs or actor inputs. Replacing either embedded key requires rebuilding.
+
+**The tokens can be extracted from the app. Keep APKs, Windows installers and
 publish folders private.** Non-expiring tokens can still be revoked or removed
 by GitHub; replacing one requires rebuilding and installing the app.
 Do not upload these installers as public release assets.
@@ -76,12 +99,17 @@ API site/application pool. Do not reset or force-push over app changes.
 iOS uses the same storage implementation and its native image encoder; building
 and signing iOS still requires a Mac.
 
-## On-device source fetching (1.8.0 test builds)
+## On-device source fetching (1.9.0 private builds)
+
+Instagram/TikTok now use the Apify-backed flow below. The older 1.8.0
+installers retain the previous direct-social implementation.
 
 In the existing recipe editor, enter a public HTTPS recipe website or
 Instagram/TikTok post URL in **Source**, then press **Fetch**. Fetching and
-deterministic parsing run inside the app; no extra service, Python installation,
-source-account login or paid AI is required. Website Recipe JSON-LD and public
+deterministic parsing run inside the app. Websites are fetched directly;
+Instagram/TikTok links are sent to Apify using the private build credential.
+No backend we operate, Python installation, source-account login or paid AI is
+required. Website Recipe JSON-LD and public
 post captions are supported, not video/audio transcription.
 Manual source text is still valid and does not trigger a request.
 
@@ -95,21 +123,41 @@ or fetched-text viewer.
 
 Fetch also attempts a cover photo when none has been chosen. Websites prefer
 the matched Recipe JSON-LD image, with an Open Graph preview fallback.
-Instagram uses the matched post/Reel preview (the first item for a carousel);
-TikTok uses the matched video's cover. Public access is best-effort: blocked,
+Instagram uses the exact matched post/Reel preview;
+TikTok uses the exact matched video's cover. Social metadata is obtained through
+platform-specific Apify actors; both use the same zero-retry stored-image
+downloader. The app retrieves authenticated Apify storage bytes and checks the
+manifest's source association, attempt count, size and SHA-256, never following
+its arbitrary storage/CDN URL. Short TikTok links additionally require the actor
+to echo the submitted link and return a consistent canonical video ID.
+Public access is best-effort: blocked,
 missing or unsupported images leave the recipe text usable and show a photo
 warning. Existing photos are never replaced automatically. Images are downloaded,
 decoded and converted locally to a bounded JPEG, staged in the editor and only
 stored by normal Save; no expiring source-image URL is needed for offline use.
 
+Social lookups require a verified non-paying Apify **Free** account and enough
+remaining credit for their caps: up to $0.03 for one post's metadata, plus up to
+$0.05 for an optional stored cover. Normal sampled costs are much smaller;
+these caps are maximum run charges, not the expected cost. No paid-plan fallback,
+video downloads, transcripts, related-video crawl, automatic submission retries
+or provider rotation is enabled. Access/rate refusals stop Apify requests until
+restart. Cancellation attempts to abort a known active run; already-started
+work can still consume credit and remains bounded by its timeout and charge cap.
+An interrupted submission is never automatically repeated. Apify's Free storage
+is temporary (seven days on the tested account), so chosen images are copied into
+recipe storage only through normal Save. Sending a public link to a provider
+does not grant rights to the creator's image; respect source/creator permissions.
+
 Social access and caption interpretation remain best-effort. Missing fields
 are not invented, and apparently complete results can still need corrections.
 Private/local addresses, oversized responses and excessive requests are refused;
 restricted hosts are not automatically retried. iOS device validation requires
-a Mac. Private 1.8.0 test installers include photo fetching and ingredient
-selection; existing 1.7.0 and 1.6.0 artifacts are retained. The sampled social
-image hosts restricted live downloads during verification; caption imports
-remained available, so social thumbnails are not guaranteed.
+a Mac. Private 1.9.0 installers include the Apify integration, photo fetching,
+ingredient selection and approved UI polish. Earlier bounded
+Apify trials retrieved and visually verified two Instagram and two TikTok recipe
+covers, recorded in `Design/AutoAddResearch/instagram-caption-research.md`.
+Those samples do not guarantee availability for every post.
 
 ## Method ingredient links (1.4.0)
 
