@@ -61,14 +61,42 @@
                         Style="{StaticResource SecondaryButton}" />
             </VerticalStackLayout>
             <ScrollView Grid.Row="1" x:Name="FormScroll">
-                <VerticalStackLayout Spacing="20" IsEnabled="{Binding IsEditingEnabled}" Padding="0,0,0,20">
-                    <VerticalStackLayout IsVisible="{Binding IsDetails}" Spacing="16">
-                        <Label Text="The recipe details" Style="{StaticResource PageHeading}" />
+                <VerticalStackLayout Spacing="20" Padding="0,0,0,20">
+                    <Border IsVisible="{Binding HasSourceStatus}" Padding="16" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}">
+                        <VerticalStackLayout Spacing="12">
+                            <ActivityIndicator IsRunning="{Binding IsFetchingSource}" IsVisible="{Binding IsFetchingSource}" />
+                            <Label Text="{Binding SourceStatus}" SemanticProperties.Description="{Binding SourceStatus}" AutomationId="SourceStatus" />
+                            <Button Text="Cancel fetch" Command="{Binding CancelFetchCommand}" IsVisible="{Binding IsFetchingSource}"
+                                    Style="{StaticResource QuietButton}" AutomationId="CancelSourceFetch" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <VerticalStackLayout IsVisible="{Binding IsDetails}" IsEnabled="{Binding IsEditingEnabled}" Spacing="16">
                         <Label Text="Recipe title *" FontFamily="OpenSansSemibold" />
                         <Border Style="{StaticResource Field}"><Entry Text="{Binding Recipe.Title}" Placeholder="What are we cooking?" SemanticProperties.Description="Recipe title, required" /></Border>
-                        <Label Text="Original source" FontFamily="OpenSansSemibold" />
-                        <Border Style="{StaticResource Field}"><Entry Text="{Binding Recipe.Source}" Placeholder="Website, Instagram, TikTok, or your own recipe" Keyboard="Url" /></Border>
-                        <Label Text="Keep a link so you can always find the original." Style="{StaticResource MutedLabel}" />
+                        <Label Text="Original link or source" FontFamily="OpenSansSemibold" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <Border Style="{StaticResource Field}">
+                                <Entry Text="{Binding Recipe.Source}" Placeholder="Website, Instagram, TikTok, or your own recipe"
+                                       Keyboard="Url" SemanticProperties.Description="Original source URL or manual source"
+                                       AutomationId="RecipeSource" />
+                            </Border>
+                            <Button Grid.Column="1" Text="Fetch" Command="{Binding FetchSourceCommand}" VerticalOptions="Start"
+                                    MinimumWidthRequest="84" AutomationId="FetchSource" />
+                        </Grid>
+                        <Button Text="Paste source text" Command="{Binding PasteSourceTextCommand}" Style="{StaticResource QuietButton}" HorizontalOptions="Start" />
+                        <VerticalStackLayout IsVisible="{Binding IsPastingSource}" Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Paste caption or recipe text" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
+                                <Button Grid.Column="1" Text="Cancel" Command="{Binding CancelPasteSourceCommand}" Style="{StaticResource QuietButton}" />
+                            </Grid>
+                            <Border Style="{StaticResource Field}">
+                                <Editor Text="{Binding PastedSource}" Placeholder="Paste the expanded description, ingredients and method here..."
+                                        MinimumHeightRequest="160" MaximumHeightRequest="260" MaxLength="100000"
+                                        SemanticProperties.Description="Source text to turn into editable recipe fields" AutomationId="PastedSource" />
+                            </Border>
+                            <Button Text="Use pasted text" Command="{Binding UsePastedSourceCommand}" AutomationId="UsePastedSource" />
+                        </VerticalStackLayout>
                         <Label Text="Cover photo" FontFamily="OpenSansSemibold" />
                         <Border StrokeThickness="0"><Image Source="{Binding Recipe.ImagePath}" HeightRequest="200" Aspect="AspectFill" /></Border>
                         <Button Text="Choose photo" Style="{StaticResource SecondaryButton}" Command="{Binding GetImageCommand}" HorizontalOptions="Start" />
@@ -76,7 +104,7 @@
                         <Border Style="{StaticResource Field}"><Editor Text="{Binding Recipe.Notes}" Placeholder="Family favourites, substitutions, or a tip for next time…" MinimumHeightRequest="100" /></Border>
                         <Button Text="Next: Ingredients →" Command="{Binding SelectSectionCommand}" CommandParameter="1" />
                     </VerticalStackLayout>
-                    <VerticalStackLayout IsVisible="{Binding IsIngredients}" Spacing="18">
+                    <VerticalStackLayout IsVisible="{Binding IsIngredients}" IsEnabled="{Binding IsEditingEnabled}" Spacing="18">
                         <Label Text="{Binding Recipe.Title}" Style="{StaticResource PageHeading}" />
                         <Grid ColumnDefinitions="*,Auto">
                             <VerticalStackLayout Spacing="4">
@@ -125,8 +153,7 @@
                         <Button Text="+ Add ingredient group" Style="{StaticResource SecondaryButton}" Command="{Binding AddGroupCommand}" />
                         <Button Text="Next: Method →" Command="{Binding SelectSectionCommand}" CommandParameter="2" />
                     </VerticalStackLayout>
-                    <VerticalStackLayout IsVisible="{Binding IsMethod}" Spacing="16">
-                        <Label Text="Make it yours" Style="{StaticResource PageHeading}" />
+                    <VerticalStackLayout IsVisible="{Binding IsMethod}" IsEnabled="{Binding IsEditingEnabled}" Spacing="16">
                         <Label Text="One clear instruction per step. Use ⋯ to reorder or remove a step." Style="{StaticResource MutedLabel}" />
                         <VerticalStackLayout Spacing="16" BindableLayout.ItemsSource="{Binding Recipe.Steps}">
                             <BindableLayout.ItemTemplate>

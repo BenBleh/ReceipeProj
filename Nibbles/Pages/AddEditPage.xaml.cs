@@ -10,10 +10,10 @@ public partial class AddEditPage : ContentPage
     private bool leaving;
     public string RecipeId { get; set; } = string.Empty;
 
-    public AddEditPage(ReceipeAPIService service)
+    public AddEditPage(ReceipeAPIService service, RecipeSourceService sourceService)
     {
         InitializeComponent();
-        BindingContext = new AddEditViewModel(service);
+        BindingContext = new AddEditViewModel(service, sourceService);
     }
 
     protected override async void OnAppearing()

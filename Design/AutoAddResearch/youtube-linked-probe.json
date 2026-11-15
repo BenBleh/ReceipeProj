@@ -1,0 +1,21 @@
+{
+  "recipe_id": "b0b64721-75bc-4ee8-81c3-2039ef2ebc8b",
+  "checked_at_utc": "2026-11-13T03:21:58.152738+00:00",
+  "source": "YouTube video description links to creator website; upgraded explicit http link to https",
+  "events": [
+    {
+      "url": "https://www.recipetineats.com/nutella-crepes-with-strawberries/",
+      "status": 200,
+      "outcome": "structured_recipe_found",
+      "html_sha256": "320c579ada8edf0aa68665db3271cceeddd9016f1721a6246e1c6b665f3238d4",
+      "recipes": [
+        {
+          "name": "Nutella Cr\u00eapes",
+          "ingredient_lines": 11,
+          "steps": 12,
+          "image_available": true
+        }
+      ]
+    }
+  ]
+}

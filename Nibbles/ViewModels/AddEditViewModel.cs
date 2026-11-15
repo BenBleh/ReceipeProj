@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Nibbles.Models;
 using Nibbles.Services;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text.Json;
 
 namespace Nibbles.ViewModels;
@@ -10,6 +11,9 @@ namespace Nibbles.ViewModels;
 public partial class AddEditViewModel : ObservableObject
 {
     private readonly ReceipeAPIService service;
+    private readonly RecipeSourceService sourceService;
+    private Recipe? observedRecipe;
+    private CancellationTokenSource? sourceRequest;
     private string original = string.Empty;
     private string? selectedPhotoPath;
     private bool isNew = true;
@@ -55,13 +59,43 @@ public partial class AddEditViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ReconnectCommand))]
     public partial bool HasUnconfirmedSave { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+    [NotifyCanExecuteChangedFor(nameof(FetchSourceCommand))]
+    [NotifyCanExecuteChangedFor(nameof(UsePastedSourceCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReconnectCommand))]
+    public partial bool IsFetchingSource { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+    [NotifyPropertyChangedFor(nameof(CanLeave))]
+    [NotifyCanExecuteChangedFor(nameof(FetchSourceCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CancelFetchCommand))]
+    [NotifyCanExecuteChangedFor(nameof(UsePastedSourceCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReconnectCommand))]
+    public partial bool IsApplyingSource { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSourceStatus))]
+    public partial string SourceStatus { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsPastingSource { get; set; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UsePastedSourceCommand))]
+    public partial string PastedSource { get; set; } = "";
+
     public ObservableCollection<IngredientSection> IngredientSections { get; } = [];
     public bool IsDetails => SelectedSection == 0;
     public bool IsIngredients => SelectedSection == 1;
     public bool IsMethod => SelectedSection == 2;
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-    public bool IsEditingEnabled => IsReady && !IsSaving && IsOnline && !HasUnconfirmedSave;
-    public bool CanLeave => !IsSaving && !HasUnconfirmedSave;
+    public bool IsEditingEnabled => IsReady && !IsSaving && IsOnline && !HasUnconfirmedSave && !IsFetchingSource && !IsApplyingSource;
+    public bool HasSourceStatus => !string.IsNullOrEmpty(SourceStatus);
+    public bool CanLeave => !IsSaving && !HasUnconfirmedSave && !IsApplyingSource;
     public bool NeedsReconnect => !IsOnline && !HasUnconfirmedSave;
     public string SaveLabel => HasUnconfirmedSave ? "Check save" : "Save";
     public string EditorTitle => isNew ? "Add a recipe" : "Edit recipe";
@@ -69,17 +103,141 @@ public partial class AddEditViewModel : ObservableObject
         $"{Recipe.Ingredients.Count} {(Recipe.Ingredients.Count == 1 ? "ingredient" : "ingredients")} / " +
         $"{Recipe.IngredientGroups.Count} {(Recipe.IngredientGroups.Count == 1 ? "group" : "groups")}";
     public bool HasUnsavedChanges => selectedPhotoPath is not null || JsonSerializer.Serialize(Recipe) != original;
-    private bool CanSave => IsReady && !IsSaving && (HasUnconfirmedSave || IsOnline);
-    private bool CanReconnect => !IsSaving && NeedsReconnect;
+    private bool CanSave => IsReady && !IsSaving && !IsFetchingSource && !IsApplyingSource && (HasUnconfirmedSave || IsOnline);
+    private bool CanReconnect => !IsSaving && !IsFetchingSource && !IsApplyingSource && NeedsReconnect;
+    private bool CanFetchSource => IsEditingEnabled && RecipeSourceService.TrySourceUrl(Recipe.Source, out _);
+    private bool CanUsePastedSource => IsEditingEnabled && !string.IsNullOrWhiteSpace(PastedSource);
+    private bool CanCancelFetch => !IsApplyingSource;
 
-    public AddEditViewModel(ReceipeAPIService service)
+    public AddEditViewModel(ReceipeAPIService service, RecipeSourceService sourceService)
     {
         this.service = service;
+        this.sourceService = sourceService;
+        ObserveRecipe(Recipe);
+        PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(IsEditingEnabled))
+            {
+                FetchSourceCommand.NotifyCanExecuteChanged();
+                UsePastedSourceCommand.NotifyCanExecuteChanged();
+            }
+        };
         RefreshAccess();
         Recipe.Ingredients.Add(new Ingredient());
         Recipe.Steps.Add(new Step());
         RefreshSections();
         original = JsonSerializer.Serialize(Recipe);
+    }
+
+    partial void OnRecipeChanged(Recipe value) => ObserveRecipe(value);
+
+    private void ObserveRecipe(Recipe value)
+    {
+        if (observedRecipe is not null) observedRecipe.PropertyChanged -= RecipeChanged;
+        observedRecipe = value;
+        observedRecipe.PropertyChanged += RecipeChanged;
+        FetchSourceCommand.NotifyCanExecuteChanged();
+    }
+
+    private void RecipeChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(Recipe.Source)) FetchSourceCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanFetchSource), AllowConcurrentExecutions = true)]
+    private async Task FetchSource()
+    {
+        var request = new CancellationTokenSource();
+        sourceRequest = request;
+        var source = Recipe.Source!;
+        SourceStatus = "Reading the source... Your recipe stays unchanged while we fetch.";
+        IsFetchingSource = true;
+        try
+        {
+            var draft = await sourceService.FetchAsync(source, request.Token);
+            if (sourceRequest != request || request.IsCancellationRequested) return;
+            IsApplyingSource = true;
+            IsFetchingSource = false;
+            await ApplySourceDraft(draft);
+        }
+        catch (OperationCanceledException) when (request.IsCancellationRequested)
+        {
+            // CancelFetch already restored editing; an older result cannot replace the draft.
+        }
+        catch (Exception exception)
+        {
+            if (sourceRequest != request) return;
+            SourceStatus = $"Could not fetch this source. {exception.Message}\nYour recipe is unchanged. Paste the caption or recipe text instead.";
+            IsPastingSource = true;
+            System.Diagnostics.Debug.WriteLine($"Source fetch failed: {exception.GetType().Name}");
+        }
+        finally
+        {
+            if (sourceRequest == request)
+            {
+                sourceRequest = null;
+                IsFetchingSource = false;
+                IsApplyingSource = false;
+            }
+            request.Dispose();
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCancelFetch))]
+    public void CancelFetch()
+    {
+        var request = sourceRequest;
+        sourceRequest = null;
+        request?.Cancel();
+        IsFetchingSource = false;
+        if (request is not null) SourceStatus = "Fetch cancelled. Your recipe is unchanged.";
+    }
+
+    [RelayCommand]
+    private void PasteSourceText() => IsPastingSource = true;
+
+    [RelayCommand]
+    private void CancelPasteSource() => IsPastingSource = false;
+
+    [RelayCommand(CanExecute = nameof(CanUsePastedSource))]
+    private async Task UsePastedSource()
+    {
+        IsApplyingSource = true;
+        try
+        {
+            var caption = PastedSource;
+            var draft = await Task.Run(() => RecipeSourceParser.Caption(caption));
+            await ApplySourceDraft(draft);
+        }
+        catch (Exception exception)
+        {
+            SourceStatus = $"Could not use this text. {exception.Message}\nYour recipe is unchanged.";
+            System.Diagnostics.Debug.WriteLine($"Pasted source parsing failed: {exception.GetType().Name}");
+        }
+        finally { IsApplyingSource = false; }
+    }
+
+    private async Task ApplySourceDraft(RecipeSourceDraft draft)
+    {
+        if (RecipeSourceDraft.HasRecipeText(Recipe))
+        {
+            var missing = draft.MissingFields.Length == 0 ? "" :
+                $"\nMissing {draft.MissingFields}: those fields will be cleared and must be filled before saving.";
+            if (!await AppDialogs.ConfirmAsync(Page, "Replace recipe text?",
+                $"Title, ingredients, groups and method will replace your current draft.\n{draft.Summary}.{missing}\nYour notes and photo will be kept.",
+                "Replace text", "Keep editing", destructive: true))
+            {
+                SourceStatus = "Kept your current recipe. No fetched or pasted text was applied.";
+                return;
+            }
+        }
+        draft.ApplyTo(Recipe);
+        RefreshSections();
+        OnPropertyChanged(nameof(Recipe));
+        IsPastingSource = false;
+        SourceStatus = (draft.MissingFields.Length == 0 ? "Ready to save or edit." : "Partial result. Add the missing recipe content.") +
+            $"\n{draft.Summary}" + (draft.Warnings.Count == 0 ? "" : "\n" + string.Join("\n", draft.Warnings));
+        SelectedSection = 0;
     }
 
     public Task BeginNewRecipe() => service.BeginNewRecipe(Recipe);
@@ -160,13 +318,14 @@ public partial class AddEditViewModel : ObservableObject
 
     public async Task<bool> ConfirmDiscardAsync()
     {
-        if (IsSaving)
+        if (IsSaving || IsApplyingSource)
             return false;
         if (HasUnconfirmedSave)
         {
             ErrorMessage = "Check whether your save completed before leaving.";
             return false;
         }
+        CancelFetch();
         return !HasUnsavedChanges || await AppDialogs.ConfirmAsync(Page, "Discard changes?",
             "Your changes have not been saved.", "Discard", "Keep editing", destructive: true);
     }
@@ -467,6 +626,7 @@ public partial class AddEditViewModel : ObservableObject
 
     public void CleanupPhoto()
     {
+        CancelFetch();
         if (selectedPhotoPath is null) return;
         var path = selectedPhotoPath;
         selectedPhotoPath = null;

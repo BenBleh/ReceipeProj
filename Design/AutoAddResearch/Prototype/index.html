@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nibbles - draft review prototype</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div><p class="eyebrow">NIBBLES LAB / LOCAL PROTOTYPE</p><h1>A recipe, ready for your review.</h1></div>
+    <span class="badge">Local review / optional live lookup</span>
+  </header>
+  <p class="intro">Fetch a new website, Instagram or TikTok URL, replay a research capture, or paste recipe text.
+    Live lookups use anonymous access only. Nothing is saved to Nibbles or rfiles; no AI or images are downloaded.</p>
+  <section class="card inputs" aria-labelledby="input-heading">
+    <h2 id="input-heading">1. Choose your source</h2>
+    <label for="sample">Existing research captures <span>(labels identify samples, not parser input)</span></label>
+    <select id="sample"><option value="">Choose an example...</option></select>
+    <label for="source">Source URL</label>
+    <div class="source-row"><input id="source" type="url" placeholder="https://..." autocomplete="off">
+      <button id="live" type="button">Fetch live URL</button>
+      <button id="capture" type="button" class="secondary">Build from capture</button></div>
+    <p class="hint">Fetch live URL contacts the source now, even for an existing sample.
+      Website lookups check robots rules. Instagram uses anonymous Instaloader metadata;
+      social lookups may fail or return incomplete captions. No login or restriction bypass.</p>
+    <details id="paste-panel">
+      <summary>Or paste a caption / recipe text</summary>
+      <p id="fallback-hint" class="hint" hidden>Live lookup unavailable. Paste the expanded caption or recipe text below;
+        the source URL is kept for attribution. No draft was invented.</p>
+      <label for="caption">Source text</label>
+      <textarea id="caption" rows="7" placeholder="Paste the expanded description, ingredient list and method..."></textarea>
+      <button id="paste" type="button" class="secondary">Build from pasted text</button>
+    </details>
+    <p id="status" role="status" aria-live="polite">Ready. Choose an example to begin.</p>
+  </section>
+  <main id="workspace" hidden>
+    <section class="card" aria-labelledby="draft-heading">
+      <div class="section-head"><h2 id="draft-heading">2. Review and edit</h2><span id="counts" class="badge"></span></div>
+      <p class="hint">A draft, not a verified recipe. Missing instructions stay missing.</p>
+      <div id="editor">
+        <label for="title">Recipe title</label><input id="title" placeholder="Add a title">
+        <label for="time">Time <span>(source value; editable)</span></label><input id="time" placeholder="Optional">
+        <h3>Ingredients</h3><p class="hint">One ingredient per line. Leave a group name empty for ungrouped ingredients.</p>
+        <div id="groups"></div>
+        <button id="add-group" type="button" class="secondary">Add ingredient group</button>
+        <label for="steps">Method <span>(one step per blank-line-separated paragraph)</span></label>
+        <textarea id="steps" rows="13"></textarea>
+        <label for="notes">Notes</label><textarea id="notes" rows="3"></textarea>
+        <label for="export-source">Attribution URL</label><input id="export-source" type="url">
+      </div>
+      <div class="export">
+        <label class="check"><input id="reviewed" type="checkbox">
+          I checked the source, quantities, ingredient groups and method.</label>
+        <button id="export" type="button" disabled>Export draft JSON</button>
+        <p id="export-status" class="hint" aria-live="polite">Export does not add the recipe to your collection.</p>
+      </div>
+    </section>
+    <aside class="card evidence" aria-labelledby="evidence-heading">
+      <h2 id="evidence-heading">3. Check the evidence</h2>
+      <h3>Review flags</h3><ul id="warnings"></ul>
+      <h3>How this draft was made</h3><pre id="provenance"></pre>
+      <details open><summary>Unassigned text</summary><pre id="unassigned"></pre></details>
+      <details><summary>Original captured / pasted source</summary><pre id="raw"></pre></details>
+    </aside>
+  </main>
+  <footer>Experimental rules, not a finished importer. Failed or restricted lookups need pasted source text.
+    Reloading discards edits; export a reviewed draft if you want to keep it.</footer>
+</body>
+</html>

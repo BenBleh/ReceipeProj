@@ -1,0 +1,106 @@
+{
+  "snapshot_commit": "0703832e953e41966957650d07b076a67a7bd97d",
+  "results": [
+    {
+      "recipe_id": "349b8ac3-1b56-490c-9e40-c4f036dfa8ce",
+      "title": "Cheddar & Chive Savoury Scones",
+      "source_url": "https://vt.tiktok.com/ZSB8cn2yu/",
+      "target_url": "https://www.tiktok.com/@/video/7514530797588827400",
+      "checked_at_utc": "2026-11-13T03:19:45.415381+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 455862,
+      "html_sha256": "ad24d924b0e32766dc252812c19a2427a58bcdba9a3fd76b1bb6e1903bdfd0c8"
+    },
+    {
+      "recipe_id": "b0b64721-75bc-4ee8-81c3-2039ef2ebc8b",
+      "title": "Crepes",
+      "source_url": "https://youtu.be/byz07dJaXqI",
+      "target_url": "https://www.youtube.com/watch?v=byz07dJaXqI",
+      "checked_at_utc": "2026-11-13T03:19:47.381954+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 1255535,
+      "html_sha256": "73c0c952c4ee4d5778529d5700618774be651697525046ae93f4985c0ba8c642"
+    },
+    {
+      "recipe_id": "b5062941-8679-4c9b-953d-4d5c1dd228b8",
+      "title": "Hot Honey Parmesan Carrots",
+      "source_url": "https://vt.tiktok.com/ZS6QNjCpj/",
+      "target_url": "https://www.tiktok.com/@/video/7288237970178493702",
+      "checked_at_utc": "2026-11-13T03:19:49.499795+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 436029,
+      "html_sha256": "603f333176c934901481950fcbd7a68b71d4fe7aed0fb65ddb57f4c6b868a005"
+    },
+    {
+      "recipe_id": "9be51c83-d846-4c09-a826-069d0f281fcc",
+      "title": "Hot Honey Ranch Smash Burgers",
+      "source_url": "https://vt.tiktok.com/ZS6QNbfV9/",
+      "target_url": "https://www.tiktok.com/@/video/7453903491971468576",
+      "checked_at_utc": "2026-11-13T03:19:51.098689+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 446957,
+      "html_sha256": "427b28af787a8c0ca9a546436f6471726162ce19b9f6deba8d6ff084c87daff7"
+    },
+    {
+      "recipe_id": "ee95323f-d180-4a1c-9258-740230792b11",
+      "title": "Mango chia pudding ",
+      "source_url": "https://vt.tiktok.com/ZS5UqkbH5/",
+      "target_url": "https://www.tiktok.com/@/video/7458765503172021505",
+      "checked_at_utc": "2026-11-13T03:19:52.730460+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 447030,
+      "html_sha256": "192b52ddccf2e5d854ae491ed2e231b83b3bc7e04e39d1a99484b799e24064ff"
+    },
+    {
+      "recipe_id": "355d5d79-6f7c-4656-ad94-43986daa22b7",
+      "title": "Nandos chicken & Halloumi Orzo",
+      "source_url": "https://vt.tiktok.com/ZSB83yyTR/",
+      "target_url": "https://www.tiktok.com/@/video/7463390082100120864",
+      "checked_at_utc": "2026-11-13T03:19:54.327568+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 443341,
+      "html_sha256": "76ea54ba19d4b5cac0212490a9672539cbde110aebeedb90066c602234ab0d12"
+    },
+    {
+      "recipe_id": "fbd44275-1d85-495c-93bf-32cc8c7ac1b5",
+      "title": "Potato Salad",
+      "source_url": "https://vt.tiktok.com/ZS6Q2Tt5t/",
+      "target_url": "https://www.tiktok.com/@/video/7440642016637095186",
+      "checked_at_utc": "2026-11-13T03:19:56.459239+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 463521,
+      "html_sha256": "3887799ae11007d4e74a56e6b3ad366ad068e23caedfbafa7efe387e80a153cb"
+    },
+    {
+      "recipe_id": "941399eb-b1e8-4bd4-bfab-20910e600a0c",
+      "title": "Sweet Chilli Chicken Bowl",
+      "source_url": "https://vt.tiktok.com/ZS6QjhmyG/",
+      "target_url": "https://www.tiktok.com/@/video/7371381861379067144",
+      "checked_at_utc": "2026-11-13T03:19:58.133086+00:00",
+      "method": "One unauthenticated GET of identifiable target after separate robots check",
+      "outcome": "public_response",
+      "http_status": 200,
+      "response_bytes": 448776,
+      "html_sha256": "77af0a60e0b99386e5983c22f69ebbd484c59bfa45ebf301a7fef3eee8e7aa34"
+    }
+  ],
+  "limitations": [
+    "Sharing/tracking queries were removed; canonical target identity was retained.",
+    "TikTok homepage fallbacks are not proof a post has been deleted.",
+    "No redirect chains, access-control bypass, media downloads, or source text extraction service used."
+  ]
+}

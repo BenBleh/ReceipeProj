@@ -1,0 +1,94 @@
+{
+  "started_utc": "2026-11-13T04:06:50.465707+00:00",
+  "purpose": "Anonymous caption availability, not recipe-import accuracy",
+  "packages": {
+    "instaloader": "4.16",
+    "requests": "2.34.2",
+    "urllib3": "2.8.0",
+    "certifi": "2026.10.23",
+    "charset-normalizer": "3.5.2",
+    "idna": "3.20"
+  },
+  "policy": {
+    "authentication": false,
+    "imported_cookies_or_sessions": false,
+    "media_downloads": false,
+    "library_default_user_agent": true,
+    "tool_retries": 0,
+    "http_request_budget": 12,
+    "http_timeout_seconds": [
+      10,
+      15
+    ],
+    "stop_on_any_http_error_or_redirect": true,
+    "method_differs_from_original_robots_gated_html_crawler": true
+  },
+  "http": [
+    {
+      "method": "GET",
+      "role": "bootstrap",
+      "status": 200,
+      "body_bytes": 414561,
+      "body_sha256": "a6e4204584b62aad0ff7ff6bb378eee5e994d6914d479c7da7f407ecbcf0cb72",
+      "content_type": "text/html; charset=\"utf-8\""
+    },
+    {
+      "method": "POST",
+      "role": "metadata",
+      "status": 200,
+      "body_bytes": 24126,
+      "body_sha256": "123c9196d7beee5a5fbf03a952960ab36a3d7b4c544ac0c943d398ef053d9aff",
+      "content_type": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "role": "metadata",
+      "status": 200,
+      "body_bytes": 24246,
+      "body_sha256": "9492a8ca4d2edd29453afc852896362fc7d75e3d1e2ee5e695ab23c67a021fb7",
+      "content_type": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "role": "metadata",
+      "status": 200,
+      "body_bytes": 24557,
+      "body_sha256": "67dd73558e67f3cf584bc56142c0ce8a90cc626d3484f598ad40cdf4207cd062",
+      "content_type": "text/javascript; charset=utf-8"
+    }
+  ],
+  "results": [
+    {
+      "recipe_id": "b5ca85c6-14eb-40d1-af4a-60040f5f848e",
+      "source_url": "https://www.instagram.com/reel/C1r36c1vLmQ/",
+      "shortcode": "C1r36c1vLmQ",
+      "outcome": "caption_returned",
+      "caption_characters": 1435,
+      "caption_sha256": "efcbd41265fa08758b3e90f8553ed6b0d5107a30c76e4e8d8a40d714715aaba5",
+      "recipe_completeness": "not_assessed",
+      "elapsed_seconds": 3.77
+    },
+    {
+      "recipe_id": "f5ff0f7a-d83f-4152-902e-1e6fadd415b2",
+      "source_url": "https://www.instagram.com/p/C08wu-CpLgm/",
+      "shortcode": "C08wu-CpLgm",
+      "outcome": "caption_returned",
+      "caption_characters": 1095,
+      "caption_sha256": "7ce627b071d324cbd76c2ed572fb70bc1f09ffdc2cfff0943301123d56639ccc",
+      "recipe_completeness": "not_assessed",
+      "elapsed_seconds": 3.352
+    },
+    {
+      "recipe_id": "bd942c81-887f-4623-b0cc-279a1105ec67",
+      "source_url": "https://www.instagram.com/p/Cs3By94A3O-/",
+      "shortcode": "Cs3By94A3O-",
+      "outcome": "caption_returned",
+      "caption_characters": 1154,
+      "caption_sha256": "0c944ec30282b74863c5a7b681fb3edd9055374fefce94569d2fa0101273886b",
+      "recipe_completeness": "not_assessed",
+      "elapsed_seconds": 1.968
+    }
+  ],
+  "stop_reason": null,
+  "finished_utc": "2026-11-13T04:07:05.574247+00:00"
+}

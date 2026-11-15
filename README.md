@@ -70,6 +70,30 @@ API site/application pool. Do not reset or force-push over app changes.
 iOS uses the same storage implementation and its native image encoder; building
 and signing iOS still requires a Mac.
 
+## On-device source fetching (1.7.0 test builds)
+
+In the existing recipe editor, enter a public HTTPS recipe website or
+Instagram/TikTok post URL in **Source**, then press **Fetch**. Fetching and
+deterministic parsing run inside the app; no extra service, Python installation,
+source-account login or paid AI is required. Website Recipe JSON-LD and public
+post captions are supported, not video/audio transcription or automatic photos.
+Manual source text is still valid and does not trigger a request.
+
+Results become editable title, ingredients/groups and method. Existing recipe
+text requires explicit replacement confirmation; notes, cover photo, source,
+identity and edit baseline are preserved. Cancel, failure and **Keep editing**
+leave the recipe unchanged. **Paste source text** offers the same local parsing
+when automatic access is unavailable. Only normal **Save** writes to GitHub,
+with existing required-field and conflict handling; there is no review checkbox
+or fetched-text viewer.
+
+Social access and caption interpretation remain best-effort. Missing fields
+are not invented, and apparently complete results can still need corrections.
+Private/local addresses, oversized responses and excessive requests are refused;
+restricted hosts are not automatically retried. iOS device validation requires
+a Mac. Private 1.7.0 test installers include this feature; existing 1.6.0
+artifacts are retained.
+
 ## Method ingredient links (1.4.0)
 
 In recipe details and cooking mode, underlined ingredient references show the
@@ -117,6 +141,7 @@ The app's direct NuGet dependencies use the latest stable versions reviewed:
 | CommunityToolkit.Maui.Markup | 8.0.0 |
 | CommunityToolkit.Mvvm | 8.4.2 (already current) |
 | Microsoft.Extensions.Logging.Debug | 10.0.14 |
+| AngleSharp (source importer) | 1.10.2 |
 
 Test tooling uses Microsoft.NET.Test.Sdk 18.11.0, coverlet.collector 10.1.0,
 xunit.runner.visualstudio 4.0.1 and xunit 2.9.3 (already current).
@@ -183,14 +208,14 @@ The existing Android launch configuration is unchanged.
 ## Nibbles installable builds
 
 Run these commands from the repository root with the private token-file
-environment variable set. The current release is 1.6.0, Android version code 11;
+environment variable set. The current test build is 1.7.0, Android version code 12;
 increment those values in `Nibbles.csproj` for future releases.
 
 ### Android APK
 
 ```powershell
-dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.6.0\android
-Copy-Item .\artifacts\Nibbles\1.6.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.6.0\Nibbles-1.6.0-Android.apk
+dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-android -c Release -p:AndroidPackageFormats=apk -p:EmbedAssembliesIntoApk=true -p:AndroidUseSharedRuntime=false -p:AndroidKeyStore=false -o .\artifacts\Nibbles\1.7.0\android
+Copy-Item .\artifacts\Nibbles\1.7.0\android\com.companyname.nibbles-Signed.apk .\artifacts\Nibbles\1.7.0\Nibbles-1.7.0-Android.apk
 ```
 
 This produces a standalone APK for ARM64 phones and x64 emulators, signed with
@@ -207,10 +232,10 @@ per-user or portable installation):
 
 ```powershell
 dotnet publish .\Nibbles\Nibbles.csproj -f net10.0-windows10.0.19041.0 -p:TargetFrameworks=net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.6.0 .\Nibbles\Packaging\Nibbles.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.7.0 .\Nibbles\Packaging\Nibbles.iss
 ```
 
-The private installer is `artifacts\Nibbles\1.6.0\Nibbles-1.6.0-Windows-x64-Setup.exe`.
+The private installer is `artifacts\Nibbles\1.7.0\Nibbles-1.7.0-Windows-x64-Setup.exe`.
 It supports 64-bit Windows 10 version 1809 or later, bundles .NET and the Windows
 App SDK, and installs into `%LOCALAPPDATA%\Programs\Nibbles` without elevation.
 It adds a Start menu shortcut, an optional desktop shortcut, and an uninstaller;

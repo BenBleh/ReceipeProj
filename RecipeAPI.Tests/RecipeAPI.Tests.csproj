@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="1.10.2" />
     <PackageReference Include="coverlet.collector" Version="10.1.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
@@ -31,6 +32,9 @@
     <Compile Include="..\Nibbles\Services\GitHubRecipeSnapshot.cs" Link="App\GitHubRecipeSnapshot.cs" />
     <Compile Include="..\Nibbles\Services\RecipeWritePreparation.cs" Link="App\RecipeWritePreparation.cs" />
     <Compile Include="..\Nibbles\Services\MethodIngredientLinks.cs" Link="App\MethodIngredientLinks.cs" />
+    <Compile Include="..\Nibbles\Services\RecipeSourceDraft.cs" Link="App\RecipeSourceDraft.cs" />
+    <Compile Include="..\Nibbles\Services\RecipeSourceParser.cs" Link="App\RecipeSourceParser.cs" />
+    <Compile Include="..\Nibbles\Services\RecipeSourceService.cs" Link="App\RecipeSourceService.cs" />
   </ItemGroup>
 
 </Project>

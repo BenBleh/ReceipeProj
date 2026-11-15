@@ -19,6 +19,67 @@ dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
 
+## Source fetching - 1.7.0 test builds
+
+Page **12 - Source fetch** contains the approved design for the importer now
+implemented in the app source and packaged for private testing in 1.7.0.
+It uses the existing **Source field + Fetch
+button**, then the existing Details / Ingredients / Method editor. The nine screen
+states include phone light/dark layouts, Windows, partial results, pasted-text
+fallback and replacement confirmation. An editable
+handoff board records the interaction and preservation rules. These are static
+state designs, not a functioning clickable prototype.
+
+The lemon chicken recipe and example.com URL are illustrative design content,
+not a claimed extraction result or a change to any saved recipe. Existing
+released pages remain as references; this page proposes the new source-field
+interaction without changing the 1.6.0 behaviour described below.
+
+- Fetch happens only when pressed, never on typing or pasting. Source remains
+  optional free text for manual recipes. Enable Fetch only for supported HTTPS
+  URLs; website, Instagram and TikTok extraction is best-effort.
+- Stage fetched or pasted content in memory. An empty new draft can be populated
+  directly; any existing title, ingredient/group or method content requires
+  **Replace recipe text?** after extraction succeeds. **Keep editing** preserves
+  everything. Replacement explicitly covers those text fields, including missing
+  fields; disclose any gaps before accepting a partial replacement. Preserve
+  notes, photos, identity, edit baseline and hidden compatibility metadata.
+- Loading offers cancellation and prevents conflicting input. Failure or
+  cancellation never clears the draft; ignore late responses after cancellation.
+  Restricted/unavailable sources offer pasted captions or recipe text, without
+  login import, challenge bypass or automatic retries of blocked/rate-limited
+  sources. Missing ingredients or instructions are not invented.
+- Optional review stays in the normal editor with existing paste, add/group and photo
+  controls. There is no fetched-text viewer, reference sheet or source-text pane.
+  Pasted-text fallback is still an editable input when fetching fails.
+  Replacement confirmation requires an explicit action.
+- Imported content can be saved immediately when required fields are present.
+  There is no review checkbox, acknowledgement or mandatory review step.
+  Editing is optional; missing required title, ingredients or method still prevents Save.
+  Only ordinary **Save** writes to GitHub. Keep existing conflict, uncertain-save
+  and post-save navigation behaviour. A fetch-service failure alone must not
+  disable ordinary manual editing/saving when GitHub is available.
+
+Fetching and deterministic parsing run entirely inside the app in native C#.
+No NAS/helper service, Python runtime, source-account login or paid provider is
+required. Supported websites use Recipe JSON-LD; public Instagram/TikTok
+captions are best-effort. Pasted source text uses the same local caption parser.
+Access restrictions and unsupported formats fall back visibly to paste; caption
+parsing and grouping are not a semantic-accuracy guarantee.
+This implementation does not introduce AI, OCR, video
+transcription, automatic image extraction, a share target or a cooking-time
+control. The local research prototype remains separate from the app.
+
+Preview references:
+
+- [Full proposal overview](source-fetch-overview.png)
+- [Source entry and fetching](previews/source-fetch-entry.png)
+- [Details and ingredient review](previews/source-fetch-review.png)
+- [Partial result / missing method](previews/source-fetch-partial.png)
+- [Paste fallback, safe replacement and dark review](previews/source-fetch-fallback-replace.png)
+- [Windows editor](previews/source-fetch-windows.png)
+- [Interaction and implementation handoff](previews/source-fetch-handoff.png)
+
 ## Released 1.6.0 behaviour updates
 
 The editable document now reflects incremental refresh, post-save navigation

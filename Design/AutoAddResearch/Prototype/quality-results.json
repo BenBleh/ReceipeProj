@@ -1,0 +1,551 @@
+{
+  "scope": "Offline extraction diagnostics, not semantic accuracy",
+  "sources": [
+    {
+      "url": "https://www.carnaldish.com/recipes/breakfast/blueberry-lemon-buttermilk-pancakes/",
+      "label": "Blueberry & Lemon Buttermilk Pancakes",
+      "platform": "website",
+      "ingredients": 13,
+      "steps": 3,
+      "groups": 0,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.tiktok.com/@/video/7514530797588827400",
+      "label": "Cheddar & Chive Savoury Scones",
+      "platform": "tiktok",
+      "ingredients": 7,
+      "steps": 9,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://chefjonwatts.com/chicken-alfredo-lasagne/",
+      "label": "Chicken Alfredo Lasagne",
+      "platform": "website",
+      "ingredients": 15,
+      "steps": 9,
+      "groups": 1,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.tiktok.com/@jasminseats/video/7374209506705788168",
+      "label": "Chicken boscaiola",
+      "platform": "tiktok",
+      "ingredients": 11,
+      "steps": 13,
+      "groups": 0,
+      "missing": [
+        "Title"
+      ],
+      "warnings": [
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting."
+      ]
+    },
+    {
+      "url": "https://chefjonwatts.com/chicken-meatballs-in-a-creamy-paprika-sauce/",
+      "label": "Chicken meatballs cooked with a creamy garlic and paprika sauce ",
+      "platform": "website",
+      "ingredients": 14,
+      "steps": 8,
+      "groups": 2,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.recipetineats.com/chicken-pot-pie/",
+      "label": "Chicken Pot Pie",
+      "platform": "website",
+      "ingredients": 18,
+      "steps": 17,
+      "groups": 2,
+      "missing": [],
+      "warnings": [
+        "Method sections retained in source evidence, not inserted as cooking steps."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@food_bylucy/video/7538351446840904967",
+      "label": "Chicken rice & broth",
+      "platform": "tiktok",
+      "ingredients": 26,
+      "steps": 8,
+      "groups": 5,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.recipetineats.com/chicken-rissoles-chicken-patties/",
+      "label": "Chicken rissoles",
+      "platform": "website",
+      "ingredients": 11,
+      "steps": 6,
+      "groups": 2,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.tiktok.com/@foodell.ellie/video/7637689006695664903",
+      "label": "Chicken Shawarma bowls with turmeric rice, Pita chips and garlic yogurt sauce",
+      "platform": "tiktok",
+      "ingredients": 26,
+      "steps": 9,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.ambitiouskitchen.com/the-best-chicken-soup-recipe/",
+      "label": "Chicken Soup",
+      "platform": "website",
+      "ingredients": 15,
+      "steps": 5,
+      "groups": 0,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.tiktok.com/@jasminseats/video/7504610442497559815",
+      "label": "Chicken with curry sauce",
+      "platform": "tiktok",
+      "ingredients": 12,
+      "steps": 7,
+      "groups": 0,
+      "missing": [
+        "Title"
+      ],
+      "warnings": [
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@aussiemumcooks/video/7248145454528007425",
+      "label": "Creamy Chicken and bacon pasta soup",
+      "platform": "tiktok",
+      "ingredients": 20,
+      "steps": 0,
+      "groups": 1,
+      "missing": [
+        "Title",
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.spendwithpennies.com/creamy-mushroom-gnocchi/",
+      "label": "Creamy Mushroom Gnocchi",
+      "platform": "website",
+      "ingredients": 12,
+      "steps": 7,
+      "groups": 0,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.recipetineats.com/curried-sausages/",
+      "label": "Curried sausages ",
+      "platform": "website",
+      "ingredients": 12,
+      "steps": 9,
+      "groups": 0,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.tiktok.com/@_cookwithmi/video/7197319424364268801",
+      "label": "Dumplings",
+      "platform": "tiktok",
+      "ingredients": 0,
+      "steps": 0,
+      "groups": 0,
+      "missing": [
+        "Title",
+        "Ingredients",
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "No reliable title was found. Add one before exporting.",
+        "No ingredient list was identified. Supply it from the source.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.bonappetit.com/recipe/easy-no-knead-focaccia",
+      "label": "Easy No-Knead Focaccia",
+      "platform": "website",
+      "ingredients": 8,
+      "steps": 7,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Quantified water appears in the method but not the ingredient list. Review it."
+      ]
+    },
+    {
+      "url": "https://munchinwithmaddie.blog/garlic-parmesan-chicken-and-pasta/",
+      "label": "Garlic Parmesan Chicken and Pasta (One-Pan)",
+      "platform": "website",
+      "ingredients": 14,
+      "steps": 7,
+      "groups": 2,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.tiktok.com/@food_bylucy/video/7556875692584029458",
+      "label": "Hainanese inspired chicken rice and borth ",
+      "platform": "tiktok",
+      "ingredients": 28,
+      "steps": 6,
+      "groups": 5,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@food_bylucy/video/7488691206520737032",
+      "label": "Honey miso chicken with ginger broth & rice",
+      "platform": "tiktok",
+      "ingredients": 23,
+      "steps": 5,
+      "groups": 5,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@/video/7288237970178493702",
+      "label": "Hot Honey Parmesan Carrots",
+      "platform": "tiktok",
+      "ingredients": 0,
+      "steps": 0,
+      "groups": 0,
+      "missing": [
+        "Title",
+        "Ingredients",
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "No reliable title was found. Add one before exporting.",
+        "No ingredient list was identified. Supply it from the source.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@/video/7453903491971468576",
+      "label": "Hot Honey Ranch Smash Burgers",
+      "platform": "tiktok",
+      "ingredients": 1,
+      "steps": 0,
+      "groups": 0,
+      "missing": [
+        "Title",
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "No reliable title was found. Add one before exporting.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@/video/7458765503172021505",
+      "label": "Mango chia pudding ",
+      "platform": "tiktok",
+      "ingredients": 6,
+      "steps": 5,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@food_bylucy/video/7515206556741307656",
+      "label": "Miso Chicken Udon Soup with Charred Corn",
+      "platform": "tiktok",
+      "ingredients": 30,
+      "steps": 6,
+      "groups": 1,
+      "missing": [
+        "Title"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@/video/7463390082100120864",
+      "label": "Nandos chicken & Halloumi Orzo",
+      "platform": "tiktok",
+      "ingredients": 1,
+      "steps": 5,
+      "groups": 0,
+      "missing": [
+        "Title"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@mirandabrady_/video/7677145858697202964",
+      "label": "One Pan Chicken & Broccoli Lasagna \ud83e\udd66",
+      "platform": "tiktok",
+      "ingredients": 3,
+      "steps": 0,
+      "groups": 1,
+      "missing": [
+        "Title",
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@food_bylucy/video/7517925451868671250",
+      "label": "Pho inspired chicken broth & rice",
+      "platform": "tiktok",
+      "ingredients": 36,
+      "steps": 7,
+      "groups": 4,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://imafoodie.com.au/polenta-chips/",
+      "label": "Polenta Chips",
+      "platform": "website",
+      "ingredients": 7,
+      "steps": 7,
+      "groups": 0,
+      "missing": [],
+      "warnings": []
+    },
+    {
+      "url": "https://www.tiktok.com/@/video/7440642016637095186",
+      "label": "Potato Salad",
+      "platform": "tiktok",
+      "ingredients": 13,
+      "steps": 6,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@kizactivelife/video/7409926301655633169",
+      "label": "Roasted Sweet Potato & Chickpea Salad with Yogurt",
+      "platform": "tiktok",
+      "ingredients": 3,
+      "steps": 1,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "A method boundary was inferred from cooking language. Check the original.",
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@ellegibsonn/video/7458194709282852128",
+      "label": "Salty chocolate brownie balls",
+      "platform": "tiktok",
+      "ingredients": 0,
+      "steps": 0,
+      "groups": 0,
+      "missing": [
+        "Ingredients",
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "No ingredient list was identified. Supply it from the source.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@aussiemumcooks/video/7228471503459765506",
+      "label": "Slow cooker beef stroganoff",
+      "platform": "tiktok",
+      "ingredients": 10,
+      "steps": 0,
+      "groups": 0,
+      "missing": [
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@archerkitchen_/video/7359501650945379617",
+      "label": "Slow Cooker Chicken Tikka Masala",
+      "platform": "tiktok",
+      "ingredients": 0,
+      "steps": 2,
+      "groups": 0,
+      "missing": [
+        "Title",
+        "Ingredients"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting.",
+        "No ingredient list was identified. Supply it from the source."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@aussiefitness/video/7251915348591660306",
+      "label": "Spicy Chicken Nuggets\ud83d\udd25\ud83c\udf57",
+      "platform": "tiktok",
+      "ingredients": 12,
+      "steps": 0,
+      "groups": 0,
+      "missing": [
+        "Steps"
+      ],
+      "warnings": [
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@michaelfinch/video/7358380418778926356",
+      "label": "Sticky Date Pudding",
+      "platform": "tiktok",
+      "ingredients": 13,
+      "steps": 8,
+      "groups": 1,
+      "missing": [
+        "Title"
+      ],
+      "warnings": [
+        "A method boundary was inferred from cooking language. Check the original.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting.",
+        "No reliable title was found. Add one before exporting."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@christianpetracca_5/video/7371381861379067144",
+      "label": "Sweet chilli chicken",
+      "platform": "tiktok",
+      "ingredients": 17,
+      "steps": 3,
+      "groups": 1,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source."
+      ]
+    },
+    {
+      "url": "https://www.tiktok.com/@lagomchef/video/7149191656145718533",
+      "label": "Yorkshire pudding",
+      "platform": "tiktok",
+      "ingredients": 1,
+      "steps": 0,
+      "groups": 0,
+      "missing": [
+        "Title",
+        "Steps"
+      ],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "No reliable title was found. Add one before exporting.",
+        "No cooking method was identified. Do not invent missing instructions."
+      ]
+    },
+    {
+      "url": "https://www.instagram.com/reel/C1r36c1vLmQ/",
+      "label": "Creamy chicken",
+      "platform": "instagram",
+      "ingredients": 12,
+      "steps": 8,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.instagram.com/p/C08wu-CpLgm/",
+      "label": "Creamy tomato burrata pasta \ud83c\udf45",
+      "platform": "instagram",
+      "ingredients": 10,
+      "steps": 7,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    },
+    {
+      "url": "https://www.instagram.com/p/Cs3By94A3O-/",
+      "label": "Crispy chicken bao buns",
+      "platform": "instagram",
+      "ingredients": 12,
+      "steps": 7,
+      "groups": 0,
+      "missing": [],
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ]
+    }
+  ]
+}

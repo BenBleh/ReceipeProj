@@ -1,0 +1,142 @@
+{
+  "checked_utc": "2026-11-13T05:12:59.186184+00:00",
+  "scope": "Three bounded live lookups; retrieval/field presence, not recipe accuracy",
+  "results": [
+    {
+      "platform": "website",
+      "url": "https://www.recipetineats.com/lasagna/",
+      "outside_capture_catalog": true,
+      "outcome": "live_draft_returned",
+      "title": "Lasagna",
+      "ingredients": 24,
+      "steps": 18,
+      "warnings": [
+        "Method sections retained in source evidence, not inserted as cooking steps."
+      ],
+      "evidence": {
+        "method": "Recipe JSON-LD + verified DOM ingredient grouping",
+        "method_sections": [
+          "Ragu:",
+          "Cheese Sauce:",
+          "Assemble:"
+        ],
+        "images": "Not downloaded",
+        "platform": "website",
+        "captured_source": false,
+        "live_source": true,
+        "requested_source": "https://www.recipetineats.com/lasagna/",
+        "resolved_source": "https://www.recipetineats.com/lasagna/",
+        "retrieved_utc": "2026-11-13T05:12:57.452562+00:00",
+        "source_sha256": "1b9ac299a6d44bad6640f150807e4e32d4d78af587ff540888d17889cf9762c6",
+        "http": [
+          {
+            "method": "GET",
+            "host": "www.recipetineats.com",
+            "path": "/robots.txt",
+            "status": 200,
+            "body_bytes": 437
+          },
+          {
+            "method": "GET",
+            "host": "www.recipetineats.com",
+            "path": "/lasagna/",
+            "status": 200,
+            "body_bytes": 508649
+          }
+        ],
+        "network": "Fresh anonymous lookup; no saved captures used or written"
+      }
+    },
+    {
+      "platform": "instagram",
+      "url": "https://www.instagram.com/reel/C5BjXxMvlUq/",
+      "outside_capture_catalog": true,
+      "outcome": "live_draft_returned",
+      "title": "CREAMY PESTO CHICKEN TORTELLINI",
+      "ingredients": 16,
+      "steps": 6,
+      "warnings": [
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ],
+      "evidence": {
+        "method": "Deterministic caption rules; no AI or video processing",
+        "platform": "instagram",
+        "captured_source": false,
+        "live_source": true,
+        "requested_source": "https://www.instagram.com/reel/C5BjXxMvlUq/",
+        "resolved_source": "https://www.instagram.com/p/C5BjXxMvlUq/",
+        "retrieved_utc": "2026-11-13T05:12:59.183959+00:00",
+        "source_sha256": "0255766cdb58c3e650929bb803448ec8b5bd9bdab28c1a42c0805cea78eb871b",
+        "http": [
+          {
+            "method": "GET",
+            "host": "www.instagram.com",
+            "path": "/",
+            "status": 200,
+            "body_bytes": 414957
+          },
+          {
+            "method": "POST",
+            "host": "www.instagram.com",
+            "path": "/api/graphql",
+            "status": 200,
+            "body_bytes": 23976
+          }
+        ],
+        "network": "Fresh anonymous lookup; no saved captures used or written"
+      }
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@/video/7514530797588827400",
+      "outside_capture_catalog": false,
+      "outcome": "explicit_paste_fallback",
+      "http_status": 422,
+      "error": "The TikTok link does not identify a video. Paste a direct post URL or its caption."
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@/video/7514530797588827400",
+      "outside_capture_catalog": false,
+      "purpose": "Fresh lookup after accepting the proven username-free permalink form; initial validation rejected it before any source request.",
+      "outcome": "live_draft_returned",
+      "title": "Cheddar & chive savoury scones",
+      "ingredients": 7,
+      "steps": 9,
+      "warnings": [
+        "Inline ingredient splitting is heuristic. Check boundaries and unquantified items.",
+        "Caption parsing is experimental. Check every quantity, group and step against the source.",
+        "Some source text was not assigned; inspect the evidence panel before exporting."
+      ],
+      "evidence": {
+        "method": "Deterministic caption rules; no AI or video processing",
+        "platform": "tiktok",
+        "captured_source": false,
+        "live_source": true,
+        "requested_source": "https://www.tiktok.com/@/video/7514530797588827400",
+        "resolved_source": "https://www.tiktok.com/@/video/7514530797588827400",
+        "retrieved_utc": "2026-11-13T05:16:21.389711+00:00",
+        "source_sha256": "1bc3b1a30f4b6d64b5829b188684e5ba560ea29a074b17f28d3eae2468bf961e",
+        "http": [
+          {
+            "method": "GET",
+            "host": "www.tiktok.com",
+            "path": "/robots.txt",
+            "status": 200,
+            "body_bytes": 1567
+          },
+          {
+            "method": "GET",
+            "host": "www.tiktok.com",
+            "path": "/@/video/7514530797588827400",
+            "status": 200,
+            "body_bytes": 457681
+          }
+        ],
+        "network": "Fresh anonymous lookup; no saved captures used or written"
+      }
+    }
+  ],
+  "followup_utc": "2026-11-13T05:16:21.399195+00:00"
+}

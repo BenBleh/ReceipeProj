@@ -1,0 +1,38 @@
+{
+  "snapshot_commit": "0703832e953e41966957650d07b076a67a7bd97d",
+  "checked_at_utc": "2026-11-13T03:13:49.132775+00:00",
+  "recipes": 72,
+  "recipes_with_source_text": 66,
+  "recipes_with_source_urls": 64,
+  "unique_source_urls": 63,
+  "platform_recipe_counts": {
+    "No URL": 6,
+    "TikTok": 35,
+    "Website": 14,
+    "Source text only": 2,
+    "Instagram": 14,
+    "YouTube": 1
+  },
+  "domain_recipe_counts": {
+    "vm.tiktok.com": 6,
+    "carnaldish.com": 1,
+    "vt.tiktok.com": 9,
+    "chefjonwatts.com": 2,
+    "tiktok.com": 20,
+    "simplehomeedit.com": 3,
+    "recipetineats.com": 3,
+    "ambitiouskitchen.com": 1,
+    "instagram.com": 14,
+    "spendwithpennies.com": 1,
+    "youtu.be": 1,
+    "bonappetit.com": 1,
+    "munchinwithmaddie.blog": 1,
+    "imafoodie.com.au": 1
+  },
+  "notes": [
+    "Tracking-only query parameters removed from exported URLs.",
+    "Full recipe snapshot is retained only in the separately specified private cache.",
+    "No GitHub writes; counts describe this pinned snapshot, not future changes."
+  ],
+  "unique_stored_source_urls": 64
+}

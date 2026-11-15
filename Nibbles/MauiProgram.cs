@@ -37,6 +37,7 @@ namespace Nibbles
             builder.Services.AddSingleton<CookingSessionStore>();
 
             builder.Services.AddSingleton<ReceipeAPIService>();
+            builder.Services.AddSingleton<RecipeSourceService>();
 
             return builder.Build();
         }

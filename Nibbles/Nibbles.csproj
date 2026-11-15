@@ -25,8 +25,8 @@
 		<ApplicationId>com.companyname.nibbles</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.6.0</ApplicationDisplayVersion>
-		<ApplicationVersion>11</ApplicationVersion>
+		<ApplicationDisplayVersion>1.7.0</ApplicationDisplayVersion>
+		<ApplicationVersion>12</ApplicationVersion>
 		<NibblesGitHubTokenFile Condition="'$(NibblesGitHubTokenFile)' == ''">$(NIBBLES_GITHUB_TOKEN_FILE)</NibblesGitHubTokenFile>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -63,6 +63,7 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="1.10.2" />
     <PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
     <PackageReference Include="CommunityToolkit.Maui.Markup" Version="8.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
