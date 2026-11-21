@@ -25,8 +25,8 @@
 		<ApplicationId>com.companyname.nibbles</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.10.0</ApplicationDisplayVersion>
-		<ApplicationVersion>15</ApplicationVersion>
+		<ApplicationDisplayVersion>1.10.1</ApplicationDisplayVersion>
+		<ApplicationVersion>16</ApplicationVersion>
 		<NibblesGitHubTokenFile Condition="'$(NibblesGitHubTokenFile)' == ''">$(NIBBLES_GITHUB_TOKEN_FILE)</NibblesGitHubTokenFile>
 		<NibblesApifyTokenFile Condition="'$(NibblesApifyTokenFile)' == ''">$(NIBBLES_APIFY_TOKEN_FILE)</NibblesApifyTokenFile>
 

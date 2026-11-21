@@ -28,18 +28,22 @@
                     <Label Text="Continue from earlier today" Style="{StaticResource SectionHeading}" />
                     <Button Text="Start fresh…" Style="{StaticResource QuietButton}" Clicked="StartFresh_Clicked" />
                 </VerticalStackLayout>
-                <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="Start">
-                    <Button components:ButtonIcon.Glyph="{x:Static local:IconFont.ExternalLink}" Padding="12"
-                            Style="{StaticResource SecondaryButton}" Command="{Binding OpenLinkCommand}" IsVisible="{Binding HasSourceLink}"
-                            SemanticProperties.Description="Original recipe" ToolTipProperties.Text="Original recipe" Margin="0,0,8,8" />
-                    <Button Text="Start cooking" IsVisible="{Binding IsFresh}" Clicked="StartCooking_Clicked" Margin="0,0,8,8" />
-                    <Button Text="Resume cooking" IsVisible="{Binding HasResume}" Clicked="Resume_Clicked" Margin="0,0,8,8" />
-                    <HorizontalStackLayout Spacing="8" Margin="0,0,0,8">
-                        <Button Text="{Binding ScaleLabel}" Style="{StaticResource SecondaryButton}" Clicked="Scale_Clicked" />
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                    <HorizontalStackLayout Spacing="8" AutomationId="RecipeActions">
+                        <Button components:ButtonIcon.Glyph="{x:Static local:IconFont.ExternalLink}" Padding="12"
+                                WidthRequest="48"
+                                Style="{StaticResource SecondaryButton}" Command="{Binding OpenLinkCommand}" IsVisible="{Binding HasSourceLink}"
+                                SemanticProperties.Description="Original recipe" ToolTipProperties.Text="Original recipe" />
+                        <Button Text="Start cooking" Padding="8,10" MinimumWidthRequest="104"
+                                IsVisible="{Binding IsFresh}" Clicked="StartCooking_Clicked" />
+                        <Button Text="Resume cooking" Padding="8,10" MinimumWidthRequest="104"
+                                IsVisible="{Binding HasResume}" Clicked="Resume_Clicked" />
+                        <Button Text="{Binding ScaleLabel}" Padding="8,10" MinimumWidthRequest="80"
+                                Style="{StaticResource SecondaryButton}" Clicked="Scale_Clicked" AutomationId="RecipeScale" />
                         <components:ClassificationBadge Classification="{Binding Recipe.Classification}" VerticalOptions="Center"
                                                         AutomationId="RecipeClassificationBadge" />
                     </HorizontalStackLayout>
-                </FlexLayout>
+                </ScrollView>
                 <Label Text="Method amounts, temperatures and durations remain original." IsVisible="{Binding IsScaled}" Style="{StaticResource MutedLabel}" FontSize="13" />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                     <Button Text="Ingredients" Style="{StaticResource QuietButton}" Command="{Binding ShowIngredientsCommand}">

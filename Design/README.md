@@ -1,7 +1,7 @@
 # Nibbles redesign
 
 `Nibbles-redesign.fig` is the editable OpenPencil design, containing the approved
-1.2.0 screens and the approved revisions below, updated through 1.10.0. Open it in OpenPencil to
+1.2.0 screens and the approved revisions below, updated through 1.10.1. Open it in OpenPencil to
 continue designing. `Nibbles-overview.png`, the screen overviews,
 and `previews` provide quick references; `assets` contains the approved mascot,
 recipe-photo references, app icon, and launch artwork.
@@ -18,6 +18,21 @@ links are available on recipe details. The original pink paws are retained in
 dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
+
+## Compact search and details - page 15, implemented in 1.10.1
+
+The two-column phone search example is the canonical layout: searching keeps
+the same responsive column count, photo widths and title styling as browsing
+(two columns on phones, three/four on wider windows). Match context remains
+below the title. Only the active classification displays a check; switching
+removes the previous check immediately, and clearing the library filter removes
+all checks. Native button targets and centred label/check groups are retained.
+
+Details keep Source, Start/Resume cooking, Scale and classification on one
+horizontal row at Pixel 6 width. Source is a 48 px icon button; cooking and
+Scale use compact horizontal padding, with 8 px gaps. Buttons retain 48 px
+minimum heights. Unusually narrow widths, long scale values or enlarged text
+can scroll horizontally rather than wrapping or shrinking touch targets.
 
 ## App icon background - page 04, implemented in 1.10.0
 
@@ -75,7 +90,7 @@ instructions or a result count.
 
 Recipe details show a non-interactive classification badge immediately beside
 Scale, using the same category tint. The compact source/cooking/scale row
-remains; keep Scale and the badge adjacent when reflow is needed. The details
+remains; in 1.10.1 it no longer wraps, keeping all actions and the badge in one row. The details
 photo crop and original paw controls are unchanged.
 
 In the editor's Details section, **Classification \*** follows Recipe title,

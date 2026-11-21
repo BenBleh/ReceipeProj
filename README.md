@@ -4,6 +4,17 @@ Vehicle to practice API creation and Agular/Typescript sites!
 The approved Nibbles redesign, assets, ingredient-group schema, and deployment
 notes are in [Design](Design/README.md).
 
+## Compact search and details (1.10.1 private builds)
+
+Searching keeps the browsing grid's card widths and title sizes, including two
+columns on phones. Classification switches show a check only on the current
+selection. Details keep Source, cooking, Scale and classification on one compact
+row; narrow widths or enlarged text can scroll the row instead of wrapping.
+
+Private installers: `artifacts\Nibbles\1.10.1\Nibbles-1.10.1-Windows-x64-Setup.exe`
+and `Nibbles-1.10.1-Android.apk` (version code 16, ARM64/x64).
+These contain private credentials and must not be uploaded publicly.
+
 ## Recipe classifications and yellow icon (1.10.0 private builds)
 
 Each recipe now requires **Mains**, **Sides**, **Sweets** or **Other**.

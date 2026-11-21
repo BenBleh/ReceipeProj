@@ -9,11 +9,6 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         BindingContext = viewModel;
-        viewModel.PropertyChanged += (_, args) =>
-        {
-            if (args.PropertyName == nameof(MainPageViewModel.IsSearching))
-                UpdateGrid();
-        };
     }
 
     protected override async void OnAppearing()
@@ -52,8 +47,7 @@ public partial class MainPage : ContentPage
     }
     private void UpdateGrid()
     {
-        if (RecipeGrid is not null && BindingContext is MainPageViewModel model)
-            RecipeGrid.Span = model.IsSearching
-                ? (Width >= 1200 ? 3 : Width >= 800 ? 2 : 1) : Width >= 1200 ? 4 : Width >= 800 ? 3 : 2;
+        if (RecipeGrid is not null)
+            RecipeGrid.Span = Width >= 1200 ? 4 : Width >= 800 ? 3 : 2;
     }
 }
