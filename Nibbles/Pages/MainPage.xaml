@@ -9,7 +9,7 @@
              x:DataType="vm:MainPageViewModel"
              Shell.NavBarIsVisible="False" Title="Nibbles"
              SizeChanged="Page_SizeChanged">
-    <Grid Padding="24,12,24,12" RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="16"
+    <Grid Padding="24,12,24,12" RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="12"
           MaximumWidthRequest="1440" HorizontalOptions="Fill">
         <HorizontalStackLayout Spacing="10">
                 <Image Source="nibbles_chef.png" HeightRequest="48" WidthRequest="40" SemanticProperties.Description="Nibbles chef cat" />
@@ -23,6 +23,8 @@
                        ClearButtonVisibility="WhileEditing" ReturnType="Search" SemanticProperties.Description="Search titles, ingredients, notes and method" />
             </Grid>
         </Border>
+        <components:ClassificationChoices SelectedClassification="{Binding SelectedClassification, Mode=TwoWay}"
+                                          AllowClearing="True" AutomationId="LibraryClassificationChoices" />
         <Border IsVisible="{Binding HasStatusMessage}" Padding="12" StrokeThickness="0"
                 BackgroundColor="{AppThemeBinding Light={StaticResource Tint}, Dark={StaticResource DarkSurface}}">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -32,28 +34,19 @@
             </Grid>
         </Border>
         </VerticalStackLayout>
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-            <Label Text="Your recipe box" FontSize="19" VerticalOptions="Center" />
-            <Label Grid.Column="1" Text="{Binding RecipeCount}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
-            <Button Grid.Column="2" Text="Refresh" Style="{StaticResource QuietButton}" Command="{Binding RefreshCommand}"
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <Label Text="{Binding LibraryHeading}" FontSize="19" VerticalOptions="Center" />
+            <Button Grid.Column="1" Text="Refresh" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}"
                     components:ButtonIcon.Glyph="{x:Static local:IconFont.RefreshCw}"
                     SemanticProperties.Description="Refresh recipes from GitHub" />
         </Grid>
-        <RefreshView Grid.Row="3" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <Grid Grid.Row="3">
+        <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
             <CollectionView x:Name="recipeListCollectionView" ItemsSource="{Binding RecipeListItems}"
                             SelectionMode="Single" SelectionChanged="OnCollectionViewSelectionChanged">
                 <CollectionView.ItemsLayout>
                     <GridItemsLayout x:Name="RecipeGrid" Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="16" />
                 </CollectionView.ItemsLayout>
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout Padding="16,36" Spacing="12">
-                        <Image Source="nibbles_chef.png" HeightRequest="88" />
-                        <Label Text="{Binding EmptyTitle}" HorizontalTextAlignment="Center" Style="{StaticResource SectionHeading}" />
-                        <Label Text="Try another ingredient or a shorter phrase." IsVisible="{Binding IsSearching}"
-                               Style="{StaticResource MutedLabel}" HorizontalTextAlignment="Center" />
-                        <Button Text="Clear search" IsVisible="{Binding IsSearching}" Command="{Binding ClearSearchCommand}" Style="{StaticResource SecondaryButton}" />
-                    </VerticalStackLayout>
-                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:RecipeListItem">
                         <Border StrokeThickness="0">
@@ -69,7 +62,7 @@
                                        FontSize="14" MaxLines="2" MinimumHeightRequest="40" LineBreakMode="TailTruncation" />
                                 <Label Grid.Row="2" Text="{Binding MatchLabel}" IsVisible="{Binding HasMatch}" Margin="12,0,12,8"
                                        FontFamily="OpenSansSemibold" FontSize="12" />
-                                <Label Grid.Row="3" Text="{Binding MatchExcerpt}" IsVisible="{Binding HasMatch}" Margin="12,0,12,16"
+                                <Label Grid.Row="3" Text="{Binding MatchExcerpt}" IsVisible="{Binding HasMatchExcerpt}" Margin="12,0,12,16"
                                        FontSize="15" LineBreakMode="WordWrap" />
                             </Grid>
                         </Border>
@@ -77,6 +70,12 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </RefreshView>
+        <VerticalStackLayout IsVisible="{Binding IsEmpty}" Padding="16,36" Spacing="12" VerticalOptions="Center">
+            <Label Text="{Binding EmptyTitle}" HorizontalTextAlignment="Center" Style="{StaticResource SectionHeading}" />
+            <Button Text="Clear search" IsVisible="{Binding IsSearching}" Command="{Binding ClearSearchCommand}"
+                    Style="{StaticResource SecondaryButton}" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+        </Grid>
         <VerticalStackLayout Grid.Row="4" Spacing="8">
             <Label Text="Updating recipe search…" IsVisible="{Binding IsIndexing}" Style="{StaticResource MutedLabel}" FontSize="12" />
             <Button Text="Add recipe" components:ButtonIcon.Glyph="{x:Static local:IconFont.Plus}"

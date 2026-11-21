@@ -16,6 +16,7 @@ public partial class MainPageViewModel : ObservableObject
     public ObservableCollection<RecipeListItem> RecipeListItems { get; } = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial bool IsBusy { get; set; }
 
     [ObservableProperty]
@@ -33,11 +34,17 @@ public partial class MainPageViewModel : ObservableObject
     public partial string SearchQuery { get; set; } = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LibraryHeading))]
+    [NotifyPropertyChangedFor(nameof(EmptyTitle))]
+    public partial string? SelectedClassification { get; set; }
+
+    [ObservableProperty]
     public partial bool IsIndexing { get; set; }
 
     public bool IsSearching => !string.IsNullOrWhiteSpace(SearchQuery);
-    public string EmptyTitle => IsSearching ? "No saved matches" : "No recipes here yet";
-    public string RecipeCount => $"{RecipeListItems.Count} {(RecipeListItems.Count == 1 ? "recipe" : "recipes")}";
+    public string EmptyTitle => IsSearching || SelectedClassification is not null ? "No results" : "No recipes here yet";
+    public string LibraryHeading => SelectedClassification ?? "Your recipe box";
+    public bool IsEmpty => !IsBusy && RecipeListItems.Count == 0;
 
     public MainPageViewModel(ReceipeAPIService service)
     {
@@ -56,6 +63,8 @@ public partial class MainPageViewModel : ObservableObject
         OnPropertyChanged(nameof(EmptyTitle));
         SearchAfterTyping();
     }
+
+    partial void OnSelectedClassificationChanged(string? value) => PerformSearch();
 
     private async void SearchAfterTyping()
     {
@@ -88,6 +97,7 @@ public partial class MainPageViewModel : ObservableObject
             CanAdd = master.LoadedFromServer;
             StatusMessage = CanAdd ? "" : service.StatusMessage;
             IsIndexing = true;
+            searchIndex = null;
             try { searchIndex = await service.BuildSearchIndex(recipes); }
             catch (Exception exception)
             {
@@ -133,20 +143,22 @@ public partial class MainPageViewModel : ObservableObject
         if (!IsSearching)
         {
             foreach (var recipe in recipes)
-                RecipeListItems.Add(recipe);
+                if (SelectedClassification is null || recipe.Classification == SelectedClassification)
+                    RecipeListItems.Add(recipe);
         }
         else if (searchIndex is not null)
         {
             var byId = recipes.Where(recipe => recipe.Id is not null).ToDictionary(recipe => recipe.Id!);
-            foreach (var hit in searchIndex.Search(SearchQuery, cancellationToken))
+            foreach (var hit in searchIndex.Search(SearchQuery, cancellationToken, SelectedClassification))
                 if (byId.TryGetValue(hit.RecipeId, out var recipe))
                     RecipeListItems.Add(new RecipeListItem
                     {
-                        Id = recipe.Id, Title = recipe.Title, ImageData = recipe.ImageData,
-                        MatchLabel = hit.Label, MatchExcerpt = hit.Excerpt, MatchSection = hit.Section,
+                        Id = recipe.Id, Title = recipe.Title, ImageData = recipe.ImageData, Classification = recipe.Classification,
+                        MatchLabel = hit.Label is "Title" or "Ingredient" ? hit.Label + " match" : hit.Label,
+                        MatchExcerpt = hit.Excerpt, MatchSection = hit.Section,
                         MatchGroup = hit.GroupId, MatchStep = hit.Step
                     });
         }
-        OnPropertyChanged(nameof(RecipeCount));
+        OnPropertyChanged(nameof(IsEmpty));
     }
 }

@@ -191,7 +191,12 @@ public sealed class ReceipeAPIService
     {
         var recipes = new List<Recipe>();
         foreach (var item in items)
-            if (item.Id is not null) recipes.Add(await GetRecipe(item.Id) ?? throw new InvalidDataException("A downloaded recipe is missing."));
+            if (item.Id is not null)
+            {
+                var recipe = await GetRecipe(item.Id) ?? throw new InvalidDataException("A downloaded recipe is missing.");
+                item.Classification = recipe.Classification;
+                recipes.Add(recipe);
+            }
         return new RecipeSearchIndex(recipes);
     }
 

@@ -245,7 +245,7 @@ public sealed class GitHubRecipeTests : IDisposable
         var recipe = new AppRecipe
         {
             Id = Id, Title = " Soup\tand\nrice ", TimeToComplete = "legacy time", Source = "https://example.com",
-            Notes = "Keep me",
+            Notes = "Keep me", Classification = Nibbles.Models.RecipeClassifications.Mains,
             IngredientGroups = [new() { Id = "sauce", Name = " Sauce ", Order = 8 }],
             Ingredients = [new() { GroupId = "sauce", FQIngrediantDescription = "50ml cream", IsChecked = true, ScaledDescription = "100ml cream" }],
             Steps = [new() { Num = 99, Instructions = "Simmer." }]

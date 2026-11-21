@@ -78,18 +78,30 @@
                     <VerticalStackLayout IsVisible="{Binding IsDetails}" IsEnabled="{Binding IsEditingEnabled}" Spacing="16">
                         <Label Text="Recipe title *" FontFamily="OpenSansSemibold" />
                         <Border Style="{StaticResource Field}"><Entry Text="{Binding Recipe.Title}" Placeholder="What are we cooking?" SemanticProperties.Description="Recipe title, required" /></Border>
+                        <VerticalStackLayout x:Name="ClassificationField" Spacing="12">
+                            <Label Text="Classification *" FontFamily="OpenSansSemibold" />
+                            <components:ClassificationChoices x:Name="EditorClassificationChoices"
+                                                              SelectedClassification="{Binding Recipe.Classification, Mode=TwoWay}"
+                                                              AutomationId="EditorClassificationChoices" />
+                            <Border IsVisible="{Binding HasClassificationError}" Padding="12" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FCF0ED, Dark=#452C2A}">
+                                <Label Text="{Binding ClassificationError}" SemanticProperties.Description="{Binding ClassificationError}"
+                                       Style="{StaticResource ErrorLabel}" AutomationId="ClassificationError" />
+                            </Border>
+                        </VerticalStackLayout>
                         <Label Text="Original link or source" FontFamily="OpenSansSemibold" />
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <Border Style="{StaticResource Field}">
                                 <Entry Text="{Binding Recipe.Source}" Placeholder="Website, Instagram, TikTok, or your own recipe"
                                        Keyboard="Url" SemanticProperties.Description="Original source URL or manual source"
                                        AutomationId="RecipeSource" />
                             </Border>
-                            <Button Grid.Column="1" Text="Fetch" Command="{Binding FetchSourceCommand}" VerticalOptions="Start"
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Button Text="Fetch" Command="{Binding FetchSourceCommand}"
                                     components:ButtonIcon.Glyph="{x:Static local:IconFont.Download}"
-                                    MinimumWidthRequest="84" AutomationId="FetchSource" />
+                                    MinimumWidthRequest="100" AutomationId="FetchSource" />
+                            <Button Grid.Column="1" Text="Paste source text" components:ButtonIcon.Glyph="{x:Static local:IconFont.ClipboardPaste}"
+                                    Command="{Binding PasteSourceTextCommand}" Style="{StaticResource SecondaryButton}" />
                         </Grid>
-                        <Button Text="Paste source text" components:ButtonIcon.Glyph="{x:Static local:IconFont.ClipboardPaste}" Command="{Binding PasteSourceTextCommand}" Style="{StaticResource QuietButton}" HorizontalOptions="Start" />
                         <VerticalStackLayout IsVisible="{Binding IsPastingSource}" Spacing="12">
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Paste caption or recipe text" FontFamily="OpenSansSemibold" VerticalOptions="Center" />

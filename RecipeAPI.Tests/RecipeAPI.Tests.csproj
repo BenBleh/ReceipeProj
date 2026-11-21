@@ -20,6 +20,7 @@
     <Using Include="Xunit" />
     <ProjectReference Include="..\RecipeAPI\RecipeAPI.csproj" />
     <Compile Include="..\Nibbles\Models\Recipe.cs" Link="App\Recipe.cs" />
+    <Compile Include="..\Nibbles\Models\RecipeClassifications.cs" Link="App\RecipeClassifications.cs" />
     <Compile Include="..\Nibbles\Models\Ingredient.cs" Link="App\Ingredient.cs" />
     <Compile Include="..\Nibbles\Models\IngredientGroup.cs" Link="App\IngredientGroup.cs" />
     <Compile Include="..\Nibbles\Models\Step.cs" Link="App\Step.cs" />

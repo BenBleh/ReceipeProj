@@ -9,7 +9,7 @@ public sealed record RecipeSearchHit(string RecipeId, string Section, string Lab
 public sealed class RecipeSearchIndex
 {
     private sealed record Field(string Text, string Normalized, string Section, string Label, int Rank, int Step = -1, string? GroupId = null);
-    private sealed record Entry(string Id, string Title, Field[] Fields);
+    private sealed record Entry(string Id, string Title, string? Classification, Field[] Fields);
     private readonly Entry[] entries;
 
     public RecipeSearchIndex(IEnumerable<Recipe> recipes)
@@ -34,12 +34,14 @@ public sealed class RecipeSearchIndex
             Add(recipe.Notes, "notes", "Notes", 2);
             foreach (var step in recipe.Steps)
                 Add(step.Instructions, "method", $"Method · Step {step.Num + 1}", 3, step.Num);
-            return new Entry(recipe.Id ?? throw new InvalidDataException("A search recipe has no ID."), recipe.Title ?? "", [.. fields]);
+            return new Entry(recipe.Id ?? throw new InvalidDataException("A search recipe has no ID."), recipe.Title ?? "", recipe.Classification, [.. fields]);
         }).ToArray();
     }
 
-    public IReadOnlyList<RecipeSearchHit> Search(string query, CancellationToken cancellationToken = default)
+    public IReadOnlyList<RecipeSearchHit> Search(string query, CancellationToken cancellationToken = default, string? classification = null)
     {
+        if (classification is not null && !RecipeClassifications.IsValid(classification))
+            throw new ArgumentException("Unknown recipe classification.", nameof(classification));
         var terms = Normalize(query).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         if (terms.Length == 0)
             return [];
@@ -47,6 +49,8 @@ public sealed class RecipeSearchIndex
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (classification is not null && entry.Classification != classification)
+                continue;
             if (!terms.All(term => entry.Fields.Any(field => field.Normalized.Contains(term, StringComparison.Ordinal))))
                 continue;
             var field = entry.Fields.Where(field => terms.Any(term => field.Normalized.Contains(term, StringComparison.Ordinal)))

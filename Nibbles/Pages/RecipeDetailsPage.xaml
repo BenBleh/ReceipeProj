@@ -34,7 +34,11 @@
                             SemanticProperties.Description="Original recipe" ToolTipProperties.Text="Original recipe" Margin="0,0,8,8" />
                     <Button Text="Start cooking" IsVisible="{Binding IsFresh}" Clicked="StartCooking_Clicked" Margin="0,0,8,8" />
                     <Button Text="Resume cooking" IsVisible="{Binding HasResume}" Clicked="Resume_Clicked" Margin="0,0,8,8" />
-                    <Button Text="{Binding ScaleLabel}" Style="{StaticResource SecondaryButton}" Clicked="Scale_Clicked" Margin="0,0,0,8" />
+                    <HorizontalStackLayout Spacing="8" Margin="0,0,0,8">
+                        <Button Text="{Binding ScaleLabel}" Style="{StaticResource SecondaryButton}" Clicked="Scale_Clicked" />
+                        <components:ClassificationBadge Classification="{Binding Recipe.Classification}" VerticalOptions="Center"
+                                                        AutomationId="RecipeClassificationBadge" />
+                    </HorizontalStackLayout>
                 </FlexLayout>
                 <Label Text="Method amounts, temperatures and durations remain original." IsVisible="{Binding IsScaled}" Style="{StaticResource MutedLabel}" FontSize="13" />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">

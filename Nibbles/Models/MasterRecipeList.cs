@@ -20,6 +20,9 @@ namespace Nibbles.Models
         [JsonPropertyName("imageData")]
         public string? ImageData { get; set; }
 
+        [JsonPropertyName("classification")]
+        public string? Classification { get; set; }
+
         [JsonIgnore]
         public string? MatchLabel { get; set; }
         [JsonIgnore]
@@ -32,6 +35,8 @@ namespace Nibbles.Models
         public int MatchStep { get; set; } = -1;
         [JsonIgnore]
         public bool HasMatch => MatchSection is not null;
+        [JsonIgnore]
+        public bool HasMatchExcerpt => HasMatch && MatchSection != "title";
         [JsonIgnore]
         public ImageSource? ImageStream
         {

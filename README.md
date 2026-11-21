@@ -4,6 +4,27 @@ Vehicle to practice API creation and Agular/Typescript sites!
 The approved Nibbles redesign, assets, ingredient-group schema, and deployment
 notes are in [Design](Design/README.md).
 
+## Recipe classifications and yellow icon (1.10.0 private builds)
+
+Each recipe now requires **Mains**, **Sides**, **Sweets** or **Other**.
+The coloured bubbles below Search filter the library; text search further
+narrows that selection. Tapping the active bubble clears only the category.
+Details show the classification beside Scale, and the editor requires an
+explicit choice without guessing a default. Source fetching and pasting preserve
+that choice. The library no longer displays recipe counts.
+
+All 79 existing recipes received their approved classifications in
+`BenBleh/rfiles` commit `21d7adc5a0938fd166d8aef8a6c687713277cce9`
+(56 Mains, 11 Sides, 8 Sweets, 4 Other), preserving all other recipe content.
+The app icon restores its original pastel-yellow background, `#FFF6AB`;
+the chef-cat artwork and splash screen are unchanged.
+
+Private installers are under `artifacts\Nibbles\1.10.0`:
+`Nibbles-1.10.0-Windows-x64-Setup.exe` and `Nibbles-1.10.0-Android.apk`
+(Android version code 15, ARM64/x64, existing signing identity).
+These outputs contain private credentials and must not be uploaded publicly.
+`SHA256SUMS.txt` records their integrity hashes.
+
 ## UI polish and social covers (1.9.0 private builds)
 
 Page 14's approved UI is implemented: bundled Lucide action icons, centred

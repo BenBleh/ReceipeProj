@@ -33,6 +33,13 @@ public partial class AddEditViewModel : ObservableObject
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasClassificationError))]
+    public partial string ClassificationError { get; set; } = string.Empty;
+
+    public bool HasClassificationError => !string.IsNullOrEmpty(ClassificationError);
+    public event Action? ClassificationRequired;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     [NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
     [NotifyPropertyChangedFor(nameof(CanLeave))]
@@ -170,6 +177,8 @@ public partial class AddEditViewModel : ObservableObject
     private void RecipeChanged(object? sender, PropertyChangedEventArgs args)
     {
         if (args.PropertyName == nameof(Recipe.Source)) FetchSourceCommand.NotifyCanExecuteChanged();
+        if (args.PropertyName == nameof(Recipe.Classification) && RecipeClassifications.IsValid(Recipe.Classification))
+            ClassificationError = "";
     }
 
     [RelayCommand(CanExecute = nameof(CanFetchSource), AllowConcurrentExecutions = true)]
@@ -340,6 +349,7 @@ public partial class AddEditViewModel : ObservableObject
         RefreshSections();
         original = JsonSerializer.Serialize(Recipe);
         ErrorMessage = "";
+        ClassificationError = "";
         OnPropertyChanged(nameof(EditorTitle));
         IsReady = true;
     }
@@ -661,10 +671,17 @@ public partial class AddEditViewModel : ObservableObject
     private bool Validate()
     {
         ErrorMessage = string.Empty;
+        ClassificationError = string.Empty;
         if (string.IsNullOrWhiteSpace(Recipe.Title))
         {
             SelectedSection = 0;
             ErrorMessage = "Recipe title: give your recipe a name.";
+        }
+        else if (!RecipeClassifications.IsValid(Recipe.Classification))
+        {
+            SelectedSection = 0;
+            ClassificationError = RecipeClassifications.RequiredMessage;
+            ClassificationRequired?.Invoke();
         }
         else if (Recipe.Ingredients.Count == 0 || Recipe.Ingredients.Any(ingredient => string.IsNullOrWhiteSpace(ingredient.FQIngrediantDescription)))
         {
@@ -676,7 +693,7 @@ public partial class AddEditViewModel : ObservableObject
             SelectedSection = 2;
             ErrorMessage = "Method: add at least one step and complete or remove every empty step.";
         }
-        return !HasError;
+        return !HasError && !HasClassificationError;
     }
 
     [RelayCommand(CanExecute = nameof(CanSave))]

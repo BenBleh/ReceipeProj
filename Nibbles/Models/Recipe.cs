@@ -12,6 +12,9 @@ public partial class Recipe : ObservableObject
     public partial string? Title { get; set; }
 
     [ObservableProperty]
+    public partial string? Classification { get; set; }
+
+    [ObservableProperty]
     public partial string? TimeToComplete { get; set; }
 
     [ObservableProperty]

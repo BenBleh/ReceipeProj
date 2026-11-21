@@ -16,6 +16,7 @@ public partial class AddEditPage : ContentPage
         InitializeComponent();
         var viewModel = new AddEditViewModel(service, sourceService);
         viewModel.IngredientGroupMoved += RevealIngredientGroup;
+        viewModel.ClassificationRequired += RevealClassification;
         BindingContext = viewModel;
     }
 
@@ -109,6 +110,22 @@ public partial class AddEditPage : ContentPage
         catch (Exception exception)
         {
             ((AddEditViewModel)BindingContext).ErrorMessage = $"The ingredients were moved, but their group could not be shown. {exception.Message}";
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+    });
+
+    private void RevealClassification() => Dispatcher.Dispatch(async () =>
+    {
+        try
+        {
+            await Task.Delay(120);
+            await FormScroll.ScrollToAsync(ClassificationField, ScrollToPosition.Start, false);
+            EditorClassificationChoices.FocusChoice();
+            SemanticScreenReader.Default.Announce(Models.RecipeClassifications.RequiredMessage);
+        }
+        catch (Exception exception)
+        {
+            ((AddEditViewModel)BindingContext).ErrorMessage = $"Choose a classification in Details. Could not focus the choices. {exception.Message}";
             System.Diagnostics.Debug.WriteLine(exception);
         }
     });

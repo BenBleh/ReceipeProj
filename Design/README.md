@@ -1,7 +1,7 @@
 # Nibbles redesign
 
 `Nibbles-redesign.fig` is the editable OpenPencil design, containing the approved
-1.2.0 screens and the approved revisions below, updated through 1.9.0. Open it in OpenPencil to
+1.2.0 screens and the approved revisions below, updated through 1.10.0. Open it in OpenPencil to
 continue designing. `Nibbles-overview.png`, the screen overviews,
 and `previews` provide quick references; `assets` contains the approved mascot,
 recipe-photo references, app icon, and launch artwork.
@@ -18,6 +18,105 @@ links are available on recipe details. The original pink paws are retained in
 dark mode, with berry-coloured versions in light mode.
 Cooking time is no longer displayed or editable. Existing `TimeToComplete`
 metadata is retained only for lossless compatibility with stored recipes.
+
+## App icon background - page 04, implemented in 1.10.0
+
+Restore the app icon's original **pastel yellow `#FFF6AB`**, sampled from the
+pre-redesign icon in commit `a997404`, instead of peach/apricot `#F1C6A5`.
+Keep the existing chef-cat artwork, scale, placement and mask-safe area.
+Page **04 - Brand - Icon and launch** updates the opaque 1024 px master,
+iOS rounded preview, Android circular preview and adaptive background, and
+Windows small-icon preview. The icon colour is the same in light and dark mode.
+
+The design icon master and Android background exports in `assets` are updated;
+the [icon preview](previews/app-icon-1024.png) and
+[brand colour review](previews/app-icon-yellow-background.png) show the change.
+The app icon resource and generated Windows/Android icons now use this master;
+the Android adaptive background explicitly uses the same yellow.
+Splash/launch screens and the wider UI palette are unchanged.
+
+## Recipe classifications - page 15, implemented in 1.10.0
+
+Page **15 - Recipe classifications and filtering** designs one required
+classification per recipe: **Mains**, **Sides**, **Sweets** or **Other**.
+The approved design is implemented in the app and all existing recipes have
+their reviewed assignments.
+
+The library has four coloured pill bubbles directly below Search, in one row:
+forest green for Mains, cornflower blue for Sides, berry pink for Sweets and
+lavender for Other. Other includes drinks, standalone sauces, condiments and
+preparation bases that do not fit the meal categories. A stronger
+fill and check mark indicate the active filter, not colour alone. No selection
+shows all recipes; selecting another bubble switches the single active filter,
+and tapping the active bubble again clears it. The search query remains intact
+and searches only the selected classification. Clearing search retains the
+classification; returning from details retains both. No recipe or result counts
+are shown. Empty results use the generic **No results** heading and Clear search
+action. The gap below the classification row is 12 px before the recipe-section
+header row, on phone and Windows. Search includes a Lucide Search icon;
+Refresh uses a filled secondary-button surface with a centred Lucide RefreshCw
+icon and label, retaining a 48 px target and 12 px spacing before the cards.
+Routine instructional/helper text is removed from the library and editor
+screens; the reclaimed space moves recipes and editor fields upward. Behaviour
+notes outside the screen mockups are design handoff, not app UI.
+Sides replaces the earlier brown/amber treatment: pale blue `#E0EDFF` with
+`#4068AD` text when unselected, and `#4068AD` with white text when selected.
+Dark mode uses `#253955` / `#BBD4FF` unselected and `#9CBFFA` / `#172F51`
+selected.
+Other uses pale lavender `#EAE4F5` / `#68508E` when unselected and `#68508E`
+with white text when selected. Dark mode uses `#342B46` / `#D2C3EA`
+unselected and `#C9B7E6` / `#302340` selected. Phone bubbles are compact
+85 px-wide, 48 px-high targets with 8 px gaps in the 364 px content row;
+the four labels remain centred. There is still no separate All bubble.
+The Mains + "chicken" example includes a **Title match** on Creamy chicken and
+an **Ingredient match** on Crispy bao buns, with "400g chicken thigh" as its
+matched excerpt. Match context remains useful result content, not general
+instructions or a result count.
+
+Recipe details show a non-interactive classification badge immediately beside
+Scale, using the same category tint. The compact source/cooking/scale row
+remains; keep Scale and the badge adjacent when reflow is needed. The details
+photo crop and original paw controls are unchanged.
+
+In the editor's Details section, **Classification \*** follows Recipe title,
+before Source. New recipes have no default selection. Choose exactly one;
+tapping the selected editor choice does not deselect it. Save requires a valid
+classification as well as the existing required fields. Missing-value validation
+opens Details, focuses the choice row and announces "Choose Mains, Sides, Sweets
+or Other." Other is an explicit choice, not a default for missing selections.
+Fetching/pasting source text preserves the chosen classification.
+Changes remain draft-only until normal Save.
+Source actions use an icon-labelled primary **Fetch** button (`Download`) and
+a filled secondary **Paste source text** button (`ClipboardPaste`), side by
+side with a 12 px gap. Both centre their icon-label pair and retain 48 px
+minimum targets in light and dark themes.
+
+The user confirmed that **all existing recipes must be classified before this
+feature is released**, rather than leaving an unclassified backlog. Reviewed
+assignments were applied to all 79 recipes in `BenBleh/rfiles` commit
+`21d7adc5a0938fd166d8aef8a6c687713277cce9`: 56 Mains, 11 Sides,
+8 Sweets and 4 Other. All other content and non-recipe files are preserved.
+The [recipe classification review](Recipe-classification-review.md) retains
+the approved two-column assignments. Mockup examples remain illustrative;
+missing classifications in older caches remain readable, never silently
+defaulted, and require an explicit choice before saving.
+
+Light/dark phone states, an empty filtered search, Details, required/selected
+editor states, validation, a Windows filter strip and behaviour handoff are
+included, with an Other-selected dark library, an Other-selected Windows strip
+and an Other badge variant beside Scale. Targets remain at least 48 px; labels
+and icon-label pairs are centred.
+On unusually narrow screens or enlarged text, allow horizontal scrolling of the
+single filter row rather than wrapping it. Windows uses compact bubbles rather
+than stretching them across the window. The boards are static, not interactive.
+Existing Lucide navigation/actions, cooking and paw checkboxes remain unchanged.
+
+Review previews:
+
+- [Classification overview](previews/recipe-classifications-overview.png)
+- [Library filtering and search](previews/recipe-classifications-library.png)
+- [Classification beside Scale](previews/recipe-classifications-details.png)
+- [Required editor choice and validation](previews/recipe-classifications-editor.png)
 
 ## UI polish - approved and implemented in 1.9.0
 

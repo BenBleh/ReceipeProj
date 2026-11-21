@@ -139,6 +139,7 @@ public class RecipeSourceTests
         {
             Id = Guid.NewGuid().ToString(),
             Title = "Old title",
+            Classification = RecipeClassifications.Mains,
             Source = "My source",
             Notes = "Keep",
             ImagePath = "selected.jpg",
@@ -152,6 +153,7 @@ public class RecipeSourceTests
         draft.ApplyTo(target);
         Assert.Equal(id, target.Id);
         Assert.Equal("My source", target.Source);
+        Assert.Equal(RecipeClassifications.Mains, target.Classification);
         Assert.Equal("Keep", target.Notes);
         Assert.Equal("selected.jpg", target.ImagePath);
         Assert.Equal("photo", target.ImageData);

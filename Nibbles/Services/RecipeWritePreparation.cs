@@ -36,6 +36,8 @@ public static class RecipeWritePreparation
         if (!Guid.TryParseExact(recipe.Id, "D", out _)) throw new ArgumentException("The recipe ID must be a UUID.");
         recipe.Title = recipe.Title?.Replace("\r", "").Replace("\n", "").Replace("\t", " ").Trim();
         if (string.IsNullOrWhiteSpace(recipe.Title)) throw new ArgumentException("Give your recipe a title.");
+        if (!RecipeClassifications.IsValid(recipe.Classification))
+            throw new ArgumentException(RecipeClassifications.RequiredMessage);
         if (recipe.Ingredients.Count == 0 || recipe.Ingredients.Any(item => string.IsNullOrWhiteSpace(item.FQIngrediantDescription)))
             throw new ArgumentException("Add at least one ingredient and complete every ingredient.");
         if (recipe.Steps.Count == 0 || recipe.Steps.Any(step => step is null || string.IsNullOrWhiteSpace(step.Instructions)))
